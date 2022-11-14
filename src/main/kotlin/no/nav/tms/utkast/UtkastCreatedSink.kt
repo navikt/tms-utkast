@@ -1,4 +1,4 @@
-package no.nav.tms.utkast.varsel
+package no.nav.tms.utkast
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.tms.utkast.RapidMetricsProbe
 import no.nav.tms.utkast.database.UtkastRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,7 +26,10 @@ class UtkastCreatedSink(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        utkastRepository.createUtkast(packet)
+        utkastRepository.createUtkast(packet.toJson())
+        runBlocking {
+            rapidMetricsProbe.countUtkastReceived()
+        }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

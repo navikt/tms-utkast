@@ -6,24 +6,21 @@ import no.nav.personbruker.dittnav.common.metrics.MetricsReporter
 import no.nav.personbruker.dittnav.common.metrics.StubMetricsReporter
 import no.nav.personbruker.dittnav.common.metrics.influxdb.InfluxConfig
 import no.nav.personbruker.dittnav.common.metrics.influxdb.InfluxMetricsReporter
-import no.nav.tms.utkast.database.Database
 import no.nav.tms.utkast.config.Environment
 import no.nav.tms.utkast.config.Flyway
-import no.nav.tms.utkast.config.PostgresDatabase
+import no.nav.tms.utkast.database.PostgresDatabase
 import no.nav.tms.utkast.database.UtkastRepository
-import no.nav.tms.utkast.varsel.UtkastCreatedSink
 import java.util.concurrent.TimeUnit
 
 fun main() {
     val environment = Environment()
 
-    val database: Database = PostgresDatabase(environment)
     val rapidMetricsProbe = RapidMetricsProbe(resolveMetricsReporter(environment))
 
     startRapid(
         environment = environment,
         rapidMetricsProbe = rapidMetricsProbe,
-        utkastRepository = UtkastRepository(database)
+        utkastRepository = UtkastRepository(PostgresDatabase(environment).dataSource)
     )
 }
 

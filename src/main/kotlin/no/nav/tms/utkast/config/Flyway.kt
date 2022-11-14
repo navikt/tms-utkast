@@ -1,6 +1,7 @@
 package no.nav.tms.utkast.config
 
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.tms.utkast.database.PostgresDatabase
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 

@@ -1,9 +1,9 @@
 package no.nav.tms.utkast.database
 
-import no.nav.helse.rapids_rivers.JsonMessage
+import com.zaxxer.hikari.HikariDataSource
 
-class UtkastRepository(database: Database) {
-    fun createUtkast(packet: JsonMessage) {
+class UtkastRepository(val dataSource: HikariDataSource) {
+    fun createUtkast(packet: String) {
         TODO("Not yet implemented")
     }
 
