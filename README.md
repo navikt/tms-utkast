@@ -7,7 +7,5 @@ Backend for utkast-funksjonalitet på min side
 - eventId
 - link
 - tittel
-- tidspunktOpprettet
-- sistOppdatert
-- tidspunktSlettet
-- operation: {Update, Delete}
+
+eventname: created, updated, deleted
