@@ -4,6 +4,7 @@ import LocalPostgresDatabase
 import alleUtkast
 import io.kotest.matchers.shouldBe
 import kotliquery.sessionOf
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import testUtkast
 
@@ -13,6 +14,7 @@ internal class UtkastRepositoryTest {
     private val utkastRepository = UtkastRepository(ds)
     private val testFnr = "12345678910"
 
+    @Disabled
     @Test
     fun createUtkast() {
         utkastRepository.createUtkast(testUtkast(eventId = "qqeedd1", testFnr))
