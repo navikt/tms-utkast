@@ -35,6 +35,20 @@ private fun startRapid(
             utkastRepository = utkastRepository,
             rapidMetricsProbe = rapidMetricsProbe
         )
+        UtkastOperationSink(
+            rapidsConnection = this,
+            utkastRepository = utkastRepository,
+            rapidMetricsProbe = rapidMetricsProbe,
+            operationName = "updated",
+            operation = { eventId: String -> utkastRepository.updateUtkast(eventId) }
+        )
+        UtkastOperationSink(
+            rapidsConnection = this,
+            utkastRepository = utkastRepository,
+            rapidMetricsProbe = rapidMetricsProbe,
+            operationName = "deleted",
+            operation = { eventId: String -> utkastRepository.deleteUtkast(eventId) }
+        )
     }.apply {
         register(object : RapidsConnection.StatusListener {
             override fun onStartup(rapidsConnection: RapidsConnection) {
