@@ -1,4 +1,5 @@
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.tms.utkast.config.Database
@@ -52,3 +53,26 @@ class LocalPostgresDatabase private constructor() : Database {
             .migrate()
     }
 }
+
+internal fun Session.alleUtkast() = run(
+    queryOf("select * from utkast")
+        .map { row ->
+            row.string("packet")
+        }.asList
+)
+
+internal fun testUtkast(
+    eventId: String,
+    fnr: String,
+    eventName: String = "created",
+    link: String = "testlink",
+    tittel: String = "Utkasttittel"
+) = """
+    {
+     "@event_name": "$eventName",
+    "eventId": "$eventId",
+    "ident": "$fnr",
+    "link": "$link",
+    "tittel": "$tittel"
+    }
+""".trimIndent()
