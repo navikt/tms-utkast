@@ -20,7 +20,7 @@ fun main() {
     startRapid(
         environment = environment,
         rapidMetricsProbe = rapidMetricsProbe,
-        utkastRepository = UtkastRepository(PostgresDatabase(environment).dataSource)
+        utkastRepository = UtkastRepository(PostgresDatabase(environment))
     )
 }
 

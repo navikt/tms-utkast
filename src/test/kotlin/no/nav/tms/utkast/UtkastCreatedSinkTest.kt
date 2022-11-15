@@ -1,26 +1,31 @@
 package no.nav.tms.utkast
 
 import alleUtkast
-import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import kotliquery.sessionOf
+import kotliquery.queryOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.tms.utkast.database.UtkastRepository
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import testUtkast
 
 internal class UtkastCreatedSinkTest {
     private val database = LocalPostgresDatabase.cleanDb()
-    private val ds = database.dataSource
     private val testRapid = TestRapid()
     private val testFnr = "12345678910"
+
+    @AfterAll
+    fun cleanup() {
+        database.update {
+            queryOf("delete from utkast")
+        }
+    }
 
     @Test
     fun `plukker opp created events`() {
         UtkastCreatedSink(
             rapidsConnection = testRapid,
-            utkastRepository = UtkastRepository(ds),
+            utkastRepository = UtkastRepository(database),
             rapidMetricsProbe = mockk(relaxed = true)
         )
 
@@ -30,9 +35,7 @@ internal class UtkastCreatedSinkTest {
         testRapid.sendTestMessage(testUtkast(eventId = "qqeedd3", fnr = testFnr))
         testRapid.sendTestMessage(testUtkast(eventId = "qqeedd3", fnr = testFnr))
         testRapid.sendTestMessage(testUtkast(eventId = "qqeedd3", fnr = testFnr, eventName = "deleted"))
-
-        sessionOf(ds).alleUtkast().size shouldBe 5
-
+        database.list { alleUtkast }
     }
 }
 

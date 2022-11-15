@@ -1,5 +1,4 @@
 import com.zaxxer.hikari.HikariDataSource
-import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.tms.utkast.config.Database
@@ -19,10 +18,7 @@ class LocalPostgresDatabase private constructor() : Database {
         }
 
         fun cleanDb(): LocalPostgresDatabase {
-            sessionOf(instance.dataSource).run(
-                queryOf("delete from utkast").asExecute
-            )
-
+            instance.update { queryOf("delete from utkast") }
             return instance
         }
     }
@@ -54,12 +50,11 @@ class LocalPostgresDatabase private constructor() : Database {
     }
 }
 
-internal fun Session.alleUtkast() = run(
+internal val alleUtkast =
     queryOf("select * from utkast")
         .map { row ->
             row.string("packet")
         }.asList
-)
 
 internal fun testUtkast(
     eventId: String,
