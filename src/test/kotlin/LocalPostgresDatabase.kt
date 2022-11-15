@@ -39,7 +39,7 @@ class LocalPostgresDatabase private constructor() : Database {
             jdbcUrl = container.jdbcUrl
             username = container.username
             password = container.password
-            isAutoCommit = false
+            isAutoCommit = true
             validate()
         }
     }

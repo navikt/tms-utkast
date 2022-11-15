@@ -19,7 +19,7 @@ internal class UtkastRepositoryTest {
         utkastRepository.createUtkast(testUtkast(eventId = "qqeedd2", testFnr))
         utkastRepository.createUtkast(testUtkast(eventId = "qqeedd3", testFnr))
         sessionOf(ds).run(
-            queryOf("select * from utkast where packet->>fnr='?'", testFnr)
+            queryOf("select * from utkast")
                 .map { row ->
                     row.string("packet")
                 }.asList
