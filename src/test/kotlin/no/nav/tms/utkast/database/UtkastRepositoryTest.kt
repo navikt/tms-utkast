@@ -44,7 +44,7 @@ private fun testUtkast(
     {
     "@event_id": "$eventId",
     "@event_name": "$eventName",
-    "fnr": "$fnr",
+    "ident": "$fnr",
     "link": "$link",
     "tittel": "$tittel"
     }
