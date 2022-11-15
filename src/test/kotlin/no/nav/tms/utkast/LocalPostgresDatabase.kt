@@ -1,8 +1,9 @@
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.queryOf
-import kotliquery.sessionOf
 import no.nav.tms.utkast.config.Database
+import no.nav.tms.utkast.database.Utkast
 import org.flywaydb.core.Flyway
+import org.intellij.lang.annotations.Language
 import org.testcontainers.containers.PostgreSQLContainer
 
 class LocalPostgresDatabase private constructor() : Database {
@@ -51,23 +52,37 @@ class LocalPostgresDatabase private constructor() : Database {
 }
 
 internal val alleUtkast =
-    queryOf("select * from utkast")
+    queryOf("select packet->>'eventId' as eventId, sistendret, opprettet,slettet from utkast")
         .map { row ->
-            row.string("packet")
+            Utkast(
+                eventId = row.string("eventId"),
+                opprettet = row.localDateTime("opprettet"),
+                sistEndret = row.localDateTimeOrNull("sistendret"),
+                slettet = row.localDateTimeOrNull("slettet")
+            )
+
         }.asList
 
-internal fun testUtkast(
+@Language("JSON")
+internal fun createUtkastTestPacket(
     eventId: String,
     fnr: String,
-    eventName: String = "created",
     link: String = "testlink",
     tittel: String = "Utkasttittel"
 ) = """
     {
-     "@event_name": "$eventName",
+     "@event_name": "created",
     "eventId": "$eventId",
     "ident": "$fnr",
     "link": "$link",
     "tittel": "$tittel"
+    }
+""".trimIndent()
+
+@Language("JSON")
+internal fun updateUtkastTestPacket(eventId: String) = """
+    {
+    "@event_name":"updated",
+    "eventId": "$eventId"
     }
 """.trimIndent()

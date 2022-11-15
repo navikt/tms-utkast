@@ -14,5 +14,12 @@ class RapidMetricsProbe(private val metricsReporter: MetricsReporter) {
         )
     }
     private fun counterField(): Map<String, Int> = listOf("counter" to 1).toMap()
+    suspend fun countUtkastUpdated() {
+        metricsReporter.registerDataPoint(
+            measurementName = "$METRIC_NAMESPACE.utkast.updated",
+            fields = counterField(),
+            tags = mapOf()
+        )
+    }
 
 }
