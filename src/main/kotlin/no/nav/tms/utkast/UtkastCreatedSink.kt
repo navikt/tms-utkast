@@ -21,7 +21,7 @@ class UtkastCreatedSink(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "created") }
-            validate { it.requireKey("link","tittel","opprettet", "fnr")}
+            validate { it.requireKey("link","tittel","opprettet", "ident")}
         }.register(this)
     }
 

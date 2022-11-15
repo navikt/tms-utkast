@@ -13,20 +13,13 @@ internal class UtkastRepositoryTest {
     private val utkastRepository = UtkastRepository(ds)
     private val testFnr = "12345678910"
 
-    @AfterEach
-    fun cleanup() {
-        sessionOf(ds).run(
-            queryOf("delete from utkast").asExecute
-        )
-    }
-
     @Test
     fun createUtkast() {
         utkastRepository.createUtkast(testUtkast(eventId = "qqeedd1", testFnr))
         utkastRepository.createUtkast(testUtkast(eventId = "qqeedd2", testFnr))
         utkastRepository.createUtkast(testUtkast(eventId = "qqeedd3", testFnr))
         sessionOf(ds).run(
-            queryOf("select * from utkast where fnr='?'", testFnr)
+            queryOf("select * from utkast where packet->>fnr='?'", testFnr)
                 .map { row ->
                     row.string("packet")
                 }.asList
@@ -42,9 +35,9 @@ private fun testUtkast(
     tittel: String = "Utkasttittel"
 ) = """
     {
-    "@event_id": "$eventId",
-    "@event_name": "$eventName",
-    "fnr": "$fnr",
+     "@event_name": "$eventName",
+    "event_id": "$eventId",
+    "ident": "$fnr",
     "link": "$link",
     "tittel": "$tittel"
     }

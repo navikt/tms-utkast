@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS utkast(
 );
 
 CREATE INDEX ON utkast ((packet->'eventId'));
-CREATE INDEX ON utkast ((packet->'fnr'));
+CREATE INDEX ON utkast ((packet->'ident'));
 
 
