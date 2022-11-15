@@ -23,6 +23,15 @@ class UtkastRepository(private val database: Database) {
             )
         }
     }
+
+    fun deleteUtkast(eventId: String) {
+        database.update {
+            queryOf(
+                "UPDATE utkast SET slettet=:now WHERE packet->>'eventId'=:eventId",
+                mapOf("now" to LocalDateTimeHelper.nowAtUtc(), "eventId" to eventId)
+            )
+        }
+    }
 }
 
 private fun String.jsonB() = PGobject().apply {

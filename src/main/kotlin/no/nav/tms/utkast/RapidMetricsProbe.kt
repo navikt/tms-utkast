@@ -13,13 +13,13 @@ class RapidMetricsProbe(private val metricsReporter: MetricsReporter) {
             tags = mapOf()
         )
     }
-    private fun counterField(): Map<String, Int> = listOf("counter" to 1).toMap()
-    suspend fun countUtkastUpdated() {
+
+    suspend fun countUtkastChanged(operationName: String) {
         metricsReporter.registerDataPoint(
-            measurementName = "$METRIC_NAMESPACE.utkast.updated",
+            measurementName = "$METRIC_NAMESPACE.utkast.changed",
             fields = counterField(),
-            tags = mapOf()
+            tags = mapOf("operation" to operationName)
         )
     }
-
+    private fun counterField(): Map<String, Int> = listOf("counter" to 1).toMap()
 }

@@ -10,6 +10,7 @@ import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import createUtkastTestPacket
+import deleteUtkastTestPacket
 import org.junit.jupiter.api.BeforeAll
 import updateUtkastTestPacket
 
@@ -25,10 +26,19 @@ internal class UtkastSinkTest {
             utkastRepository = UtkastRepository(database),
             rapidMetricsProbe = mockk(relaxed = true)
         )
-        UtkastUpdatedSink(
+        UtkastOperationSink(
             rapidsConnection = testRapid,
             utkastRepository = UtkastRepository(database),
-            rapidMetricsProbe = mockk(relaxed = true)
+            rapidMetricsProbe = mockk(relaxed = true),
+            operationName = "updated",
+            operation = { eventId: String -> updateUtkast(eventId) }
+        )
+        UtkastOperationSink(
+            rapidsConnection = testRapid,
+            utkastRepository = UtkastRepository(database),
+            rapidMetricsProbe = mockk(relaxed = true),
+            operationName = "deleted",
+            operation = { eventId: String -> deleteUtkast(eventId) }
         )
     }
 
@@ -66,6 +76,26 @@ internal class UtkastSinkTest {
                 require(this != null)
                 this.sistEndret shouldNotBe null
                 this.slettet shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `plukker opp deleted events`() {
+        val oppdatertEventId = "qqeedd1"
+        val slettetEventId = "qqeedd99"
+
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = oppdatertEventId, fnr = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = slettetEventId, fnr = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", fnr = testFnr))
+        testRapid.sendTestMessage(updateUtkastTestPacket(oppdatertEventId))
+        testRapid.sendTestMessage(deleteUtkastTestPacket(slettetEventId))
+
+        database.list { alleUtkast }.assert {
+            size shouldBe 3
+            find { it.eventId == slettetEventId }.assert {
+                require(this != null)
+                this.slettet shouldNotBe null
             }
         }
     }

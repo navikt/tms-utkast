@@ -86,3 +86,11 @@ internal fun updateUtkastTestPacket(eventId: String) = """
     "eventId": "$eventId"
     }
 """.trimIndent()
+
+@Language("JSON")
+internal fun deleteUtkastTestPacket(eventId: String) = """
+    {
+    "@event_name":"deleted",
+    "eventId": "$eventId"
+    }
+""".trimIndent()

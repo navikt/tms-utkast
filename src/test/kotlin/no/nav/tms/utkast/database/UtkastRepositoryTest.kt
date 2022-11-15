@@ -32,7 +32,8 @@ internal class UtkastRepositoryTest {
         utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd3", testFnr))
         database.list { alleUtkast }.assert {
             size shouldBe 3
-            forEach { utkast -> null
+            forEach { utkast ->
+                null
                 utkast.opprettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 utkast.sistEndret shouldBe null
                 utkast.slettet shouldBe null
@@ -48,11 +49,27 @@ internal class UtkastRepositoryTest {
         utkastRepository.updateUtkast(testEventId)
         database.list { alleUtkast }.assert {
             size shouldBe 2
-           find { it.eventId == testEventId }.assert {
-               require(this != null)
-               sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
-               slettet shouldBe null
-           }
+            find { it.eventId == testEventId }.assert {
+                require(this != null)
+                sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
+                slettet shouldBe null
+            }
+
+        }
+    }
+
+    @Test
+    fun deleteUtkast() {
+        val testEventId = "77fhs"
+        utkastRepository.createUtkast(createUtkastTestPacket(eventId = testEventId, testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd2", testFnr))
+        utkastRepository.deleteUtkast(testEventId)
+        database.list { alleUtkast }.assert {
+            size shouldBe 2
+            find { it.eventId == testEventId }.assert {
+                require(this != null)
+                slettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
+            }
 
         }
     }
@@ -61,5 +78,5 @@ internal class UtkastRepositoryTest {
 private infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime) {
     require(this != null)
     this shouldBeAfter LocalDateTimeHelper.nowAtUtc().minusMinutes(2)
-    this shouldNotBeAfter  LocalDateTimeHelper.nowAtUtc()
+    this shouldNotBeAfter LocalDateTimeHelper.nowAtUtc()
 }
