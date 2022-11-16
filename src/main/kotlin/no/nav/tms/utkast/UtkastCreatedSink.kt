@@ -1,10 +1,10 @@
 package no.nav.tms.utkast
 
-import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.database.UtkastRepository
 
 
@@ -18,12 +18,15 @@ class UtkastCreatedSink(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "created") }
-            validate { it.requireKey("link", "eventId", "tittel")}
+            validate { it.requireKey("link", "eventId", "tittel", "ident")}
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        utkastRepository.createUtkast(packet.toJson())
+
+        packet.keepFields("eventId", "ident", "link", "tittel")
+            .toString()
+            .let { utkastRepository.createUtkast(it) }
 
         rapidMetricsProbe.countUtkastReceived()
     }

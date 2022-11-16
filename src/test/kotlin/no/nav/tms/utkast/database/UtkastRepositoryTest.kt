@@ -54,8 +54,7 @@ internal class UtkastRepositoryTest {
 
         val update = ObjectMapper().createObjectNode().apply {
             replace("tittel", TextNode.valueOf(oppdatertTittel))
-            replace("link", TextNode.valueOf("https://nei.takk"))
-        }
+        }.toString()
 
         utkastRepository.updateUtkast("123", update)
 
@@ -65,7 +64,7 @@ internal class UtkastRepositoryTest {
                 require(this != null)
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 slettet shouldBe null
-                //          tittel shouldBe oppdatertTittel
+                tittel shouldBe oppdatertTittel
             }
 
             find { it.eventId == "456" }.assert {
