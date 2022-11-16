@@ -1,3 +1,5 @@
+package no.nav.tms.utkast
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.queryOf
 import no.nav.tms.utkast.config.Database
@@ -9,7 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 class LocalPostgresDatabase private constructor() : Database {
 
     private val memDataSource: HikariDataSource
-    private val container = PostgreSQLContainer("postgres:12.6")
+    private val container = PostgreSQLContainer("postgres:14.5")
 
     companion object {
         private val instance by lazy {
@@ -52,10 +54,18 @@ class LocalPostgresDatabase private constructor() : Database {
 }
 
 internal val alleUtkast =
-    queryOf("select packet->>'eventId' as eventId, sistendret, opprettet,slettet from utkast")
+    queryOf("""
+        select 
+            packet->>'eventId' as eventId,
+            packet->>'tittel' as tittel,
+            packet->>'link' as link,
+            sistendret, opprettet, slettet 
+        from utkast""")
         .map { row ->
             Utkast(
                 eventId = row.string("eventId"),
+                tittel = row.string("tittel"),
+                link = row.string("link"),
                 opprettet = row.localDateTime("opprettet"),
                 sistEndret = row.localDateTimeOrNull("sistendret"),
                 slettet = row.localDateTimeOrNull("slettet")
