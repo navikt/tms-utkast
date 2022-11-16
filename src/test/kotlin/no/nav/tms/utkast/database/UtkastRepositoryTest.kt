@@ -33,7 +33,6 @@ internal class UtkastRepositoryTest {
         database.list { alleUtkast }.assert {
             size shouldBe 3
             forEach { utkast ->
-                null
                 utkast.opprettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 utkast.sistEndret shouldBe null
                 utkast.slettet shouldBe null
@@ -77,6 +76,6 @@ internal class UtkastRepositoryTest {
 
 private infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime) {
     require(this != null)
-    this shouldBeAfter LocalDateTimeHelper.nowAtUtc().minusMinutes(2)
-    this shouldNotBeAfter LocalDateTimeHelper.nowAtUtc()
+    this shouldBeAfter expected.minusMinutes(2)
+    this shouldNotBeAfter expected
 }
