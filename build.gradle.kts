@@ -56,7 +56,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("no.nav.tms.utkast.config.ApplicationKt")
+    mainClass.set("no.nav.tms.utkast.ApplicationKt")
 }
 
 tasks {
