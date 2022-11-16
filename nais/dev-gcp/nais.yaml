@@ -28,8 +28,8 @@ spec:
     - "https://tms-utkast-gcp.dev.nav.no"
   kafka:
     pool: nav-dev
-  token-x:
-    enabled:true
+  tokenx:
+    enabled: true
   gcp:
     sqlInstances:
       - name: utkast
