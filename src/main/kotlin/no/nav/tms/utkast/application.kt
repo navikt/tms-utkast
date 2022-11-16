@@ -1,6 +1,7 @@
 package no.nav.tms.utkast
 
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.rapids_rivers.RapidApplication.RapidApplicationConfig.Companion.fromEnv
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.personbruker.dittnav.common.metrics.MetricsReporter
 import no.nav.personbruker.dittnav.common.metrics.StubMetricsReporter
@@ -29,7 +30,9 @@ private fun startRapid(
     utkastRepository: UtkastRepository,
     rapidMetricsProbe: RapidMetricsProbe
 ) {
-    RapidApplication.create(environment.rapidConfig()).apply {
+    RapidApplication.Builder(fromEnv(environment.rapidConfig())).withKtorModule {
+        utkastApi(utkastRepository)
+    }.build().apply {
         UtkastCreatedSink(
             rapidsConnection = this,
             utkastRepository = utkastRepository,
