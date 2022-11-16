@@ -1,6 +1,5 @@
 package no.nav.tms.utkast
 
-import alleUtkast
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
@@ -9,10 +8,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import createUtkastTestPacket
-import deleteUtkastTestPacket
 import org.junit.jupiter.api.BeforeAll
-import updateUtkastTestPacket
 
 internal class UtkastSinkTest {
     private val database = LocalPostgresDatabase.cleanDb()
@@ -26,19 +22,15 @@ internal class UtkastSinkTest {
             utkastRepository = UtkastRepository(database),
             rapidMetricsProbe = mockk(relaxed = true)
         )
-        UtkastOperationSink(
+        UtkastUpdatedSink(
             rapidsConnection = testRapid,
             utkastRepository = UtkastRepository(database),
             rapidMetricsProbe = mockk(relaxed = true),
-            operationName = "updated",
-            operation = { eventId: String -> updateUtkast(eventId) }
         )
-        UtkastOperationSink(
+        UtkastDeletedSink(
             rapidsConnection = testRapid,
             utkastRepository = UtkastRepository(database),
             rapidMetricsProbe = mockk(relaxed = true),
-            operationName = "deleted",
-            operation = { eventId: String -> deleteUtkast(eventId) }
         )
     }
 

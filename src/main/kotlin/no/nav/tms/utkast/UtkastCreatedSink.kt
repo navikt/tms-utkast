@@ -24,9 +24,8 @@ class UtkastCreatedSink(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         utkastRepository.createUtkast(packet.toJson())
-        runBlocking {
-            rapidMetricsProbe.countUtkastReceived()
-        }
+
+        rapidMetricsProbe.countUtkastReceived()
     }
 }
 
