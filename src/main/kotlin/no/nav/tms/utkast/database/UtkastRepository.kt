@@ -11,7 +11,7 @@ class UtkastRepository(private val database: Database) {
     fun createUtkast(packet: String) =
         database.update {
             queryOf(
-                "INSERT INTO utkast (packet, opprettet) values (:packet,:opprettet)",
+                "INSERT INTO utkast (packet, opprettet) values (:packet,:opprettet) ON CONFLICT DO NOTHING",
                 mapOf("packet" to packet.jsonB(), "opprettet" to LocalDateTimeHelper.nowAtUtc())
             )
         }

@@ -30,6 +30,7 @@ internal class UtkastRepositoryTest {
     @Test
     fun createUtkast() {
         utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd1", testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd1", testFnr))
         utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd2", testFnr))
         utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd3", testFnr))
         database.list { alleUtkast }.assert {
