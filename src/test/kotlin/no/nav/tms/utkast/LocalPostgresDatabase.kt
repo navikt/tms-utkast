@@ -3,9 +3,9 @@ package no.nav.tms.utkast
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldNotBeAfter
+import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import no.nav.tms.utkast.config.Database
-import no.nav.tms.utkast.database.Utkast
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
 import org.testcontainers.containers.PostgreSQLContainer
@@ -57,13 +57,15 @@ class LocalPostgresDatabase private constructor() : Database {
 }
 
 internal val alleUtkast =
-    queryOf("""
+    queryOf(
+        """
         select 
             packet->>'eventId' as eventId,
             packet->>'tittel' as tittel,
             packet->>'link' as link,
             sistendret, opprettet, slettet 
-        from utkast""")
+        from utkast"""
+    )
         .map { row ->
             UtkastData(
                 eventId = row.string("eventId"),
@@ -108,12 +110,18 @@ internal fun deleteUtkastTestPacket(eventId: String) = """
     }
 """.trimIndent()
 
-internal infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime) {
-    require(this != null)
-    this shouldBeAfter expected.minusMinutes(2)
-    this shouldNotBeAfter expected
+internal infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime?) {
+    if (expected == null) {
+        this shouldBe null
+    } else {
+        require(this!=null)
+        this shouldBeAfter expected.minusMinutes(2)
+        this shouldNotBeAfter expected
+    }
+
 }
- internal data class UtkastData(
+
+internal data class UtkastData(
     val eventId: String,
     val tittel: String,
     val link: String,

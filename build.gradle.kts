@@ -44,6 +44,8 @@ dependencies {
     implementation(Ktor2.Server.auth)
     implementation(Ktor2.Server.authJwt)
     implementation(Ktor2.jackson)
+    implementation(Ktor2.TmsTokenSupport.tokenXValidation)
+    implementation(Ktor2.TmsTokenSupport.authenticationInstaller)
     implementation(Postgresql.postgresql)
     implementation(Prometheus.common)
     implementation(Prometheus.hotspot)
@@ -59,6 +61,8 @@ dependencies {
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Kotest.assertionsCore)
     testImplementation(Ktor2.Test.serverTestHost)
+    testImplementation(Ktor2.TmsTokenSupport.authenticationInstallerMock)
+    testImplementation(Ktor2.TmsTokenSupport.tokenXValidationMock)
 }
 
 application {
