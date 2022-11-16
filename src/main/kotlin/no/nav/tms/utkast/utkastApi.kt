@@ -1,6 +1,7 @@
 package no.nav.tms.utkast
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -35,6 +36,11 @@ internal fun Application.utkastApi(
                 get {
                     val ident = TokenXUserFactory.createTokenXUser(call).ident
                     call.respond(utkastRepository.getUtkast(ident))
+                }
+                get("antall"){
+                    val ident = TokenXUserFactory.createTokenXUser(call).ident
+                    val antall = utkastRepository.getUtkast(ident).size
+                    call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
                 }
             }
         }

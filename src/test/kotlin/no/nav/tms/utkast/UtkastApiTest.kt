@@ -53,7 +53,7 @@ class UtkastApiTest {
     }
 
     @Test
-    fun `henter alle utkast for bruker med ident`() {
+    fun `henter utkast for bruker med ident`() {
         testApplication {
             application { utkastApi(utkastRepository = utkastRepository, installAuthenticatorsFunction = {
                 installMockedAuthenticators {
@@ -65,6 +65,11 @@ class UtkastApiTest {
                     }
                 }
             } ) }
+
+            client.get("/utkast/antall").assert{
+                status shouldBe HttpStatusCode.OK
+                objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
+            }
             client.get("/utkast").assert {
                 status.shouldBe(HttpStatusCode.OK)
                 objectMapper.readTree(bodyAsText()).assert {
