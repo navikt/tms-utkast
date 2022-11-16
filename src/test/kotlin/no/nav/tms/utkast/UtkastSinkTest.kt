@@ -43,11 +43,11 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp created events`() {
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd1", fnr = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", fnr = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd3", fnr = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd4", fnr = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd5", fnr = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd1", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd3", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd4", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd5", ident = testFnr))
         database.list { alleUtkast }.assert {
             size shouldBe 5
             filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
@@ -59,8 +59,8 @@ internal class UtkastSinkTest {
     fun `plukker opp updated events`() {
         val testEventId = "qqeedd1"
 
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = testEventId, fnr = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", fnr = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = testEventId, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", ident = testFnr))
         testRapid.sendTestMessage(updateUtkastTestPacket(testEventId))
         database.list { alleUtkast }.assert {
             size shouldBe 2
@@ -77,9 +77,9 @@ internal class UtkastSinkTest {
         val oppdatertEventId = "qqeedd1"
         val slettetEventId = "qqeedd99"
 
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = oppdatertEventId, fnr = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = slettetEventId, fnr = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", fnr = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = oppdatertEventId, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = slettetEventId, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", ident = testFnr))
         testRapid.sendTestMessage(updateUtkastTestPacket(oppdatertEventId))
         testRapid.sendTestMessage(deleteUtkastTestPacket(slettetEventId))
 

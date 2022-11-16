@@ -48,11 +48,11 @@ dependencies {
 
     testImplementation(Junit.api)
     testImplementation(Junit.engine)
-    testImplementation(Junit.params)
     testImplementation(Mockk.mockk)
     testImplementation(TestContainers.postgresql)
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Kotest.assertionsCore)
+    testImplementation(Ktor2.Test.serverTestHost)
 }
 
 application {

@@ -1,12 +1,15 @@
 package no.nav.tms.utkast
 
 import com.zaxxer.hikari.HikariDataSource
+import io.kotest.matchers.date.shouldBeAfter
+import io.kotest.matchers.date.shouldNotBeAfter
 import kotliquery.queryOf
 import no.nav.tms.utkast.config.Database
 import no.nav.tms.utkast.database.Utkast
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
 import org.testcontainers.containers.PostgreSQLContainer
+import java.time.LocalDateTime
 
 class LocalPostgresDatabase private constructor() : Database {
 
@@ -76,14 +79,14 @@ internal val alleUtkast =
 @Language("JSON")
 internal fun createUtkastTestPacket(
     eventId: String,
-    fnr: String,
+    ident: String,
     link: String = "testlink",
     tittel: String = "Utkasttittel"
 ) = """
     {
      "@event_name": "created",
     "eventId": "$eventId",
-    "ident": "$fnr",
+    "ident": "$ident",
     "link": "$link",
     "tittel": "$tittel"
     }
@@ -104,3 +107,9 @@ internal fun deleteUtkastTestPacket(eventId: String) = """
     "eventId": "$eventId"
     }
 """.trimIndent()
+
+internal infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime) {
+    require(this != null)
+    this shouldBeAfter expected.minusMinutes(2)
+    this shouldNotBeAfter expected
+}

@@ -11,6 +11,7 @@ import no.nav.tms.utkast.alleUtkast
 import no.nav.tms.utkast.assert
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.createUtkastTestPacket
+import no.nav.tms.utkast.shouldBeCaSameAs
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -92,10 +93,4 @@ internal class UtkastRepositoryTest {
 
         }
     }
-}
-
-private infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime) {
-    require(this != null)
-    this shouldBeAfter expected.minusMinutes(2)
-    this shouldNotBeAfter expected
 }
