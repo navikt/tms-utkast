@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastUpdatedSink(
@@ -40,7 +41,7 @@ class UtkastUpdatedSink(
 
         fields.forEach { field ->
             get(field)
-                .takeUnless { it.isNull }
+                .takeUnless { it.isMissingOrNull()}
                 ?.let { objectNode.replace(field, it) }
         }
 

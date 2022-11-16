@@ -31,8 +31,6 @@ internal class UtkastSinkTest {
             rapidsConnection = testRapid,
             utkastRepository = UtkastRepository(database),
             rapidMetricsProbe = mockk(relaxed = true),
-            operationName = "deleted",
-            operation = { eventId: String -> deleteUtkast(eventId) }
         )
     }
 
