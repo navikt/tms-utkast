@@ -4,6 +4,7 @@ import no.nav.personbruker.dittnav.common.util.config.IntEnvVar.getEnvVarAsInt
 import no.nav.personbruker.dittnav.common.util.config.StringEnvVar.getEnvVar
 
 data class Environment(
+    val groupId: String = getEnvVar("GROUP_ID"),
     val dbHost: String = getEnvVar("DB_HOST"),
     val dbPort: String = getEnvVar("DB_PORT"),
     val dbName: String = getEnvVar("DB_DATABASE"),
@@ -25,7 +26,7 @@ data class Environment(
     ) {
     fun rapidConfig(): Map<String, String> = mapOf(
         "KAFKA_BROKERS" to aivenBrokers,
-        "KAFKA_CONSUMER_GROUP_ID" to "tms-utkast-v1",
+        "KAFKA_CONSUMER_GROUP_ID" to groupId,
         "KAFKA_RAPID_TOPIC" to rapidTopic,
         "KAFKA_KEYSTORE_PATH" to securityVars.aivenKeystorePath,
         "KAFKA_CREDSTORE_PASSWORD" to securityVars.aivenCredstorePassword,
