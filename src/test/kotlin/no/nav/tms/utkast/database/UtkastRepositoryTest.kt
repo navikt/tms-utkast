@@ -1,19 +1,19 @@
 package no.nav.tms.utkast.database
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
-import io.kotest.matchers.date.shouldBeAfter
-import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
 import no.nav.tms.utkast.LocalPostgresDatabase
 import no.nav.tms.utkast.alleUtkast
 import no.nav.tms.utkast.assert
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.createUtkastTestPacket
+import no.nav.tms.utkast.shouldBeCaSameAs
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 internal class UtkastRepositoryTest {
     private val database = LocalPostgresDatabase.cleanDb()
@@ -51,12 +51,8 @@ internal class UtkastRepositoryTest {
         utkastRepository.createUtkast(createUtkastTestPacket("456", testFnr, tittel = originalTittel))
 
         val oppdatertTittel = "Oppdatert tittel."
+        utkastRepository.updateUtkast("123", updateJson(oppdatertTittel).toString())
 
-        val update = ObjectMapper().createObjectNode().apply {
-            replace("tittel", TextNode.valueOf(oppdatertTittel))
-        }.toString()
-
-        utkastRepository.updateUtkast("123", update)
 
         database.list { alleUtkast }.assert {
             size shouldBe 2
@@ -91,10 +87,45 @@ internal class UtkastRepositoryTest {
 
         }
     }
+
+    @Test
+    fun `utkast for ident`() {
+        val eventId = "ajfslkf"
+        val excpectedTittel = "Utkast: Søknad om dagpenger"
+        val expectedLink = "https://utkast.test/$eventId"
+        val slettEventId = "77fii"
+        val oppdaterEventId = "77fhs"
+        utkastRepository.createUtkast(createUtkastTestPacket(eventId = slettEventId, testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(eventId = oppdaterEventId, testFnr))
+        utkastRepository.createUtkast(
+            createUtkastTestPacket(
+                eventId = eventId,
+                testFnr,
+                tittel = excpectedTittel,
+                link = expectedLink
+            )
+        )
+        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd8", ident = "99887766"))
+        utkastRepository.updateUtkast(oppdaterEventId, updateJson("shinyyyy").toString())
+        utkastRepository.deleteUtkast(slettEventId)
+
+        utkastRepository.getUtkast(testFnr).assert {
+            size shouldBe 2
+            find { utkast -> utkast.eventId == eventId }.assert {
+                require(this != null)
+                this.tittel shouldBe excpectedTittel
+                this.link shouldBe expectedLink
+            }
+            find { utkast -> utkast.eventId == oppdaterEventId }.assert {
+                require(this != null)
+                this.tittel shouldBe "shinyyyy"
+                this.sistEndret shouldNotBe null
+            }
+        }
+    }
 }
 
-private infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime) {
-    require(this != null)
-    this shouldBeAfter expected.minusMinutes(2)
-    this shouldNotBeAfter expected
+fun updateJson(oppdatertTittel: String): ObjectNode = ObjectMapper().createObjectNode().apply {
+    replace("tittel", TextNode.valueOf(oppdatertTittel))
+    replace("link", TextNode.valueOf("https://nei.takk"))
 }

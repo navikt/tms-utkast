@@ -18,7 +18,6 @@ class RapidMetricsProbe(private val metricsReporter: MetricsReporter) {
             tags = mapOf()
         )
     }
-
     fun countUtkastChanged(operationName: String) = IOScope.launch {
         metricsReporter.registerDataPoint(
             measurementName = "$METRIC_NAMESPACE.utkast.changed",
