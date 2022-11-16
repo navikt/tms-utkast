@@ -23,6 +23,7 @@ class UtkastApiTest {
     private val testRapid = TestRapid()
     private val metricksMock = mockk<RapidMetricsProbe>(relaxed = true)
     private val testFnr = "19873569100"
+    private val startTestTime = LocalDateTimeHelper.nowAtUtc()
 
     private val utkastForTestFnr = listOf(
         testUtkast(),
@@ -47,9 +48,10 @@ class UtkastApiTest {
     @Test
     fun `henter alle utkast for bruker med ident`() {
         testApplication {
+            application { utkastApi(utkastRepository) }
             client.get("/utkast").assert {
                 status.shouldBe(HttpStatusCode.OK)
-                objectMapper.readTree(bodyAsText())["utkast"].assert {
+                objectMapper.readTree(bodyAsText()).assert {
                     size() shouldBe 4
                     forEach { jsonNode ->
                         val eventId = jsonNode["eventId"].asText()
@@ -57,7 +59,6 @@ class UtkastApiTest {
                             utkastForTestFnr.find { it.eventId == eventId }
                                 ?: throw AssertionError("Fant utkast som ikke tilhører ident, eventid : $eventId")
                         jsonNode["link"].asText() shouldBe forventedeVerdier.link
-                        jsonNode["sistEndret"].asLocalDateTime() shouldBe forventedeVerdier.sistEndret
                         jsonNode["opprettet"].asLocalDateTime() shouldBeCaSameAs startTestTime
                     }
                 }
@@ -89,15 +90,12 @@ class UtkastApiTest {
         link = link,
         tittel = tittel
     )
+
+    private fun testUtkast() = Utkast(
+        eventId = UUID.randomUUID().toString(),
+        tittel = "Test tittel",
+        link = "https://test.link",
+        opprettet = startTestTime,
+        sistEndret = null,
+    )
 }
-
-private val startTestTime = LocalDateTimeHelper.nowAtUtc()
-
-private fun testUtkast() = Utkast(
-    eventId = UUID.randomUUID().toString(),
-    tittel = "Test tittel",
-    link = "https://test.link",
-    opprettet = startTestTime,
-    sistEndret = null,
-    slettet = null
-)

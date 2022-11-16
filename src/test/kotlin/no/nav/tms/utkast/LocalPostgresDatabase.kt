@@ -65,7 +65,7 @@ internal val alleUtkast =
             sistendret, opprettet, slettet 
         from utkast""")
         .map { row ->
-            Utkast(
+            UtkastData(
                 eventId = row.string("eventId"),
                 tittel = row.string("tittel"),
                 link = row.string("link"),
@@ -113,3 +113,11 @@ internal infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime) {
     this shouldBeAfter expected.minusMinutes(2)
     this shouldNotBeAfter expected
 }
+ internal data class UtkastData(
+    val eventId: String,
+    val tittel: String,
+    val link: String,
+    val opprettet: LocalDateTime,
+    val sistEndret: LocalDateTime?,
+    val slettet: LocalDateTime?
+)

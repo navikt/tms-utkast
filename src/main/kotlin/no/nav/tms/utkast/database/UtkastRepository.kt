@@ -37,6 +37,31 @@ class UtkastRepository(private val database: Database) {
             )
         }
     }
+
+    internal fun getUtkast(ident: String): List<Utkast> =
+        database.list {
+            queryOf(
+                """
+                    SELECT 
+                        packet->>'eventId' AS eventId,
+                        packet->>'tittel' AS tittel,
+                        packet->>'link' AS link,
+                        sistendret, opprettet
+                    FROM utkast
+                    WHERE packet->>'ident'=:ident AND slettet IS NULL""",
+                mapOf("ident" to ident)
+            )
+                .map { row ->
+                    Utkast(
+                        eventId = row.string("eventId"),
+                        tittel = row.string("tittel"),
+                        link = row.string("link"),
+                        opprettet = row.localDateTime("opprettet"),
+                        sistEndret = row.localDateTimeOrNull("sistendret"),
+                    )
+                }.asList
+        }
+
 }
 
 private fun String.jsonB() = PGobject().apply {
@@ -50,5 +75,4 @@ internal data class Utkast(
     val link: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
-    val slettet: LocalDateTime?
 )
