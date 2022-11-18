@@ -6,6 +6,7 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.tms.utkast.database.UtkastRepository
+import no.nav.tms.utkast.producer.PacketBuilder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeAll
@@ -17,21 +18,7 @@ internal class UtkastSinkTest {
 
     @BeforeAll
     fun setup() {
-        UtkastCreatedSink(
-            rapidsConnection = testRapid,
-            utkastRepository = UtkastRepository(database),
-            rapidMetricsProbe = mockk(relaxed = true)
-        )
-        UtkastUpdatedSink(
-            rapidsConnection = testRapid,
-            utkastRepository = UtkastRepository(database),
-            rapidMetricsProbe = mockk(relaxed = true),
-        )
-        UtkastDeletedSink(
-            rapidsConnection = testRapid,
-            utkastRepository = UtkastRepository(database),
-            rapidMetricsProbe = mockk(relaxed = true),
-        )
+        setupSinks(testRapid,UtkastRepository(database))
     }
 
     @AfterEach

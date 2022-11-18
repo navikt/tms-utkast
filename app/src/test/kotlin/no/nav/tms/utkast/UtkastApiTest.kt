@@ -27,7 +27,6 @@ class UtkastApiTest {
 
     private val utkastRepository = UtkastRepository(LocalPostgresDatabase.cleanDb())
     private val testRapid = TestRapid()
-    private val metricksMock = mockk<RapidMetricsProbe>(relaxed = true)
     private val testFnr = "19873569100"
     private val startTestTime = LocalDateTimeHelper.nowAtUtc()
 
@@ -41,7 +40,7 @@ class UtkastApiTest {
 
     @BeforeAll
     fun populate() {
-        setupSinks()
+        setupSinks(testRapid,utkastRepository)
         utkastForTestFnr.forEach {
             testRapid.sendTestMessage(it.toTestMessage())
         }
@@ -86,24 +85,6 @@ class UtkastApiTest {
                 }
             }
         }
-    }
-
-    private fun setupSinks() {
-        UtkastUpdatedSink(
-            rapidsConnection = testRapid,
-            utkastRepository = utkastRepository,
-            rapidMetricsProbe = metricksMock
-        )
-        UtkastDeletedSink(
-            rapidsConnection = testRapid,
-            utkastRepository = utkastRepository,
-            rapidMetricsProbe = metricksMock
-        )
-        UtkastCreatedSink(
-            rapidsConnection = testRapid,
-            utkastRepository = utkastRepository,
-            rapidMetricsProbe = metricksMock
-        )
     }
 
     private fun UtkastData.toTestMessage(ident: String = testFnr) = createUtkastTestPacket(
