@@ -71,6 +71,25 @@ internal class UtkastSinkTest {
     }
 
     @Test
+    fun `forkaster updated events med ugyldig data`() {
+        val utkastId1 = randomUUID()
+        val utkastId2 = randomUUID()
+        val utkastId3 = randomUUID()
+
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId1, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId2, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId3, ident = testFnr))
+        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1))
+        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, tittel = "Too long tittel".repeat(50)))
+        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, link = "Bad link"))
+        database.list { alleUtkast }.assert {
+            size shouldBe 3
+
+            filter { it.sistEndret != null }.size shouldBe 1
+        }
+    }
+
+    @Test
     fun `plukker opp deleted events`() {
         val oppdatertUtkastId = randomUUID()
         val slettetUtkastId = randomUUID()

@@ -95,10 +95,12 @@ internal fun createUtkastTestPacket(
 """.trimIndent()
 
 @Language("JSON")
-internal fun updateUtkastTestPacket(utkastId: String) = """
+internal fun updateUtkastTestPacket(utkastId: String, tittel: String? = null, link: String? = null) = """
     {
     "@event_name":"updated",
     "utkastId": "$utkastId"
+    ${if (tittel != null) ",\"tittel\": \"$tittel\"" else ""}
+    ${if (link != null) ",\"link\": \"$link\"" else ""}
     }
 """.trimIndent()
 

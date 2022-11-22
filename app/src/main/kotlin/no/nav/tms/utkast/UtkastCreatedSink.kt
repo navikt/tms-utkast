@@ -36,14 +36,15 @@ class UtkastCreatedSink(
     }
 
     private fun JsonNode.validate(): JsonNode {
-        val problems = mutableListOf<String?>()
 
-        problems += checkForProblems("utkastId", UtkastValidator::validateUtkastId)
-        problems += checkForProblems("ident", UtkastValidator::validateIdent)
-        problems += checkForProblems("tittel", UtkastValidator::validateTittel)
-        problems += checkForProblems("link", UtkastValidator::validateLink)
+        val potentialProblems = listOf (
+            checkForProblems("utkastId", UtkastValidator::validateUtkastId),
+            checkForProblems("ident", UtkastValidator::validateIdent),
+            checkForProblems("tittel", UtkastValidator::validateTittel),
+            checkForProblems("link", UtkastValidator::validateLink)
+        )
 
-        handleProblems(problems)
+        handleProblems(potentialProblems)
 
         return this
     }

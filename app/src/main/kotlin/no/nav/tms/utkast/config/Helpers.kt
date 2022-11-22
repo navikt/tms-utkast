@@ -32,7 +32,7 @@ object JsonMessageHelper {
 object JsonNodeHelper {
     fun JsonNode.checkForProblems(fieldName: String, validator: (String) -> Unit): String? {
         return try {
-            get(fieldName).textValue().let(validator)
+            get(fieldName)?.textValue()?.let(validator)
             null
         } catch (f: FieldValidationException) {
             f.message
