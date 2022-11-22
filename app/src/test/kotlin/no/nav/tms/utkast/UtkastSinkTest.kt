@@ -29,11 +29,11 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp created events`() {
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
         database.list { alleUtkast }.assert {
             size shouldBe 5
             filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
@@ -43,11 +43,11 @@ internal class UtkastSinkTest {
 
     @Test
     fun `forkaster created events med ugyldig data`() {
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "bad eventId", ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = "tooLongIdent"))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr, link = "bad link"))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr, tittel = "Too long tittel".repeat(100)))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = "bad utkastId", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = "tooLongIdent"))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, tittel = "Too long tittel".repeat(100)))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
         database.list { alleUtkast }.assert {
             size shouldBe 1
         }
@@ -55,14 +55,14 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp updated events`() {
-        val testEventId = randomUUID()
+        val testUtkastId = randomUUID()
 
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = testEventId, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(testEventId))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId))
         database.list { alleUtkast }.assert {
             size shouldBe 2
-            find { utkast -> utkast.eventId == testEventId }.assert {
+            find { utkast -> utkast.utkastId == testUtkastId }.assert {
                 require(this != null)
                 this.sistEndret shouldNotBe null
                 this.slettet shouldBe null
@@ -72,18 +72,18 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp deleted events`() {
-        val oppdatertEventId = randomUUID()
-        val slettetEventId = randomUUID()
+        val oppdatertUtkastId = randomUUID()
+        val slettetUtkastId = randomUUID()
 
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = oppdatertEventId, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = slettetEventId, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(oppdatertEventId))
-        testRapid.sendTestMessage(deleteUtkastTestPacket(slettetEventId))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = oppdatertUtkastId, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = slettetUtkastId, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(updateUtkastTestPacket(oppdatertUtkastId))
+        testRapid.sendTestMessage(deleteUtkastTestPacket(slettetUtkastId))
 
         database.list { alleUtkast }.assert {
             size shouldBe 3
-            find { it.eventId == slettetEventId }.assert {
+            find { it.utkastId == slettetUtkastId }.assert {
                 require(this != null)
                 this.slettet shouldNotBe null
             }

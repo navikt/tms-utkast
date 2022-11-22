@@ -19,7 +19,7 @@ class ProducerLibraryVerification {
     @Test
     fun `Bruker rikigtige felter i create`() {
         UtkastJsonBuilder.newBuilder()
-            .withEventId(UUID.randomUUID().toString())
+            .withUtkastId(UUID.randomUUID().toString())
             .withIdent("1122334455")
             .withTittel("Test tittel")
             .withLink("https://wattevs")
@@ -34,7 +34,7 @@ class ProducerLibraryVerification {
         val testId = UUID.randomUUID().toString()
 
         UtkastJsonBuilder.newBuilder()
-            .withEventId(testId)
+            .withUtkastId(testId)
             .withIdent("1122334455")
             .withLink("https://wattevs")
             .update()
@@ -48,7 +48,7 @@ class ProducerLibraryVerification {
         val testId = UUID.randomUUID().toString()
 
         UtkastJsonBuilder.newBuilder()
-            .withEventId(testId)
+            .withUtkastId(testId)
             .delete()
             .also { testRapid.sendTestMessage(it) }
 

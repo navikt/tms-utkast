@@ -17,7 +17,7 @@ class UtkastUpdatedSink(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "updated") }
-            validate { it.requireKey("eventId") }
+            validate { it.requireKey("utkastId") }
             validate { it.interestedIn("tittel", "link") }
         }.register(this)
     }
@@ -26,7 +26,7 @@ class UtkastUpdatedSink(
 
 
         utkastRepository.updateUtkast(
-            eventId = packet["eventId"].asText(),
+            utkastId = packet["utkastId"].asText(),
             update = packet.keepFields("tittel", "link").toString()
         )
 

@@ -9,18 +9,18 @@ import java.util.*
 internal class UtkastValidatorTest {
 
     @Test
-    fun `godtar kun UUID og ULID som eventId`() {
+    fun `godtar kun UUID og ULID som utkastId`() {
         val uuid = UUID.randomUUID().toString()
         val ulid = ULID().nextULID()
         val neither = "Hubba Bubba"
 
         shouldNotThrowAny {
-            UtkastValidator.validateEventId(uuid)
-            UtkastValidator.validateEventId(ulid)
+            UtkastValidator.validateUtkastId(uuid)
+            UtkastValidator.validateUtkastId(ulid)
         }
 
         shouldThrow<FieldValidationException> {
-            UtkastValidator.validateEventId(neither)
+            UtkastValidator.validateUtkastId(neither)
         }
     }
 

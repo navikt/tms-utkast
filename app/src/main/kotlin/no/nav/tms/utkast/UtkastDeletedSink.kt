@@ -16,12 +16,12 @@ class UtkastDeletedSink(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "deleted") }
-            validate { it.requireKey("eventId") }
+            validate { it.requireKey("utkastId") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        utkastRepository.deleteUtkast(packet["eventId"].asText())
+        utkastRepository.deleteUtkast(packet["utkastId"].asText())
         rapidMetricsProbe.countUtkastChanged("deleted")
     }
 }

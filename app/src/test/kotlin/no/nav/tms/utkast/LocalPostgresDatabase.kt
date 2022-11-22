@@ -60,7 +60,7 @@ internal val alleUtkast =
     queryOf(
         """
         select 
-            packet->>'eventId' as eventId,
+            packet->>'utkastId' as utkastId,
             packet->>'tittel' as tittel,
             packet->>'link' as link,
             sistendret, opprettet, slettet 
@@ -68,7 +68,7 @@ internal val alleUtkast =
     )
         .map { row ->
             UtkastData(
-                eventId = row.string("eventId"),
+                utkastId = row.string("utkastId"),
                 tittel = row.string("tittel"),
                 link = row.string("link"),
                 opprettet = row.localDateTime("opprettet"),
@@ -80,14 +80,14 @@ internal val alleUtkast =
 
 @Language("JSON")
 internal fun createUtkastTestPacket(
-    eventId: String,
+    utkastId: String,
     ident: String,
     link: String = "http://testlink",
     tittel: String = "Utkasttittel"
 ) = """
     {
      "@event_name": "created",
-    "eventId": "$eventId",
+    "utkastId": "$utkastId",
     "ident": "$ident",
     "link": "$link",
     "tittel": "$tittel"
@@ -95,18 +95,18 @@ internal fun createUtkastTestPacket(
 """.trimIndent()
 
 @Language("JSON")
-internal fun updateUtkastTestPacket(eventId: String) = """
+internal fun updateUtkastTestPacket(utkastId: String) = """
     {
     "@event_name":"updated",
-    "eventId": "$eventId"
+    "utkastId": "$utkastId"
     }
 """.trimIndent()
 
 @Language("JSON")
-internal fun deleteUtkastTestPacket(eventId: String) = """
+internal fun deleteUtkastTestPacket(utkastId: String) = """
     {
     "@event_name":"deleted",
-    "eventId": "$eventId"
+    "utkastId": "$utkastId"
     }
 """.trimIndent()
 
@@ -122,7 +122,7 @@ internal infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime?) {
 }
 
 internal data class UtkastData(
-    val eventId: String,
+    val utkastId: String,
     val tittel: String,
     val link: String,
     val opprettet: LocalDateTime,

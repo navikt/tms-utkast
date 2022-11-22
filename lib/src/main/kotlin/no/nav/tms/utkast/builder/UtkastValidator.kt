@@ -13,11 +13,11 @@ object UtkastValidator {
     const val tittelMaxLength = 120
     const val identMaxLength = 11
 
-    fun validateEventId(eventId: String): String {
-        if (UUID_PATTERN.containsMatchIn(eventId) || ULID_PATTERN.containsMatchIn(eventId)) {
-            return eventId
+    fun validateUtkastId(utkastId: String): String {
+        if (UUID_PATTERN.containsMatchIn(utkastId) || ULID_PATTERN.containsMatchIn(utkastId)) {
+            return utkastId
         } else {
-            throw FieldValidationException("Feltet `eventId` må enten være UUID eller ULID.")
+            throw FieldValidationException("Feltet `utkastId` må enten være UUID eller ULID.")
         }
     }
 

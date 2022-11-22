@@ -18,14 +18,14 @@ internal class UtkastJsonBuilderTest {
         val testTittel = "Bø på test"
 
         UtkastJsonBuilder.newBuilder()
-            .withEventId(testId)
+            .withUtkastId(testId)
             .withIdent(testIdent)
             .withLink(testLink)
             .withTittel(testTittel)
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name
-                getText("eventId") shouldBe testId
+                getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
                 getText("ident") shouldBe testIdent
                 getText("tittel") shouldBe testTittel
@@ -47,20 +47,20 @@ internal class UtkastJsonBuilderTest {
 
         shouldThrow<IllegalArgumentException> {
             UtkastJsonBuilder.newBuilder()
-                .withEventId(testId)
+                .withUtkastId(testId)
                 .create()
         }
 
         shouldThrow<IllegalArgumentException> {
             UtkastJsonBuilder.newBuilder()
-                .withEventId(testId)
+                .withUtkastId(testId)
                 .withIdent(testIdent)
                 .create()
         }
 
         shouldThrow<IllegalArgumentException> {
             UtkastJsonBuilder.newBuilder()
-                .withEventId(testId)
+                .withUtkastId(testId)
                 .withIdent(testIdent)
                 .withLink(testLink)
                 .create()
@@ -68,7 +68,7 @@ internal class UtkastJsonBuilderTest {
 
         shouldNotThrowAny{
             UtkastJsonBuilder.newBuilder()
-                .withEventId(testId)
+                .withUtkastId(testId)
                 .withIdent(testIdent)
                 .withLink(testLink)
                 .withTittel(testTittel)
@@ -83,40 +83,40 @@ internal class UtkastJsonBuilderTest {
         val testTittel = "Bø på test"
 
         UtkastJsonBuilder.newBuilder()
-            .withEventId(testId)
+            .withUtkastId(testId)
             .withTittel(testTittel)
             .withLink(testLink)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
-                getText("eventId") shouldBe testId
+                getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
                 getText("tittel") shouldBe testTittel
             }
 
         UtkastJsonBuilder.newBuilder()
-            .withEventId(testId)
+            .withUtkastId(testId)
             .withLink(testLink)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
-                getText("eventId") shouldBe testId
+                getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
             }
 
         UtkastJsonBuilder.newBuilder()
-            .withEventId(testId)
+            .withUtkastId(testId)
             .withTittel(testTittel)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
-                getText("eventId") shouldBe testId
+                getText("utkastId") shouldBe testId
                 getText("tittel") shouldBe testTittel
             }
     }
 
     @Test
-    fun `krever eventId felt for updated`() {
+    fun `krever utkastId felt for updated`() {
         val testId = UUID.randomUUID().toString()
 
 
@@ -127,7 +127,7 @@ internal class UtkastJsonBuilderTest {
 
         shouldNotThrowAny {
             UtkastJsonBuilder.newBuilder()
-                .withEventId(testId)
+                .withUtkastId(testId)
                 .update()
         }
     }
@@ -136,16 +136,16 @@ internal class UtkastJsonBuilderTest {
     fun `bygger deleted map json-objekt`(){
         val testId = UUID.randomUUID().toString()
         UtkastJsonBuilder.newBuilder()
-            .withEventId(testId)
+            .withUtkastId(testId)
             .delete()
             .assertJson {
                 getText("@event_name") shouldBe EventName.deleted.name
-                getText("eventId") shouldBe testId
+                getText("utkastId") shouldBe testId
             }
     }
 
     @Test
-    fun `krever eventId for deleted`() {
+    fun `krever utkastId for deleted`() {
 
         val testId = UUID.randomUUID().toString()
 
@@ -156,7 +156,7 @@ internal class UtkastJsonBuilderTest {
 
         shouldNotThrowAny {
             UtkastJsonBuilder.newBuilder()
-                .withEventId(testId)
+                .withUtkastId(testId)
                 .delete()
         }
     }

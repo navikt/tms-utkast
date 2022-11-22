@@ -15,24 +15,24 @@ class UtkastRepository(private val database: Database) {
             )
         }
 
-    fun updateUtkast(eventId: String, update: String) {
+    fun updateUtkast(utkastId: String, update: String) {
         database.update {
             queryOf(
-                "UPDATE utkast SET sistEndret=:now, packet=packet || :update WHERE packet->>'eventId'=:eventId",
+                "UPDATE utkast SET sistEndret=:now, packet=packet || :update WHERE packet->>'utkastId'=:utkastId",
                 mapOf(
                     "update" to update.jsonB(),
-                    "eventId" to eventId,
+                    "utkastId" to utkastId,
                     "now" to LocalDateTimeHelper.nowAtUtc()
                 )
             )
         }
     }
 
-    fun deleteUtkast(eventId: String) {
+    fun deleteUtkast(utkastId: String) {
         database.update {
             queryOf(
-                "UPDATE utkast SET slettet=:now WHERE packet->>'eventId'=:eventId",
-                mapOf("now" to LocalDateTimeHelper.nowAtUtc(), "eventId" to eventId)
+                "UPDATE utkast SET slettet=:now WHERE packet->>'utkastId'=:utkastId",
+                mapOf("now" to LocalDateTimeHelper.nowAtUtc(), "utkastId" to utkastId)
             )
         }
     }
@@ -42,7 +42,7 @@ class UtkastRepository(private val database: Database) {
             queryOf(
                 """
                     SELECT 
-                        packet->>'eventId' AS eventId,
+                        packet->>'utkastId' AS utkastId,
                         packet->>'tittel' AS tittel,
                         packet->>'link' AS link,
                         sistendret, opprettet
@@ -52,7 +52,7 @@ class UtkastRepository(private val database: Database) {
             )
                 .map { row ->
                     Utkast(
-                        eventId = row.string("eventId"),
+                        utkastId = row.string("utkastId"),
                         tittel = row.string("tittel"),
                         link = row.string("link"),
                         opprettet = row.localDateTime("opprettet"),
@@ -69,7 +69,7 @@ private fun String.jsonB() = PGobject().apply {
 }
 
 internal data class Utkast(
-    val eventId: String,
+    val utkastId: String,
     val tittel: String,
     val link: String,
     val opprettet: LocalDateTime,

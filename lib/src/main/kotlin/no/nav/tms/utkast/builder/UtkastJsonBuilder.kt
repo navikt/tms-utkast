@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.tms.utkast.builder.UtkastValidator.validateEventId
+import no.nav.tms.utkast.builder.UtkastValidator.validateUtkastId
 import no.nav.tms.utkast.builder.UtkastValidator.validateIdent
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
 import no.nav.tms.utkast.builder.UtkastValidator.validateTittel
@@ -12,7 +12,7 @@ import no.nav.tms.utkast.builder.UtkastValidator.validateTittel
 
 @Serializable
 class UtkastJsonBuilder internal constructor() {
-    private var eventId: String? = null
+    private var utkastId: String? = null
     private var ident: String? = null
     private var tittel: String? = null
     private var link: String? = null
@@ -23,8 +23,8 @@ class UtkastJsonBuilder internal constructor() {
         fun newBuilder() = UtkastJsonBuilder()
     }
 
-    fun withEventId(eventId: String) = apply {
-        this.eventId = validateEventId(eventId)
+    fun withUtkastId(utkastId: String) = apply {
+        this.utkastId = validateUtkastId(utkastId)
     }
 
     fun withIdent(ident: String) = apply {
@@ -40,7 +40,7 @@ class UtkastJsonBuilder internal constructor() {
     }
 
     fun create(): String {
-        requireNotNull(eventId)
+        requireNotNull(utkastId)
         requireNotNull(ident)
         requireNotNull(tittel)
         requireNotNull(link)
@@ -51,7 +51,7 @@ class UtkastJsonBuilder internal constructor() {
     }
 
     fun update(): String {
-        requireNotNull(eventId)
+        requireNotNull(utkastId)
 
         this.eventName = EventName.updated
 
@@ -59,7 +59,7 @@ class UtkastJsonBuilder internal constructor() {
     }
 
     fun delete(): String {
-        requireNotNull(eventId)
+        requireNotNull(utkastId)
 
         this.eventName = EventName.deleted
 

@@ -29,10 +29,10 @@ internal class UtkastRepositoryTest {
 
     @Test
     fun createUtkast() {
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd1", testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd1", testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd2", testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd3", testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd3", testFnr))
         database.list { alleUtkast }.assert {
             size shouldBe 3
             forEach { utkast ->
@@ -56,14 +56,14 @@ internal class UtkastRepositoryTest {
 
         database.list { alleUtkast }.assert {
             size shouldBe 2
-            find { it.eventId == "123" }.assert {
+            find { it.utkastId == "123" }.assert {
                 require(this != null)
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 slettet shouldBe null
                 tittel shouldBe oppdatertTittel
             }
 
-            find { it.eventId == "456" }.assert {
+            find { it.utkastId == "456" }.assert {
                 require(this != null)
                 sistEndret shouldBe null
                 slettet shouldBe null
@@ -74,13 +74,13 @@ internal class UtkastRepositoryTest {
 
     @Test
     fun deleteUtkast() {
-        val testEventId = "77fhs"
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = testEventId, testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd2", testFnr))
-        utkastRepository.deleteUtkast(testEventId)
+        val testUtkastId = "77fhs"
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
+        utkastRepository.deleteUtkast(testUtkastId)
         database.list { alleUtkast }.assert {
             size shouldBe 2
-            find { it.eventId == testEventId }.assert {
+            find { it.utkastId == testUtkastId }.assert {
                 require(this != null)
                 slettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
             }
@@ -90,33 +90,33 @@ internal class UtkastRepositoryTest {
 
     @Test
     fun `utkast for ident`() {
-        val eventId = "ajfslkf"
+        val utkastId = "ajfslkf"
         val excpectedTittel = "Utkast: Søknad om dagpenger"
-        val expectedLink = "https://utkast.test/$eventId"
-        val slettEventId = "77fii"
-        val oppdaterEventId = "77fhs"
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = slettEventId, testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = oppdaterEventId, testFnr))
+        val expectedLink = "https://utkast.test/$utkastId"
+        val slettUtkastId = "77fii"
+        val oppdaterUtkastId = "77fhs"
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = slettUtkastId, testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = oppdaterUtkastId, testFnr))
         utkastRepository.createUtkast(
             createUtkastTestPacket(
-                eventId = eventId,
+                utkastId = utkastId,
                 testFnr,
                 tittel = excpectedTittel,
                 link = expectedLink
             )
         )
-        utkastRepository.createUtkast(createUtkastTestPacket(eventId = "qqeedd8", ident = "99887766"))
-        utkastRepository.updateUtkast(oppdaterEventId, updateJson("shinyyyy").toString())
-        utkastRepository.deleteUtkast(slettEventId)
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd8", ident = "99887766"))
+        utkastRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
+        utkastRepository.deleteUtkast(slettUtkastId)
 
         utkastRepository.getUtkast(testFnr).assert {
             size shouldBe 2
-            find { utkast -> utkast.eventId == eventId }.assert {
+            find { utkast -> utkast.utkastId == utkastId }.assert {
                 require(this != null)
                 this.tittel shouldBe excpectedTittel
                 this.link shouldBe expectedLink
             }
-            find { utkast -> utkast.eventId == oppdaterEventId }.assert {
+            find { utkast -> utkast.utkastId == oppdaterUtkastId }.assert {
                 require(this != null)
                 this.tittel shouldBe "shinyyyy"
                 this.sistEndret shouldNotBe null
