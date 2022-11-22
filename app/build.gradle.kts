@@ -38,6 +38,7 @@ dependencies {
     implementation(Flyway.core)
     implementation(Hikari.cp)
     implementation(Influxdb.java)
+    implementation(KotlinLogging.logging)
     implementation(Ktor2.Server.core)
     implementation(Ktor2.Server.netty)
     implementation(Ktor2.Server.contentNegotiation)
@@ -52,7 +53,7 @@ dependencies {
     implementation(Prometheus.logback)
     implementation(RapidsAndRivers)
     implementation(kotliquery)
-
+    implementation(project(":lib"))
 
     testImplementation(Junit.api)
     testImplementation(Junit.engine)

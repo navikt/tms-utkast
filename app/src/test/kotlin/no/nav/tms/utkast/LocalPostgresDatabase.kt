@@ -82,7 +82,7 @@ internal val alleUtkast =
 internal fun createUtkastTestPacket(
     eventId: String,
     ident: String,
-    link: String = "testlink",
+    link: String = "http://testlink",
     tittel: String = "Utkasttittel"
 ) = """
     {

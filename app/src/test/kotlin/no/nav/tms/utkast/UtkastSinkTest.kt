@@ -2,14 +2,13 @@ package no.nav.tms.utkast
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.mockk
 import kotliquery.queryOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.tms.utkast.database.UtkastRepository
-import no.nav.tms.utkast.producer.PacketBuilder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeAll
+import java.util.*
 
 internal class UtkastSinkTest {
     private val database = LocalPostgresDatabase.cleanDb()
@@ -30,11 +29,11 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp created events`() {
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd1", ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd3", ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd4", ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd5", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
         database.list { alleUtkast }.assert {
             size shouldBe 5
             filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
@@ -43,11 +42,23 @@ internal class UtkastSinkTest {
     }
 
     @Test
+    fun `forkaster created events med ugyldig data`() {
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "bad eventId", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = "tooLongIdent"))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr, link = "bad link"))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr, tittel = "Too long tittel".repeat(100)))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
+        database.list { alleUtkast }.assert {
+            size shouldBe 1
+        }
+    }
+
+    @Test
     fun `plukker opp updated events`() {
-        val testEventId = "qqeedd1"
+        val testEventId = randomUUID()
 
         testRapid.sendTestMessage(createUtkastTestPacket(eventId = testEventId, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
         testRapid.sendTestMessage(updateUtkastTestPacket(testEventId))
         database.list { alleUtkast }.assert {
             size shouldBe 2
@@ -61,12 +72,12 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp deleted events`() {
-        val oppdatertEventId = "qqeedd1"
-        val slettetEventId = "qqeedd99"
+        val oppdatertEventId = randomUUID()
+        val slettetEventId = randomUUID()
 
         testRapid.sendTestMessage(createUtkastTestPacket(eventId = oppdatertEventId, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(eventId = slettetEventId, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(eventId = "qqeedd2", ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(eventId = randomUUID(), ident = testFnr))
         testRapid.sendTestMessage(updateUtkastTestPacket(oppdatertEventId))
         testRapid.sendTestMessage(deleteUtkastTestPacket(slettetEventId))
 
@@ -78,6 +89,8 @@ internal class UtkastSinkTest {
             }
         }
     }
+
+    private fun randomUUID() = UUID.randomUUID().toString()
 }
 
 internal inline fun <T> T.assert(block: T.() -> Unit): T =

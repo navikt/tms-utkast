@@ -1,10 +1,9 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-version="1.0.0"
 plugins {
-    // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.
     kotlin("jvm").version(Kotlin.version)
+    kotlin("plugin.serialization") version Kotlin.version
     `java-library`
 }
 
@@ -18,10 +17,12 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     testImplementation(Junit.api)
     testImplementation(Junit.engine)
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Kotest.assertionsCore)
+    testImplementation(ULID.sulkyUlid)
 }
 
 tasks {
