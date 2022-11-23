@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.*
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 
 
 internal class UtkastJsonBuilderTest {
@@ -17,7 +17,7 @@ internal class UtkastJsonBuilderTest {
         val testIdent = "12345678910"
         val testTittel = "Bø på test"
 
-        UtkastJsonBuilder.newBuilder()
+        UtkastJsonBuilder()
             .withUtkastId(testId)
             .withIdent(testIdent)
             .withLink(testLink)
@@ -41,25 +41,25 @@ internal class UtkastJsonBuilderTest {
 
 
         shouldThrow<IllegalArgumentException> {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .create()
         }
 
         shouldThrow<IllegalArgumentException> {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .withUtkastId(testId)
                 .create()
         }
 
         shouldThrow<IllegalArgumentException> {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .withUtkastId(testId)
                 .withIdent(testIdent)
                 .create()
         }
 
         shouldThrow<IllegalArgumentException> {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .withUtkastId(testId)
                 .withIdent(testIdent)
                 .withLink(testLink)
@@ -67,7 +67,7 @@ internal class UtkastJsonBuilderTest {
         }
 
         shouldNotThrowAny{
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .withUtkastId(testId)
                 .withIdent(testIdent)
                 .withLink(testLink)
@@ -82,7 +82,7 @@ internal class UtkastJsonBuilderTest {
         val testLink = "https://test.link"
         val testTittel = "Bø på test"
 
-        UtkastJsonBuilder.newBuilder()
+        UtkastJsonBuilder()
             .withUtkastId(testId)
             .withTittel(testTittel)
             .withLink(testLink)
@@ -94,7 +94,7 @@ internal class UtkastJsonBuilderTest {
                 getText("tittel") shouldBe testTittel
             }
 
-        UtkastJsonBuilder.newBuilder()
+        UtkastJsonBuilder()
             .withUtkastId(testId)
             .withLink(testLink)
             .update()
@@ -104,7 +104,7 @@ internal class UtkastJsonBuilderTest {
                 getText("link") shouldBe testLink
             }
 
-        UtkastJsonBuilder.newBuilder()
+        UtkastJsonBuilder()
             .withUtkastId(testId)
             .withTittel(testTittel)
             .update()
@@ -121,12 +121,12 @@ internal class UtkastJsonBuilderTest {
 
 
         shouldThrow<IllegalArgumentException> {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .update()
         }
 
         shouldNotThrowAny {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .withUtkastId(testId)
                 .update()
         }
@@ -135,7 +135,7 @@ internal class UtkastJsonBuilderTest {
     @Test
     fun `bygger deleted map json-objekt`(){
         val testId = UUID.randomUUID().toString()
-        UtkastJsonBuilder.newBuilder()
+        UtkastJsonBuilder()
             .withUtkastId(testId)
             .delete()
             .assertJson {
@@ -150,12 +150,12 @@ internal class UtkastJsonBuilderTest {
         val testId = UUID.randomUUID().toString()
 
         shouldThrow<IllegalArgumentException> {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .delete()
         }
 
         shouldNotThrowAny {
-            UtkastJsonBuilder.newBuilder()
+            UtkastJsonBuilder()
                 .withUtkastId(testId)
                 .delete()
         }
@@ -167,4 +167,6 @@ internal class UtkastJsonBuilderTest {
         }
 
     fun JsonObject.getText(field: String) = get(field)?.jsonPrimitive?.content
+
+    fun JsonObject.getMap(field: String) = get(field)?.jsonObject?.toMap()
 }
