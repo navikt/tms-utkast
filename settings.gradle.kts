@@ -8,3 +8,4 @@
  */
 
 rootProject.name = "tms-utkast"
+include("app", "lib")
