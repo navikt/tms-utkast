@@ -16,19 +16,22 @@ internal class UtkastJsonBuilderTest {
         val testLink = "https://test.link"
         val testIdent = "12345678910"
         val testTittel = "Bø på test"
+        val testTittelEngelsk = "Boo"
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
             .withIdent(testIdent)
             .withLink(testLink)
             .withTittel(testTittel)
+            .withTittel(testTittelEngelsk, Locale.ENGLISH)
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name
                 getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
                 getText("ident") shouldBe testIdent
-                getText("tittel") shouldBe testTittel
+                getMap("tittel")?.get("nb") shouldBe testTittel
+                getMap("tittel")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
     }
 
@@ -81,17 +84,20 @@ internal class UtkastJsonBuilderTest {
         val testId = UUID.randomUUID().toString()
         val testLink = "https://test.link"
         val testTittel = "Bø på test"
+        val testTittelEngelsk = "Boo"
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
             .withTittel(testTittel)
+            .withTittel(testTittelEngelsk, Locale.ENGLISH)
             .withLink(testLink)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
                 getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
-                getText("tittel") shouldBe testTittel
+                getMap("tittel")?.get("nb") shouldBe testTittel
+                getMap("tittel")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
 
         UtkastJsonBuilder()
@@ -111,7 +117,17 @@ internal class UtkastJsonBuilderTest {
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
                 getText("utkastId") shouldBe testId
-                getText("tittel") shouldBe testTittel
+                getMap("tittel")?.get("nb") shouldBe testTittel
+            }
+
+        UtkastJsonBuilder()
+            .withUtkastId(testId)
+            .withTittel(testTittelEngelsk, Locale.ENGLISH)
+            .update()
+            .assertJson {
+                getText("@event_name") shouldBe EventName.updated.name
+                getText("utkastId") shouldBe testId
+                getMap("tittel")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
     }
 
@@ -168,5 +184,5 @@ internal class UtkastJsonBuilderTest {
 
     fun JsonObject.getText(field: String) = get(field)?.jsonPrimitive?.content
 
-    fun JsonObject.getMap(field: String) = get(field)?.jsonObject?.toMap()
+    fun JsonObject.getMap(field: String) = get(field)?.jsonObject?.toMap()?.mapValues { (_,v) -> v.jsonPrimitive.content }
 }

@@ -22,12 +22,8 @@ class UtkastJsonBuilder {
         this.ident = validateIdent(ident)
     }
 
-    fun withTittel(tittel: String, locale: Locale? = null) = apply {
-        if (locale == null) {
-            tittelList += Tittel(tittel, "default")
-        } else {
-            tittelList += Tittel(tittel, locale)
-        }
+    fun withTittel(tittel: String, locale: Locale = Locale("nb")) = apply {
+        tittelList += Tittel(tittel, locale)
     }
 
     fun withLink(link: String) = apply {
@@ -38,7 +34,7 @@ class UtkastJsonBuilder {
         requireNotNull(utkastId)
         requireNotNull(ident)
         requireNotNull(link)
-        require(tittelList.find { it.language == "default" } != null)
+        require(tittelList.find { it.language == "nb" } != null)
 
         this.eventName = EventName.created
 
