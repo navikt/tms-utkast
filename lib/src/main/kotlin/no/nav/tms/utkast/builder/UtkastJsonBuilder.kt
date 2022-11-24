@@ -12,7 +12,7 @@ class UtkastJsonBuilder {
     private var link: String? = null
     private var eventName: EventName? = null
     private var origin: String = this::class.qualifiedName!!
-    private val tittelList = mutableListOf<Tittel>()
+    private val tittelByLanguage = mutableMapOf<String, String>()
 
     fun withUtkastId(utkastId: String) = apply {
         this.utkastId = validateUtkastId(utkastId)
@@ -23,7 +23,7 @@ class UtkastJsonBuilder {
     }
 
     fun withTittel(tittel: String, locale: Locale = Locale("nb")) = apply {
-        tittelList += Tittel(tittel, locale)
+        tittelByLanguage[locale.language] = tittel
     }
 
     fun withLink(link: String) = apply {
@@ -34,7 +34,7 @@ class UtkastJsonBuilder {
         requireNotNull(utkastId)
         requireNotNull(ident)
         requireNotNull(link)
-        require(tittelList.find { it.language == "nb" } != null)
+        require(tittelByLanguage["nb"] != null)
 
         this.eventName = EventName.created
 
@@ -59,9 +59,7 @@ class UtkastJsonBuilder {
 
     private fun serializeToJson(): String {
 
-        val tittelObject = tittelList.map { it.language to it.tittel }
-            .toMap()
-            .toJsonObject()
+        val tittelObject = tittelByLanguage.toJsonObject()
 
         val fields: MutableMap<String, Any?> = mutableMapOf(
             "utkastId" to utkastId,

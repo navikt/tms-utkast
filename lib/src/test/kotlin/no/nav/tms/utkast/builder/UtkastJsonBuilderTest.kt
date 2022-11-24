@@ -36,6 +36,30 @@ internal class UtkastJsonBuilderTest {
     }
 
     @Test
+    fun `tillater kun en tittel per språk`() {
+        val testId = UUID.randomUUID().toString()
+        val testLink = "https://test.link"
+        val testIdent = "12345678910"
+        val testTittel1 = "Bø på taket"
+        val testTittel2 = "Bø i kjelleren"
+
+        UtkastJsonBuilder()
+            .withUtkastId(testId)
+            .withIdent(testIdent)
+            .withLink(testLink)
+            .withTittel(testTittel1, Locale("nb"))
+            .withTittel(testTittel2, Locale("nb"))
+            .create()
+            .assertJson {
+                getText("@event_name") shouldBe EventName.created.name
+                getText("utkastId") shouldBe testId
+                getText("link") shouldBe testLink
+                getText("ident") shouldBe testIdent
+                getMap("tittel")?.get("nb") shouldBe testTittel2
+            }
+    }
+
+    @Test
     fun `krever alle felt for created`() {
         val testId = UUID.randomUUID().toString()
         val testLink = "https://test.link"
