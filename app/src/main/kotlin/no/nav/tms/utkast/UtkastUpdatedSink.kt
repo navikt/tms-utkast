@@ -21,13 +21,20 @@ class UtkastUpdatedSink(
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "updated") }
             validate { it.requireKey("utkastId") }
-            validate { it.interestedIn("tittel", "link") }
+            validate { it.interestedIn("tittel", "link", "tittel_i18n") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
         val utkastId = packet["utkastId"].asText()
+
+        packet.keepFields("tittel_i18n")
+            .takeIf { !it.isEmpty }
+            ?.validate()
+            ?.get("tittel_i18n")
+            ?.toString()
+            ?.let { utkastRepository.updateUtkastI18n(utkastId, it) }
 
         packet.keepFields("tittel", "link")
             .validate()
@@ -41,6 +48,7 @@ class UtkastUpdatedSink(
 
         val potentialProblems = listOf(
             checkForProblems("tittel", UtkastValidator::validateTittel),
+            checkForProblems("tittel_i18n", UtkastValidator::validateTittel),
             checkForProblems("link", UtkastValidator::validateLink)
         )
 

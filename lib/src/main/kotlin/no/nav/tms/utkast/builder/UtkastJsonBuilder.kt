@@ -12,6 +12,7 @@ class UtkastJsonBuilder {
     private var link: String? = null
     private var eventName: EventName? = null
     private var origin: String = this::class.qualifiedName!!
+    private var defaultTittel: String? = null
     private val tittelByLanguage = mutableMapOf<String, String>()
 
     fun withUtkastId(utkastId: String) = apply {
@@ -22,7 +23,11 @@ class UtkastJsonBuilder {
         this.ident = validateIdent(ident)
     }
 
-    fun withTittel(tittel: String, locale: Locale = Locale("nb")) = apply {
+    fun withTittel(tittel: String) = apply {
+        this.defaultTittel = tittel
+    }
+
+    fun withTittelI18n(tittel: String, locale: Locale) = apply {
         tittelByLanguage[locale.language] = tittel
     }
 
@@ -34,7 +39,7 @@ class UtkastJsonBuilder {
         requireNotNull(utkastId)
         requireNotNull(ident)
         requireNotNull(link)
-        require(tittelByLanguage["nb"] != null)
+        requireNotNull(defaultTittel)
 
         this.eventName = EventName.created
 
@@ -64,7 +69,8 @@ class UtkastJsonBuilder {
         val fields: MutableMap<String, Any?> = mutableMapOf(
             "utkastId" to utkastId,
             "ident" to ident,
-            "tittel" to tittelObject,
+            "tittel" to defaultTittel,
+            "tittel_i18n" to tittelObject,
             "link" to link,
             "@event_name" to eventName?.name,
             "@origin" to origin
@@ -73,14 +79,15 @@ class UtkastJsonBuilder {
         return fields.toJsonObject().toString()
     }
 
-    private fun Map<String, Any?>.toJsonObject(): JsonObject {
+    private fun Map<String, Any?>.toJsonObject(): JsonObject? {
         return filterValues { it != null }
-            .mapValues { (_, v) ->
+            .takeIf { it.isNotEmpty() }
+            ?.mapValues { (_, v) ->
                 when (v) {
                     is String -> JsonPrimitive(v)
                     is JsonObject -> v
                     else -> JsonPrimitive(v.toString())
                 }
-            }.let { JsonObject(it) }
+            }?.let { JsonObject(it) }
     }
 }

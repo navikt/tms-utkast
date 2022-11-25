@@ -1,5 +1,6 @@
 package no.nav.tms.utkast
 
+import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
@@ -17,7 +18,7 @@ internal class UtkastSinkTest {
 
     @BeforeAll
     fun setup() {
-        setupSinks(testRapid,UtkastRepository(database))
+        setupSinks(testRapid, UtkastRepository(database))
     }
 
     @AfterEach
@@ -34,6 +35,7 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+
         database.list { alleUtkast }.assert {
             size shouldBe 5
             filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
@@ -47,7 +49,9 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = "tooLongIdent"))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, tittel = "Too long tittel".repeat(100)))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, tittelI18n = mapOf("no" to "Too long tittel".repeat(100))))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+
         database.list { alleUtkast }.assert {
             size shouldBe 1
         }
@@ -55,17 +59,34 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp updated events`() {
-        val testUtkastId = randomUUID()
+        val testUtkastId1 = randomUUID()
+        val testUtkastId2 = randomUUID()
+        val nyTittel = "Ny tittel"
+        val tittelNo = "En tittel"
+        val nyTittelEn = "Other title"
 
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId1, ident = testFnr))
+        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId2, ident = testFnr, tittelI18n = mapOf("no" to tittelNo)))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId))
+        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId1, tittel = nyTittel))
+        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId2, tittelI18n = mapOf("en" to nyTittelEn)))
+
         database.list { alleUtkast }.assert {
-            size shouldBe 2
-            find { utkast -> utkast.utkastId == testUtkastId }.assert {
+            size shouldBe 3
+            find { utkast -> utkast.utkastId == testUtkastId1 }.assert {
                 require(this != null)
                 this.sistEndret shouldNotBe null
                 this.slettet shouldBe null
+                this.tittel shouldBe nyTittel
+                this.tittelI18n.isEmpty() shouldBe true
+            }
+
+            find { utkast -> utkast.utkastId == testUtkastId2 }.assert {
+                require(this != null)
+                this.sistEndret shouldNotBe null
+                this.slettet shouldBe null
+                this.tittelI18n shouldContain ("no" to tittelNo)
+                this.tittelI18n shouldContain ("en" to nyTittelEn)
             }
         }
     }
@@ -81,6 +102,7 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId3, ident = testFnr))
         testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1))
         testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, tittel = "Too long tittel".repeat(50)))
+        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, tittelI18n = mapOf("no" to "Too long tittel".repeat(50))))
         testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, link = "Bad link"))
         database.list { alleUtkast }.assert {
             size shouldBe 3

@@ -4,6 +4,10 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotliquery.queryOf
 import no.nav.tms.utkast.config.Database
 import org.flywaydb.core.Flyway
@@ -62,6 +66,7 @@ internal val alleUtkast =
         select 
             packet->>'utkastId' as utkastId,
             packet->>'tittel' as tittel,
+            packet->>'tittel_i18n' as tittel_i18n,
             packet->>'link' as link,
             sistendret, opprettet, slettet 
         from utkast"""
@@ -70,6 +75,7 @@ internal val alleUtkast =
             UtkastData(
                 utkastId = row.string("utkastId"),
                 tittel = row.string("tittel"),
+                tittelI18n = row.stringOrNull("tittel_i18n")?.let { Json.decodeFromString(it) } ?: emptyMap(),
                 link = row.string("link"),
                 opprettet = row.localDateTime("opprettet"),
                 sistEndret = row.localDateTimeOrNull("sistendret"),
@@ -82,8 +88,9 @@ internal val alleUtkast =
 internal fun createUtkastTestPacket(
     utkastId: String,
     ident: String,
-    link: String = "http://testlink",
-    tittel: String = "Utkasttittel"
+    tittel: String = "http://testlink",
+    tittelI18n: Map<String, String>? = null,
+    link: String = "http://testlink"
 ) = """
     {
      "@event_name": "created",
@@ -91,16 +98,18 @@ internal fun createUtkastTestPacket(
     "ident": "$ident",
     "link": "$link",
     "tittel": "$tittel"
+    ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
     }
 """.trimIndent()
 
 @Language("JSON")
-internal fun updateUtkastTestPacket(utkastId: String, tittel: String? = null, link: String? = null) = """
+internal fun updateUtkastTestPacket(utkastId: String, tittel: String? = null, link: String? = null, tittelI18n: Map<String, String>? = null) = """
     {
     "@event_name":"updated",
     "utkastId": "$utkastId"
     ${if (tittel != null) ",\"tittel\": \"$tittel\"" else ""}
     ${if (link != null) ",\"link\": \"$link\"" else ""}
+    ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
     }
 """.trimIndent()
 
@@ -120,12 +129,17 @@ internal infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime?) {
         this shouldBeAfter expected.minusMinutes(2)
         this shouldNotBeAfter expected
     }
-
 }
+
+private fun Map<String, String>.toJson(): String = mapValues { (_, v) ->
+        JsonPrimitive(v)
+    }.let { JsonObject(it) }
+    .toString()
 
 internal data class UtkastData(
     val utkastId: String,
     val tittel: String,
+    val tittelI18n: Map<String, String>,
     val link: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,

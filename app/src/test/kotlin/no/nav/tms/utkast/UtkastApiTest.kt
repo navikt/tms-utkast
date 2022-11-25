@@ -91,12 +91,14 @@ class UtkastApiTest {
         utkastId = utkastId,
         ident = ident,
         link = link,
-        tittel = tittel
+        tittel = tittel,
+
     )
 
     private fun testUtkastData() = UtkastData(
         utkastId = UUID.randomUUID().toString(),
-        tittel = "Test tittel",
+        tittel = "testTittel",
+        tittelI18n = mapOf("nb" to "Test tittel"),
         link = "https://test.link",
         opprettet = startTestTime,
         sistEndret = null,

@@ -73,6 +73,26 @@ internal class UtkastRepositoryTest {
     }
 
     @Test
+    fun updateTittelI18n() {
+        val originalTittelNo = "Original tittel."
+        utkastRepository.createUtkast(createUtkastTestPacket("123", testFnr, tittelI18n = mapOf("no" to originalTittelNo)))
+
+        val nyTittelEn =  "Original title."
+        utkastRepository.updateUtkastI18n("123", """{"en": "$nyTittelEn"}""")
+
+
+        database.list { alleUtkast }.assert {
+            find { it.utkastId == "123" }.assert {
+                require(this != null)
+                sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
+                slettet shouldBe null
+                tittelI18n["no"] shouldBe originalTittelNo
+                tittelI18n["en"] shouldBe nyTittelEn
+            }
+        }
+    }
+
+    @Test
     fun deleteUtkast() {
         val testUtkastId = "77fhs"
         utkastRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
@@ -92,6 +112,7 @@ internal class UtkastRepositoryTest {
     fun `utkast for ident`() {
         val utkastId = "ajfslkf"
         val excpectedTittel = "Utkast: Søknad om dagpenger"
+        val excpectedTittelEn = mapOf( "en" to "Draft: Application")
         val expectedLink = "https://utkast.test/$utkastId"
         val slettUtkastId = "77fii"
         val oppdaterUtkastId = "77fhs"
@@ -100,8 +121,9 @@ internal class UtkastRepositoryTest {
         utkastRepository.createUtkast(
             createUtkastTestPacket(
                 utkastId = utkastId,
-                testFnr,
+                ident = testFnr,
                 tittel = excpectedTittel,
+                tittelI18n = excpectedTittelEn,
                 link = expectedLink
             )
         )

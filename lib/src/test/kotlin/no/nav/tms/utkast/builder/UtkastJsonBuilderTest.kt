@@ -23,39 +23,36 @@ internal class UtkastJsonBuilderTest {
             .withIdent(testIdent)
             .withLink(testLink)
             .withTittel(testTittel)
-            .withTittel(testTittelEngelsk, Locale.ENGLISH)
+            .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name
                 getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
                 getText("ident") shouldBe testIdent
-                getMap("tittel")?.get("nb") shouldBe testTittel
-                getMap("tittel")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
+                getText("tittel") shouldBe testTittel
+                getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
     }
 
     @Test
     fun `tillater kun en tittel per språk`() {
-        val testId = UUID.randomUUID().toString()
-        val testLink = "https://test.link"
-        val testIdent = "12345678910"
-        val testTittel1 = "Bø på taket"
-        val testTittel2 = "Bø i kjelleren"
+        val testTittel = "Bø"
+        val testTittelTillegg1 = "Bø på taket"
+        val testTittelTillegg2 = "Bø i kjelleren"
 
         UtkastJsonBuilder()
-            .withUtkastId(testId)
-            .withIdent(testIdent)
-            .withLink(testLink)
-            .withTittel(testTittel1, Locale("nb"))
-            .withTittel(testTittel2, Locale("nb"))
+            .withUtkastId(UUID.randomUUID().toString())
+            .withIdent("12345678910")
+            .withLink("https://test.link")
+            .withTittel(testTittel)
+            .withTittelI18n(testTittelTillegg1, Locale("nb"))
+            .withTittelI18n(testTittelTillegg2, Locale("nb"))
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name
-                getText("utkastId") shouldBe testId
-                getText("link") shouldBe testLink
-                getText("ident") shouldBe testIdent
-                getMap("tittel")?.get("nb") shouldBe testTittel2
+                getText("tittel") shouldBe testTittel
+                getMap("tittel_i18n")?.get("nb") shouldBe testTittelTillegg2
             }
     }
 
@@ -113,15 +110,15 @@ internal class UtkastJsonBuilderTest {
         UtkastJsonBuilder()
             .withUtkastId(testId)
             .withTittel(testTittel)
-            .withTittel(testTittelEngelsk, Locale.ENGLISH)
+            .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
             .withLink(testLink)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
                 getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
-                getMap("tittel")?.get("nb") shouldBe testTittel
-                getMap("tittel")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
+                getText("tittel") shouldBe testTittel
+                getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
 
         UtkastJsonBuilder()
@@ -141,17 +138,17 @@ internal class UtkastJsonBuilderTest {
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
                 getText("utkastId") shouldBe testId
-                getMap("tittel")?.get("nb") shouldBe testTittel
+                getText("tittel") shouldBe testTittel
             }
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
-            .withTittel(testTittelEngelsk, Locale.ENGLISH)
+            .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
                 getText("utkastId") shouldBe testId
-                getMap("tittel")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
+                getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
     }
 
