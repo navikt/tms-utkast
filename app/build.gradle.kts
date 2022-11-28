@@ -25,13 +25,6 @@ repositories {
     mavenLocal()
 }
 
-sourceSets {
-    create("intTest") {
-        compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
-        runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
-    }
-}
-
 dependencies {
     implementation(DittNAV.Common.influxdb)
     implementation(DittNAV.Common.utils)
@@ -64,6 +57,7 @@ dependencies {
     testImplementation(Ktor2.Test.serverTestHost)
     testImplementation(Ktor2.TmsTokenSupport.authenticationInstallerMock)
     testImplementation(Ktor2.TmsTokenSupport.tokenXValidationMock)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     testImplementation(project(":lib"))
 }
 
@@ -95,6 +89,11 @@ tasks {
         main = application.mainClass.get()
         classpath = sourceSets["main"].runtimeClasspath
     }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 // TODO: Fjern følgende work around i ny versjon av Shadow-pluginet:

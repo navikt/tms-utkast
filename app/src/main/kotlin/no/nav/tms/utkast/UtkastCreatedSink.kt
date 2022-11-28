@@ -21,13 +21,14 @@ class UtkastCreatedSink(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "created") }
-            validate { it.requireKey("link", "utkastId", "tittel", "ident")}
+            validate { it.requireKey("link", "utkastId", "tittel", "ident") }
+            validate { it.interestedIn("tittel_i18n") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
-        packet.keepFields("utkastId", "ident", "link", "tittel")
+        packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n")
             .validate()
             .toString()
             .let { utkastRepository.createUtkast(it) }
@@ -41,6 +42,7 @@ class UtkastCreatedSink(
             checkForProblems("utkastId", UtkastValidator::validateUtkastId),
             checkForProblems("ident", UtkastValidator::validateIdent),
             checkForProblems("tittel", UtkastValidator::validateTittel),
+            checkForProblems("tittel_i18n", UtkastValidator::validateTittel),
             checkForProblems("link", UtkastValidator::validateLink)
         )
 

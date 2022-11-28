@@ -5,6 +5,7 @@ import no.nav.tms.utkast.config.Database
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
+import java.util.*
 
 class UtkastRepository(private val database: Database) {
     fun createUtkast(created: String) =
@@ -28,6 +29,29 @@ class UtkastRepository(private val database: Database) {
         }
     }
 
+    fun updateUtkastI18n(utkastId: String, tittelI18nUpdate: String) {
+        database.update {
+            queryOf(
+                """
+                UPDATE utkast SET sistEndret=:now, 
+                    packet = ( CASE 
+                        WHEN packet->'tittel_i18n' is not null
+                        THEN jsonb_set(packet, '{tittel_i18n}', packet->'tittel_i18n' || :update)                        
+                        WHEN packet->'tittel_i18n' is null
+                        THEN jsonb_insert(packet, '{tittel_i18n}', :update)
+                    END )
+                WHERE packet->>'utkastId'=:utkastId
+                """,
+                mapOf(
+                    "update" to tittelI18nUpdate.jsonB(),
+                    "utkastId" to utkastId,
+                    "now" to LocalDateTimeHelper.nowAtUtc()
+                )
+            )
+        }
+    }
+
+
     fun deleteUtkast(utkastId: String) {
         database.update {
             queryOf(
@@ -37,18 +61,18 @@ class UtkastRepository(private val database: Database) {
         }
     }
 
-    internal fun getUtkast(ident: String): List<Utkast> =
+    internal fun getUtkast(ident: String, locale: Locale? = null): List<Utkast> =
         database.list {
             queryOf(
                 """
                     SELECT 
                         packet->>'utkastId' AS utkastId,
-                        packet->>'tittel' AS tittel,
+                        coalesce(packet->'tittel_i18n'->>:locale, packet->>'tittel') AS tittel,
                         packet->>'link' AS link,
                         sistendret, opprettet
                     FROM utkast
                     WHERE packet->>'ident'=:ident AND slettet IS NULL""",
-                mapOf("ident" to ident)
+                mapOf("ident" to ident, "locale" to locale?.language)
             )
                 .map { row ->
                     Utkast(
@@ -60,7 +84,6 @@ class UtkastRepository(private val database: Database) {
                     )
                 }.asList
         }
-
 }
 
 private fun String.jsonB() = PGobject().apply {

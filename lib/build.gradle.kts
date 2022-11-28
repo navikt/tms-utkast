@@ -5,10 +5,11 @@ plugins {
     kotlin("jvm").version(Kotlin.version)
     kotlin("plugin.serialization") version Kotlin.version
     `java-library`
+    `maven-publish`
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 repositories {
@@ -31,6 +32,18 @@ tasks {
         testLogging {
             exceptionFormat = TestExceptionFormat.FULL
             events("passed", "skipped", "failed")
+        }
+    }
+}
+
+publishing {
+    repositories{
+        mavenLocal()
+    }
+
+    publications {
+        create<MavenPublication>("local") {
+            from(components["java"])
         }
     }
 }
