@@ -25,13 +25,6 @@ repositories {
     mavenLocal()
 }
 
-sourceSets {
-    create("intTest") {
-        compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
-        runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
-    }
-}
-
 dependencies {
     implementation(DittNAV.Common.influxdb)
     implementation(DittNAV.Common.utils)
