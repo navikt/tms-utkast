@@ -15,7 +15,10 @@ Backend for utkast-funksjonalitet på min side.
   "eventId": "<uuid>",
   "ident": "<fnr eller lignende>",
   "link": "<link til utkast>",
-  "tittel": "<tittel på utkast>"
+  "tittel": "<tittel på utkast>",
+  "tittel_i18n": {
+    "<språkkode>": "oversatt tittel"
+  }
 }
 ```
 ### delete
