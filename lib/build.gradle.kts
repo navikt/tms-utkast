@@ -35,3 +35,15 @@ tasks {
         }
     }
 }
+
+publishing {
+    repositories{
+        mavenLocal()
+    }
+
+    publications {
+        create<MavenPublication>("local") {
+            from(components["java"])
+        }
+    }
+}
