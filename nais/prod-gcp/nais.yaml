@@ -25,9 +25,9 @@ spec:
     max: 4
     cpuThresholdPercentage: 100
   ingresses:
-    - "https://tms-utkast-gcp.dev.nav.no"
+    - "https://tms-utkast-gcp.nav.no"
   kafka:
-    pool: nav-dev
+    pool: nav-prod
   tokenx:
     enabled: true
   accessPolicy:
@@ -41,7 +41,7 @@ spec:
         tier: db-f1-micro
         diskType: SSD
         diskSize: 10
-        diskAutoresize: false
+        diskAutoresize: true
         autoBackupTime: "03:00"
         databases:
           - name: utkast
