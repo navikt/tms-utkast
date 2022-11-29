@@ -12,7 +12,7 @@ Backend for utkast-funksjonalitet på min side.
 ```json
 {
   "@event_name": "<operasjon>",
-  "eventId": "<uuid>",
+  "utkastId": "<uuid>",
   "ident": "<fnr eller lignende>",
   "link": "<link til utkast>",
   "tittel": "<tittel på utkast>",
@@ -25,7 +25,7 @@ Backend for utkast-funksjonalitet på min side.
 ```json
 {
   "@event_name": "deleted",
-  "eventId": "<uuid>"
+  "utkastId": "<uuid>"
 }
 ```
 
