@@ -3,7 +3,7 @@ push:
   branches:
     - main
   paths:
-    - '.lib/src/main/**'
+    - 'lib/src/main/**'
 
 jobs:
   run-test:
@@ -21,6 +21,6 @@ jobs:
 
     - name: Tagg release
       run: |
-        TAG="$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')" 
+        TAG="$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')"
         git tag $TAG
         git push origin $TAG
