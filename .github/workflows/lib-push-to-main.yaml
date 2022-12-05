@@ -7,7 +7,6 @@ push:
 
 jobs:
   run-test:
-    -
     - name: Sjekk ut koden
       uses: actions/checkout@v3
 
