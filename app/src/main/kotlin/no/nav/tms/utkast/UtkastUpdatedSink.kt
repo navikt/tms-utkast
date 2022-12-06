@@ -37,7 +37,9 @@ class UtkastUpdatedSink(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val utkastId = packet["utkastId"].asText()
 
-        if(!packet["tittel_i18n"].isEmpty) utkastRepository.updateUtkastI18n(utkastId, packet["tittel_i18n"].toString())
+        packet["tittel_i18n"].takeIf { !it.isEmpty }
+            ?.toString()
+            ?.let { utkastRepository.updateUtkastI18n(utkastId, it) }
 
         packet.keepFields("tittel", "link")
             .toString()
