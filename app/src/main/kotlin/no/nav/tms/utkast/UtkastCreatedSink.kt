@@ -1,13 +1,14 @@
 package no.nav.tms.utkast
 
-import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import no.nav.helse.rapids_rivers.*
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
+import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.River
 import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
-import no.nav.tms.utkast.config.JsonNodeHelper.checkForProblems
 import no.nav.tms.utkast.database.UtkastRepository
-
 
 class UtkastCreatedSink(
     rapidsConnection: RapidsConnection,
@@ -16,58 +17,33 @@ class UtkastCreatedSink(
 ) :
     River.PacketListener {
 
-    val log = KotlinLogging.logger {}
+    private val log = KotlinLogging.logger {}
 
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "created") }
-            validate { it.requireKey("link", "utkastId", "tittel", "ident") }
-            validate { it.interestedIn("tittel_i18n") }
+            validate {
+                it.require("utkastId") { jsonNode -> UtkastValidator.validateUtkastId(jsonNode.textValue()) }
+                it.require("ident") { jsonNode -> UtkastValidator.validateIdent(jsonNode.textValue()) }
+                it.require("link") { jsonNode -> UtkastValidator.validateLink(jsonNode.textValue()) }
+                it.require("tittel") { jsonNode -> UtkastValidator.validateTittel(jsonNode.textValue()) }
+                it.interestedIn("tittel_i18n") { languages ->
+                    languages.forEach { title -> UtkastValidator.validateTittel(title.textValue()) }
+                }
+            }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-
         packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n")
-            .validate()
             .toString()
             .let { utkastRepository.createUtkast(it) }
 
         rapidMetricsProbe.countUtkastReceived()
     }
 
-    private fun JsonNode.validate(): JsonNode {
-
-        val potentialProblems = listOf (
-            checkForProblems("utkastId", UtkastValidator::validateUtkastId),
-            checkForProblems("ident", UtkastValidator::validateIdent),
-            checkForProblems("tittel", UtkastValidator::validateTittel),
-            checkForProblems("tittel_i18n", UtkastValidator::validateTittel),
-            checkForProblems("link", UtkastValidator::validateLink)
-        )
-
-        handleProblems(potentialProblems)
-
-        return this
-    }
-
-    private fun handleProblems(potentialProblems: List<String?>) {
-        val problems = potentialProblems.filterNotNull()
-            .takeIf { it.isNotEmpty() }
-
-        if (problems != null) {
-            val messageProblems = MessageProblems("Feil ved validering av utkast opprettet.")
-
-            problems.forEach {
-                messageProblems.severe(it)
-            }
-
-            throw MessageProblems.MessageException(messageProblems)
-        }
-    }
-
-    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
-        log.info("Valideringsfeil ved oppretting av utkast", error)
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        log.info(problems.toString())
     }
 }
 
