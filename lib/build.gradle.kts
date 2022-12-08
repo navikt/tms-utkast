@@ -39,10 +39,17 @@ tasks {
 publishing {
     repositories{
         mavenLocal()
+        maven {
+            url = uri("https://maven.pkg.github.com/navikt/tms-utkast")
+            credentials {
+                username = "x-access-token"
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 
     publications {
-        create<MavenPublication>("local") {
+        create<MavenPublication>("gpr") {
             from(components["java"])
         }
     }

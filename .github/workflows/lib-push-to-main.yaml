@@ -1,9 +1,10 @@
 name: Bygg og publiser bibliotek
-push:
-  branches:
-    - main
-  paths:
-    - 'lib/src/main/**'
+on:
+  push:
+    #branches:
+    #  - main
+    paths:
+      - 'lib/src/main/**'
 
 jobs:
   run-test:
@@ -18,8 +19,23 @@ jobs:
     - name: Bygg bibliotek
       run:  ./gradlew build
 
-    - name: Tagg release
+    - name: Finn versjon-navn
       run: |
-        TAG="$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')"
-        git tag $TAG
-        git push origin $TAG
+        VERSION_NAME="test-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')"
+        echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+
+    - name: Publish release
+      id: create_release
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.VERSION_NAME }}
+        release_name: ${{ env.VERSION_NAME }}
+        draft: false
+        prerelease: false
+
+    - name: Publish packages
+      run: gradle -Plib_version="${{ env.TAG_NAME }}" publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
