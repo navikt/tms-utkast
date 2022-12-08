@@ -14,6 +14,6 @@ tasks {
 val libraryVersion = properties["lib_version"] ?: "latest-local"
 
 subprojects {
-    group = "no.nav"
+    group = "no.nav.tms.utkast"
     version = libraryVersion
 }

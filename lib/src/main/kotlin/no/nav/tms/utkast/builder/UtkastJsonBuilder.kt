@@ -6,7 +6,6 @@ import no.nav.tms.utkast.builder.UtkastValidator.validateIdent
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
 import java.util.*
 
-//Dummy chang
 class UtkastJsonBuilder {
     private var utkastId: String? = null
     private var ident: String? = null

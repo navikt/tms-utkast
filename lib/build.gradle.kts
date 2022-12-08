@@ -50,6 +50,7 @@ publishing {
 
     publications {
         create<MavenPublication>("gpr") {
+            artifactId = "builder"
             from(components["java"])
         }
     }
