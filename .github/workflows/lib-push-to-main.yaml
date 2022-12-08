@@ -21,23 +21,14 @@ jobs:
       - name: Bygg bibliotek
         run:  ./gradlew build
 
-      - name: Finn versjon-navn
+      - name: Push tag
         run: |
           VERSION_NAME="test-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')"
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-
-      - name: Publish release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.VERSION_NAME }}
-          release_name: ${{ env.VERSION_NAME }}
-          draft: false
-          prerelease: false
+          git tag $VERSION_NAME
+          git push origin $VERSION_NAME
 
       - name: Publish packages
-        run: gradle -Plib_version="${{ env.TAG_NAME }}" publish
+        run: gradle -Plib_version="${{ env.VERSION_NAME }}" publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
