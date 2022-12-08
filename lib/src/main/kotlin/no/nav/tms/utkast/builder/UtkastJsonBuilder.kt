@@ -8,7 +8,6 @@ import no.nav.tms.utkast.builder.UtkastValidator.validateTittel
 import java.util.*
 
 class UtkastJsonBuilder {
-
     private var utkastId: String? = null
     private var ident: String? = null
     private var link: String? = null

@@ -54,6 +54,7 @@ publishing {
         create<MavenPublication>("gpr") {
             groupId = "no.nav.tms.utkast"
             artifactId = "builder"
+            version = libraryVersion
             from(components["java"])
         }
     }
