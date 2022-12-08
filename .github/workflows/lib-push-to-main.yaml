@@ -7,35 +7,37 @@ on:
       - 'lib/src/main/**'
 
 jobs:
-  run-test:
-    - name: Sjekk ut koden
-      uses: actions/checkout@v3
+  publish-lib:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sjekk ut koden
+        uses: actions/checkout@v3
 
-    - name: Setup java
-      uses: actions/setup-java@v1
-      with:
-        java-version: '17.x'
+      - name: Setup java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17.x'
 
-    - name: Bygg bibliotek
-      run:  ./gradlew build
+      - name: Bygg bibliotek
+        run:  ./gradlew build
 
-    - name: Finn versjon-navn
-      run: |
-        VERSION_NAME="test-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')"
-        echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+      - name: Finn versjon-navn
+        run: |
+          VERSION_NAME="test-$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')"
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
 
-    - name: Publish release
-      id: create_release
-      uses: actions/create-release@latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ env.VERSION_NAME }}
-        release_name: ${{ env.VERSION_NAME }}
-        draft: false
-        prerelease: false
+      - name: Publish release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION_NAME }}
+          release_name: ${{ env.VERSION_NAME }}
+          draft: false
+          prerelease: false
 
-    - name: Publish packages
-      run: gradle -Plib_version="${{ env.TAG_NAME }}" publish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish packages
+        run: gradle -Plib_version="${{ env.TAG_NAME }}" publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
