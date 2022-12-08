@@ -4,6 +4,7 @@ import kotlinx.serialization.json.*
 import no.nav.tms.utkast.builder.UtkastValidator.validateUtkastId
 import no.nav.tms.utkast.builder.UtkastValidator.validateIdent
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
+import no.nav.tms.utkast.builder.UtkastValidator.validateTittel
 import java.util.*
 
 class UtkastJsonBuilder {
@@ -24,11 +25,11 @@ class UtkastJsonBuilder {
     }
 
     fun withTittel(tittel: String) = apply {
-        this.defaultTittel = tittel
+        this.defaultTittel = validateTittel(tittel)
     }
 
     fun withTittelI18n(tittel: String, locale: Locale) = apply {
-        tittelByLanguage[locale.language] = tittel
+        tittelByLanguage[locale.language] = validateTittel(tittel)
     }
 
     fun withLink(link: String) = apply {
