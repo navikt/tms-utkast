@@ -10,10 +10,3 @@ tasks {
         enabled = false
     }
 }
-
-val libraryVersion = properties["lib_version"] ?: "latest-local"
-
-subprojects {
-    group = "no.nav.tms.utkast"
-    version = libraryVersion
-}

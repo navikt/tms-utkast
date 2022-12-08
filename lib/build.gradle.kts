@@ -36,6 +36,8 @@ tasks {
     }
 }
 
+val libraryVersion: String = properties["lib_version"]?.toString() ?: "latest-local"
+
 publishing {
     repositories{
         mavenLocal()
@@ -50,6 +52,7 @@ publishing {
 
     publications {
         create<MavenPublication>("gpr") {
+            groupId = "no.nav.tms.utkast"
             artifactId = "builder"
             from(components["java"])
         }
