@@ -50,6 +50,7 @@ publishing {
 
     publications {
         create<MavenPublication>("gpr") {
+            version = properties["lib_version"] ?: "latest-local"
             from(components["java"])
         }
     }
