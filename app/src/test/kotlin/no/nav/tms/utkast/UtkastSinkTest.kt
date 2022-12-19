@@ -48,7 +48,6 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = "bad utkastId", ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = "tooLongIdent"))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, tittel = "Too long tittel".repeat(100)))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, tittelI18n = mapOf("no" to "Too long tittel".repeat(100))))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
