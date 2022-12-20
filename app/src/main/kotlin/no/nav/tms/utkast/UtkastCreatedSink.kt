@@ -26,10 +26,8 @@ class UtkastCreatedSink(
                 it.require("utkastId") { jsonNode -> UtkastValidator.validateUtkastId(jsonNode.textValue()) }
                 it.require("ident") { jsonNode -> UtkastValidator.validateIdent(jsonNode.textValue()) }
                 it.require("link") { jsonNode -> UtkastValidator.validateLink(jsonNode.textValue()) }
-                it.require("tittel") { jsonNode -> UtkastValidator.validateTittel(jsonNode.textValue()) }
-                it.interestedIn("tittel_i18n") { languages ->
-                    languages.forEach { title -> UtkastValidator.validateTittel(title.textValue()) }
-                }
+                it.requireKey("tittel")
+                it.interestedIn("tittel_i18n")
             }
         }.register(this)
     }

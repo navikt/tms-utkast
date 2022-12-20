@@ -1,11 +1,11 @@
 package no.nav.tms.utkast.builder
 
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import no.nav.tms.utkast.builder.UtkastValidator.validateUtkastId
 import no.nav.tms.utkast.builder.UtkastValidator.validateIdent
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
-import no.nav.tms.utkast.builder.UtkastValidator.validateTittel
-import java.util.*
+import java.util.Locale
 
 class UtkastJsonBuilder {
     private var utkastId: String? = null
@@ -25,11 +25,11 @@ class UtkastJsonBuilder {
     }
 
     fun withTittel(tittel: String) = apply {
-        this.defaultTittel = validateTittel(tittel)
+        this.defaultTittel = tittel
     }
 
     fun withTittelI18n(tittel: String, locale: Locale) = apply {
-        tittelByLanguage[locale.language] = validateTittel(tittel)
+        tittelByLanguage[locale.language] = tittel
     }
 
     fun withLink(link: String) = apply {

@@ -10,7 +10,6 @@ object UtkastValidator {
     private const val BASE_32_ULID = "[0-9ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwxyz]"
     private val ULID_PATTERN = "^[0-7]$BASE_32_ULID{25}$".toRegex()
 
-    const val tittelMaxLength = 120
     const val identMaxLength = 11
 
     fun validateUtkastId(utkastId: String): String {
@@ -22,8 +21,6 @@ object UtkastValidator {
     }
 
     fun validateIdent(ident: String) = validateMaxLength(ident, "ident", identMaxLength)
-
-    fun validateTittel(tittel: String) = validateMaxLength(tittel, "tittel", tittelMaxLength)
 
     fun validateLink(link: String): String {
         try {

@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
-import no.nav.tms.utkast.builder.UtkastValidator.validateTittel
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.database.UtkastRepository
 
@@ -26,10 +25,8 @@ class UtkastUpdatedSink(
             validate { it.requireKey("utkastId") }
             validate {
                 it.interestedIn("link") { jsonNode -> validateLink(jsonNode.textValue()) }
-                it.interestedIn("tittel") { jsonNode -> validateTittel(jsonNode.textValue()) }
-                it.interestedIn("tittel_i18n") { languages ->
-                    languages.forEach { title -> validateTittel(title.textValue()) }
-                }
+                it.interestedIn("tittel")
+                it.interestedIn("tittel_i18n")
             }
         }.register(this)
     }

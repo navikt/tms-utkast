@@ -15,7 +15,7 @@ internal class UtkastJsonBuilderTest {
         val testId = UUID.randomUUID().toString()
         val testLink = "https://test.link"
         val testIdent = "12345678910"
-        val testTittel = "Bø på test"
+        val testTittel = "Bø på test".repeat(100)
         val testTittelEngelsk = "Boo"
 
         UtkastJsonBuilder()

@@ -48,8 +48,6 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = "bad utkastId", ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = "tooLongIdent"))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, tittel = "Too long tittel".repeat(100)))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, tittelI18n = mapOf("no" to "Too long tittel".repeat(100))))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
         database.list { alleUtkast }.assert {
@@ -101,8 +99,6 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId2, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId3, ident = testFnr))
         testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1))
-        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, tittel = "Too long tittel".repeat(50)))
-        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, tittelI18n = mapOf("no" to "Too long tittel".repeat(50))))
         testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, link = "Bad link"))
         database.list { alleUtkast }.assert {
             size shouldBe 3

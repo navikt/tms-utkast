@@ -25,20 +25,6 @@ internal class UtkastValidatorTest {
     }
 
     @Test
-    fun `godtar kun tittel innen en viss lenge`() {
-        val short = "abc"
-        val long = "a".repeat(UtkastValidator.tittelMaxLength + 1)
-
-        shouldNotThrowAny {
-            UtkastValidator.validateTittel(short)
-        }
-
-        shouldThrow<FieldValidationException> {
-            UtkastValidator.validateTittel(long)
-        }
-    }
-
-    @Test
     fun `godtar ikke ugyldig lenke`() {
         val validLink = "http://some.domain"
         val invalidLink = "htp::/some.domain"
