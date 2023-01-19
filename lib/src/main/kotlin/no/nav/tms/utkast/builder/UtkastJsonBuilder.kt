@@ -15,6 +15,8 @@ class UtkastJsonBuilder {
     private var origin: String = this::class.qualifiedName!!
     private var defaultTittel: String? = null
     private val tittelByLanguage = mutableMapOf<String, String>()
+    private var metrics: MutableMap<String, String>? = null
+
 
     fun withUtkastId(utkastId: String) = apply {
         this.utkastId = validateUtkastId(utkastId)
@@ -35,6 +37,10 @@ class UtkastJsonBuilder {
     fun withLink(link: String) = apply {
         this.link = validateLink(link)
     }
+    fun withMetrics(skjemnavn: String, skjemakode: String) = apply {
+        this.metrics = mutableMapOf("skjemanavn" to skjemnavn, "skjemakode" to skjemakode )
+    }
+
 
     fun create(): String {
         requireNotNull(utkastId)
@@ -76,6 +82,8 @@ class UtkastJsonBuilder {
             "@event_name" to eventName?.name,
             "@origin" to origin
         )
+        if(metrics!=null)
+            fields.put("metrics", Pair("metrics",metrics))
 
         return fields.toJsonObject().toString()
     }
