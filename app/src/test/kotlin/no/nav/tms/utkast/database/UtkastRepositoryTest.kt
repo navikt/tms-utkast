@@ -29,7 +29,7 @@ internal class UtkastRepositoryTest {
 
     @Test
     fun createUtkast() {
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
+        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", ident = testFnr))
         utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
         utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
         utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd3", testFnr))
@@ -47,7 +47,14 @@ internal class UtkastRepositoryTest {
     fun updateUtkast() {
 
         val originalTittel = "Original tittel."
-        utkastRepository.createUtkast(createUtkastTestPacket("123", testFnr, tittel = originalTittel))
+        utkastRepository.createUtkast(
+            createUtkastTestPacket(
+                "123",
+                testFnr,
+                tittel = originalTittel,
+                metrics = metrics("11-08", "Skjemnavn med Å")
+            )
+        )
         utkastRepository.createUtkast(createUtkastTestPacket("456", testFnr, tittel = originalTittel))
 
         val oppdatertTittel = "Oppdatert tittel."
@@ -61,6 +68,8 @@ internal class UtkastRepositoryTest {
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 slettet shouldBe null
                 tittel shouldBe oppdatertTittel
+                metrics!!["skjemakode"] shouldBe "11-08"
+                metrics!!["skjemanavn"]shouldBe "Skjemnavn med Å"
             }
 
             find { it.utkastId == "456" }.assert {
@@ -68,6 +77,7 @@ internal class UtkastRepositoryTest {
                 sistEndret shouldBe null
                 slettet shouldBe null
                 tittel shouldBe originalTittel
+                metrics shouldBe null
             }
         }
     }
@@ -75,9 +85,15 @@ internal class UtkastRepositoryTest {
     @Test
     fun updateTittelI18n() {
         val originalTittelNo = "Original tittel."
-        utkastRepository.createUtkast(createUtkastTestPacket("123", testFnr, tittelI18n = mapOf("no" to originalTittelNo)))
+        utkastRepository.createUtkast(
+            createUtkastTestPacket(
+                "123",
+                testFnr,
+                tittelI18n = mapOf("no" to originalTittelNo)
+            )
+        )
 
-        val nyTittelEn =  "Original title."
+        val nyTittelEn = "Original title."
         utkastRepository.updateUtkastI18n("123", """{"en": "$nyTittelEn"}""")
 
 
@@ -112,7 +128,7 @@ internal class UtkastRepositoryTest {
     fun `utkast for ident`() {
         val utkastId = "ajfslkf"
         val excpectedTittel = "Utkast: Søknad om dagpenger"
-        val excpectedTittelEn = mapOf( "en" to "Draft: Application")
+        val excpectedTittelEn = mapOf("en" to "Draft: Application")
         val expectedLink = "https://utkast.test/$utkastId"
         val slettUtkastId = "77fii"
         val oppdaterUtkastId = "77fhs"
@@ -135,8 +151,8 @@ internal class UtkastRepositoryTest {
             size shouldBe 2
             find { utkast -> utkast.utkastId == utkastId }.assert {
                 require(this != null)
-                this.tittel shouldBe excpectedTittel
-                this.link shouldBe expectedLink
+                tittel shouldBe excpectedTittel
+                link shouldBe expectedLink
             }
             find { utkast -> utkast.utkastId == oppdaterUtkastId }.assert {
                 require(this != null)
@@ -151,3 +167,11 @@ fun updateJson(oppdatertTittel: String): ObjectNode = ObjectMapper().createObjec
     replace("tittel", TextNode.valueOf(oppdatertTittel))
     replace("link", TextNode.valueOf("https://nei.takk"))
 }
+
+
+fun metrics(skjemakode: String, skjemanavn: String) = """
+        "metrics": {
+         "skjemakode": "$skjemakode",
+         "skjemanavn": "$skjemanavn"
+        }
+""".trimIndent()

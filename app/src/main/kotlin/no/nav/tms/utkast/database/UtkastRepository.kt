@@ -1,5 +1,6 @@
 package no.nav.tms.utkast.database
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.queryOf
 import no.nav.tms.utkast.config.Database
 import no.nav.tms.utkast.config.LocalDateTimeHelper
@@ -69,6 +70,7 @@ class UtkastRepository(private val database: Database) {
                         packet->>'utkastId' AS utkastId,
                         coalesce(packet->'tittel_i18n'->>:locale, packet->>'tittel') AS tittel,
                         packet->>'link' AS link,
+                        packet->>'metrics' AS metrics,
                         sistendret, opprettet
                     FROM utkast
                     WHERE packet->>'ident'=:ident AND slettet IS NULL""",
@@ -81,6 +83,14 @@ class UtkastRepository(private val database: Database) {
                         link = row.string("link"),
                         opprettet = row.localDateTime("opprettet"),
                         sistEndret = row.localDateTimeOrNull("sistendret"),
+                        metrics = row.stringOrNull("metrics")
+                            ?.let {
+                                val jsonValues = jacksonObjectMapper().readTree(it)
+                                mapOf(
+                                    "skjemakode" to jsonValues["skjemakode"].asText(),
+                                    "skjemanavn" to jsonValues["skjemanavn"].asText()
+                                )
+                            }
                     )
                 }.asList
         }
@@ -97,4 +107,5 @@ internal data class Utkast(
     val link: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
+    val metrics: Map<String,String>?
 )

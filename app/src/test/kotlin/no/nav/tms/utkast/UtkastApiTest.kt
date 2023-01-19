@@ -18,8 +18,10 @@ import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UtkastApiTest {
     private val objectMapper = jacksonObjectMapper().apply {
         registerModule(JavaTimeModule())
@@ -85,6 +87,8 @@ class UtkastApiTest {
                     jsonNode["link"].asText() shouldBe forventedeVerdier.link
                     jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
                     jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
+                    jsonNode["metrics"]?.get("skjemakode")?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
+                    jsonNode["metrics"]?.get("skjemanavn")?.asText() shouldBe forventedeVerdier.metrics?.get("skjemanavn")
                 }
             }
         }
@@ -107,10 +111,7 @@ class UtkastApiTest {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
-
-                val tittel = get(0).get("tittel").textValue()
-
-                tittel shouldBe utkastForTestFnr2.tittel
+                get(0)["tittel"].textValue() shouldBe utkastForTestFnr2.tittel
             }
         }
 
@@ -118,10 +119,7 @@ class UtkastApiTest {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
-
-                val tittel = get(0).get("tittel").textValue()
-
-                tittel shouldBe utkastForTestFnr2.tittelI18n["en"]
+                get(0)["tittel"].textValue() shouldBe utkastForTestFnr2.tittelI18n["en"]
             }
         }
 
@@ -129,10 +127,7 @@ class UtkastApiTest {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
-
-                val tittel = get(0).get("tittel").textValue()
-
-                tittel shouldBe utkastForTestFnr2.tittelI18n["nn"]
+                get(0)["tittel"].textValue() shouldBe utkastForTestFnr2.tittelI18n["nn"]
             }
         }
 
@@ -166,3 +161,4 @@ class UtkastApiTest {
         slettet = null
     )
 }
+
