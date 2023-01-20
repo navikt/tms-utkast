@@ -23,6 +23,7 @@ class ProducerLibraryVerification {
             .withIdent("1122334455")
             .withTittel("Test tittel")
             .withLink("https://wattevs")
+            .withMetrics("Skjemanavn","99/88")
             .create()
             .also { testRapid.sendTestMessage(it) }
 

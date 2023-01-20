@@ -3,7 +3,11 @@ package no.nav.tms.utkast.builder
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.json.*
+import io.kotest.matchers.shouldNotBe
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -17,6 +21,8 @@ internal class UtkastJsonBuilderTest {
         val testIdent = "12345678910"
         val testTittel = "Bø på test".repeat(100)
         val testTittelEngelsk = "Boo"
+        val testSkjemaavn = "Søknad om test"
+        val testSkjemakode = "11-09/66"
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
@@ -24,6 +30,7 @@ internal class UtkastJsonBuilderTest {
             .withLink(testLink)
             .withTittel(testTittel)
             .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
+            .withMetrics(testSkjemaavn, testSkjemakode)
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name
@@ -32,6 +39,11 @@ internal class UtkastJsonBuilderTest {
                 getText("ident") shouldBe testIdent
                 getText("tittel") shouldBe testTittel
                 getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
+                this["metrics"] shouldNotBe null
+                this["metrics"] ?: apply {
+                    getText("skjemanavn") shouldBe testSkjemaavn
+                    getText("skjemankode") shouldBe testSkjemakode
+                }
             }
     }
 
@@ -90,7 +102,7 @@ internal class UtkastJsonBuilderTest {
                 .create()
         }
 
-        shouldNotThrowAny{
+        shouldNotThrowAny {
             UtkastJsonBuilder()
                 .withUtkastId(testId)
                 .withIdent(testIdent)
@@ -170,7 +182,7 @@ internal class UtkastJsonBuilderTest {
     }
 
     @Test
-    fun `bygger deleted map json-objekt`(){
+    fun `bygger deleted map json-objekt`() {
         val testId = UUID.randomUUID().toString()
         UtkastJsonBuilder()
             .withUtkastId(testId)
@@ -205,5 +217,6 @@ internal class UtkastJsonBuilderTest {
 
     fun JsonObject.getText(field: String) = get(field)?.jsonPrimitive?.content
 
-    fun JsonObject.getMap(field: String) = get(field)?.jsonObject?.toMap()?.mapValues { (_,v) -> v.jsonPrimitive.content }
+    fun JsonObject.getMap(field: String) =
+        get(field)?.jsonObject?.toMap()?.mapValues { (_, v) -> v.jsonPrimitive.content }
 }
