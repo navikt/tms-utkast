@@ -3,6 +3,7 @@ name: Bygg og publiser docker-image for main
 on:
   push:
     branches:
+      - master
       - main
     paths-ignore:
       - .github/workflows/**
@@ -74,4 +75,3 @@ jobs:
           RESOURCE: ./nais/${{ matrix.cluster }}/nais.yaml
           VAR: version=${{ needs.build.outputs.image }}
           PRINT_PAYLOAD: true
-
