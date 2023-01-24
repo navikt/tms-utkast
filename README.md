@@ -2,10 +2,15 @@
 
 Backend for utkast-funksjonalitet på min side.
 
-## Rapid
+## Dokumentasjon
+Dokumentasjon for produsenter finnes i [how-to](/howto.md) og i dokumnetasjonsidene til min side
 
-**topic**: aapen-utkast-v1 <br>
-**tilgang**: [min-side-utkast-iac-topic](https://github.com/navikt/min-side-utkast-topic-iac)<br>
+### Oppdatere produsent-dokumentasjon
+1. Oppdater howto.md. **NB!** Overskriftshierarkiet skal starte på `h2` 
+2. Bygg og deloy tms-dokumentasjonen på nytt. 
+
+## Rapid
+**topic**: aapen-utkast-v1 \
 **hendelser**: `created`, `updated`, `deleted`
 
 ### meldingsformat
@@ -28,22 +33,4 @@ Backend for utkast-funksjonalitet på min side.
   }
 }
 ```
-
-**obligatoriske felt**: `@event_name`, `utkastId`, `"ident"`,`"tittel"`
-
-### delete
-
-```json
-{
-  "@event_name": "deleted",
-  "utkastId": "<uuid>"
-}
-```
-
-# Amplitude målinger
-
-[Utkast-frontenden](https://github.com/navikt/tms-utkast-mikrofrontend) logger
-ett [skjema åpent](https://github.com/navikt/analytics-taxonomy/tree/main/events/skjema%20%C3%A5pnet) 
-event med `url` som payload til amplitude når bruker klikker på ett utkast. Om teamet ditt ønsker å få med feltene 
-`skjemakode` og `skjemanavn` må metricsfeltet være tilstede og komplett i create-meldingen
 
