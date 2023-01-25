@@ -26,8 +26,8 @@ repositories {
 }
 
 dependencies {
-    implementation(DittNAV.Common.influxdb)
-    implementation(DittNAV.Common.utils)
+    implementation(DittNAVCommonLib.influxdb)
+    implementation(DittNAVCommonLib.utils)
     implementation(Flyway.core)
     implementation(Hikari.cp)
     implementation(Influxdb.java)
@@ -37,15 +37,15 @@ dependencies {
     implementation(Ktor2.Server.contentNegotiation)
     implementation(Ktor2.Server.auth)
     implementation(Ktor2.Server.authJwt)
-    implementation(Ktor2.jackson)
-    implementation(Ktor2.TmsTokenSupport.tokenXValidation)
-    implementation(Ktor2.TmsTokenSupport.authenticationInstaller)
+    implementation(Ktor2.Serialization.jackson)
+    implementation(TmsKtorTokenSupport.tokenXValidation)
+    implementation(TmsKtorTokenSupport.authenticationInstaller)
     implementation(Postgresql.postgresql)
     implementation(Prometheus.common)
     implementation(Prometheus.hotspot)
     implementation(Prometheus.logback)
-    implementation(RapidsAndRivers)
-    implementation(kotliquery)
+    implementation(RapidsAndRivers.rapidsAndRivers)
+    implementation(KotliQuery.kotliquery)
     implementation(project(":lib"))
 
     testImplementation(Junit.api)
@@ -55,9 +55,9 @@ dependencies {
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Kotest.assertionsCore)
     testImplementation(Ktor2.Test.serverTestHost)
-    testImplementation(Ktor2.TmsTokenSupport.authenticationInstallerMock)
-    testImplementation(Ktor2.TmsTokenSupport.tokenXValidationMock)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    testImplementation(TmsKtorTokenSupport.authenticationInstallerMock)
+    testImplementation(TmsKtorTokenSupport.tokenXValidationMock)
+    testImplementation(KotlinxSerialization.json)
     testImplementation(project(":lib"))
 }
 
