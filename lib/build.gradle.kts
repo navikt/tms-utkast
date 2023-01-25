@@ -18,12 +18,12 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation(KotlinxSerialization.json)
     testImplementation(Junit.api)
     testImplementation(Junit.engine)
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Kotest.assertionsCore)
-    testImplementation(ULID.sulkyUlid)
+    testImplementation(SulkyUlid.sulkyUlid)
 }
 
 tasks {
