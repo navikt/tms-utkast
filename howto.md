@@ -1,5 +1,5 @@
 
-## Utkast på min side
+# Utkast på min side
 _– en enklere inngang til påbegynte søknader og dokument-innsendinger_ <br>
 Utkast er underside av min side (tilgjengelig på `<navurl>/minside/utkast`) der bruker
 skal kunne finne søknader og dokument-innsendinger hen har begynt å fylle ut, men ikke sendt inn enda.<br>
@@ -9,7 +9,7 @@ skal kunne finne søknader og dokument-innsendinger hen har begynt å fylle ut, 
 * Et utkast er i øyeblikket ikke en del av en persons interaksjon med NAV, selv om det kan bli det.
 *  Eksempel:  En påbegynt søknad. Den kan sendes inn, eller en bruker kan velge å ikke sende den inn.
 
-### Nice! Hvordan kan mitt team få våre ting på utkast-sida?
+## Nice! Hvordan kan mitt team få våre ting på utkast-sida?
 Koble på [min-side-utkast-iac-topicet](https://github.com/navikt/min-side-utkast-topic-iac) og kjør på! \
 _utkast støtter for øyeblikket tre hendelser: created, updated, og deleted_
 1. Send en created-melding når en bruker har lagra ett utkast
@@ -17,7 +17,7 @@ _utkast støtter for øyeblikket tre hendelser: created, updated, og deleted_
 3. Send en deleted melding når bruker enten har sendt inn eller hvis utkastet har blitt slettet enten av bruker eller systemet.
 
 
-### Kafka
+## Kafka
 
 **topic**: aapen-utkast-v1 \
 **tilgang**: [min-side-utkast-iac-topic](https://github.com/navikt/min-side-utkast-topic-iac) \
@@ -46,7 +46,7 @@ _utkast støtter for øyeblikket tre hendelser: created, updated, og deleted_
 
 **obligatoriske felt**: `@event_name`, `utkastId`, `"ident"`,`"tittel"`
 
-### delete
+#### delete
 
 ```json
 {
@@ -55,7 +55,7 @@ _utkast støtter for øyeblikket tre hendelser: created, updated, og deleted_
 }
 ```
 
-# Amplitude målinger
+## Amplitude målinger
 
 [Utkast-frontenden](https://github.com/navikt/tms-utkast-mikrofrontend) logger
 ett [skjema åpent](https://github.com/navikt/analytics-taxonomy/tree/main/events/skjema%20%C3%A5pnet) 
