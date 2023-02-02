@@ -16,7 +16,6 @@ _utkast støtter tre hendelser: created, updated, og deleted_
 2. Send en updated-melding hvis url-en eller tittelen til utkastet har endret seg.
 3. Send en deleted melding når bruker enten har sendt inn eller hvis utkastet har blitt slettet enten av bruker eller systemet.
 
-
 ## Kafka
 
 **topic**: aapen-utkast-v1 \
@@ -54,6 +53,8 @@ _utkast støtter tre hendelser: created, updated, og deleted_
   "utkastId": "<uuid>"
 }
 ```
+Det finnes også et [message-builder bibliotek](https://jitpack.io/#navikt/tms-utkast) som lager meldingene for deg.
+NB! Det er kun ting som **ikke er innsendt** som skal ligge på utkast-siden.
 
 ## Amplitude målinger
 
