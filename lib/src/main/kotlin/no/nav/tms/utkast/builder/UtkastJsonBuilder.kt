@@ -83,7 +83,7 @@ class UtkastJsonBuilder {
             "@origin" to origin
         )
         if(metrics!=null)
-            fields.put("metrics", Pair("metrics",metrics))
+            fields.put("metrics", metrics)
 
         return fields.toJsonObject().toString()
     }
