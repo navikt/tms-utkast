@@ -8,7 +8,6 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
-import io.mockk.mockk
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -50,7 +49,10 @@ class UtkastApiTest {
             testRapid.sendTestMessage(it.toTestMessage(testFnr1))
         }
         testRapid.sendTestMessage(utkastForTestFnr2.toTestMessage(testFnr2))
-        testRapid.sendTestMessage(updateUtkastTestPacket(utkastForTestFnr1[0].utkastId))
+        testRapid.sendTestMessage(updateUtkastTestPacket(
+            utkastForTestFnr1[0].utkastId,
+            metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
+        ))
         utkastForTestFnr1[0] = utkastForTestFnr1[0].copy(sistEndret = LocalDateTimeHelper.nowAtUtc())
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))

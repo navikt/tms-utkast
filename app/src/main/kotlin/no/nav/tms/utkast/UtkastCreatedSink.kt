@@ -28,12 +28,13 @@ class UtkastCreatedSink(
                 it.require("link") { jsonNode -> UtkastValidator.validateLink(jsonNode.textValue()) }
                 it.requireKey("tittel")
                 it.interestedIn("tittel_i18n")
+                it.interestedIn("metrics")
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n")
+        packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n","metrics")
             .toString()
             .let { utkastRepository.createUtkast(it) }
 

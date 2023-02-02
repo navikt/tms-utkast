@@ -69,7 +69,7 @@ internal class UtkastRepositoryTest {
                 slettet shouldBe null
                 tittel shouldBe oppdatertTittel
                 metrics!!["skjemakode"] shouldBe "11-08"
-                metrics!!["skjemanavn"]shouldBe "Skjemnavn med Å"
+                metrics!!["skjemanavn"] shouldBe "Skjemnavn med Å"
             }
 
             find { it.utkastId == "456" }.assert {
@@ -169,9 +169,7 @@ fun updateJson(oppdatertTittel: String): ObjectNode = ObjectMapper().createObjec
 }
 
 
-fun metrics(skjemakode: String, skjemanavn: String) = """
-        "metrics": {
-         "skjemakode": "$skjemakode",
-         "skjemanavn": "$skjemanavn"
-        }
-""".trimIndent()
+fun metrics(skjemakode: String, skjemanavn: String) = mapOf(
+    "skjemakode" to skjemakode,
+    "skjemanavn" to skjemanavn
+)

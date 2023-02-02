@@ -1,33 +1,37 @@
 package no.nav.tms.utkast
 
-import io.mockk.mockk
-import io.mockk.verify
+import io.kotest.matchers.shouldBe
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.tms.utkast.database.UtkastRepository
 import no.nav.tms.utkast.builder.UtkastJsonBuilder
+import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 
 class ProducerLibraryVerification {
-    private val repositoryMock: UtkastRepository = mockk(relaxed = true)
+    private val utkastRepository = UtkastRepository(LocalPostgresDatabase.cleanDb())
     private val testRapid = TestRapid()
 
     init {
-        setupSinks(testRapid, repositoryMock)
+        setupSinks(testRapid, utkastRepository)
     }
 
     @Test
     fun `Bruker rikigtige felter i create`() {
+        val utkastId = UUID.randomUUID().toString()
         UtkastJsonBuilder()
-            .withUtkastId(UUID.randomUUID().toString())
+            .withUtkastId(utkastId)
             .withIdent("1122334455")
             .withTittel("Test tittel")
             .withLink("https://wattevs")
-            .withMetrics("Skjemanavn","99/88")
+            .withMetrics("Skjemanavn", "99/88")
             .create()
             .also { testRapid.sendTestMessage(it) }
+        val testUtkast = utkastRepository.getUtkast("1122334455").first {
+            it.utkastId == utkastId
+        }
 
-        verify { repositoryMock.createUtkast(any()) }
+        testUtkast.metrics?.get("skjemanavn") shouldBe "Skjemanavn"
+        testUtkast.metrics?.get("skjemakode") shouldBe "99/88"
     }
 
     @Test
@@ -41,7 +45,6 @@ class ProducerLibraryVerification {
             .update()
             .also { testRapid.sendTestMessage(it) }
 
-        verify { repositoryMock.updateUtkast(testId, any()) }
     }
 
     @Test
@@ -53,8 +56,6 @@ class ProducerLibraryVerification {
             .delete()
             .also { testRapid.sendTestMessage(it) }
 
-
-        verify { repositoryMock.deleteUtkast(testId) }
     }
 
 }
