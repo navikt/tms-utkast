@@ -147,7 +147,7 @@ internal class UtkastRepositoryTest {
         utkastRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
         utkastRepository.deleteUtkast(slettUtkastId)
 
-        utkastRepository.getUtkast(testFnr).assert {
+        utkastRepository.getUtkastForIdent(testFnr).assert {
             size shouldBe 2
             find { utkast -> utkast.utkastId == utkastId }.assert {
                 require(this != null)
