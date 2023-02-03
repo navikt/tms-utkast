@@ -86,6 +86,7 @@ class UtkastApiTest {
                     val forventedeVerdier =
                         utkastForTestFnr1.find { it.utkastId == utkastId }
                             ?: throw AssertionError("Fant utkast som ikke tilhører ident, utkastId : $utkastId")
+                    jsonNode["tittel"].asText() shouldBe forventedeVerdier.tittel
                     jsonNode["link"].asText() shouldBe forventedeVerdier.link
                     jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
                     jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret

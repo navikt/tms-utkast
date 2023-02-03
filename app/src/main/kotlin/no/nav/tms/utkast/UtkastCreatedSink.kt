@@ -37,7 +37,6 @@ class UtkastCreatedSink(
         packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n","metrics")
             .toString()
             .let { utkastRepository.createUtkast(it) }
-
         rapidMetricsProbe.countUtkastReceived()
     }
 
