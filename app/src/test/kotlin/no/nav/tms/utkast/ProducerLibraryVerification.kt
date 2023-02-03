@@ -1,60 +1,89 @@
 package no.nav.tms.utkast
 
-import io.mockk.mockk
-import io.mockk.verify
+import io.kotest.matchers.shouldBe
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.tms.utkast.database.UtkastRepository
 import no.nav.tms.utkast.builder.UtkastJsonBuilder
+import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 
 class ProducerLibraryVerification {
-    private val repositoryMock: UtkastRepository = mockk(relaxed = true)
+    private val utkastRepository = UtkastRepository(LocalPostgresDatabase.cleanDb())
     private val testRapid = TestRapid()
+    private val testPersonIdent = "1122334455"
 
     init {
-        setupSinks(testRapid, repositoryMock)
+        setupSinks(testRapid, utkastRepository)
     }
 
     @Test
     fun `Bruker rikigtige felter i create`() {
+        val utkastId = UUID.randomUUID().toString()
         UtkastJsonBuilder()
-            .withUtkastId(UUID.randomUUID().toString())
-            .withIdent("1122334455")
+            .withUtkastId(utkastId)
+            .withIdent(testPersonIdent)
             .withTittel("Test tittel")
-            .withLink("https://wattevs")
-            .withMetrics("Skjemanavn","99/88")
+            .withLink("https://wattevs.test")
+            .withMetrics("Skjemanavn", "99/88")
             .create()
             .also { testRapid.sendTestMessage(it) }
+        val testUtkast = utkastRepository.getUtkastForIdent(testPersonIdent).first {
+            it.utkastId == utkastId
+        }
 
-        verify { repositoryMock.createUtkast(any()) }
+        testUtkast.metrics?.get("skjemanavn") shouldBe "Skjemanavn"
+        testUtkast.metrics?.get("skjemakode") shouldBe "99/88"
+        testUtkast.tittel shouldBe "Test tittel"
+        testUtkast.link shouldBe "https://wattevs.test"
     }
 
     @Test
     fun `Bruker rikigtige felter i update`() {
         val testId = UUID.randomUUID().toString()
-
+        sendCreatedMelding(testId)
         UtkastJsonBuilder()
             .withUtkastId(testId)
-            .withIdent("1122334455")
-            .withLink("https://wattevs")
+            .withIdent(testPersonIdent)
+            .withTittel("Ny tittel")
+            .withLink("https://ny.link")
             .update()
-            .also { testRapid.sendTestMessage(it) }
+            .also {
+                testRapid.sendTestMessage(it)
+            }
 
-        verify { repositoryMock.updateUtkast(testId, any()) }
+        val testUtkast = utkastRepository.getUtkastForIdent(testPersonIdent).first {
+            it.utkastId == testId
+        }
+        testUtkast.tittel shouldBe "Ny tittel"
+        testUtkast.link shouldBe "https://ny.link"
     }
 
     @Test
     fun `Bruker rikigtige felter i delete`() {
         val testId = UUID.randomUUID().toString()
+        sendCreatedMelding(testId)
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
             .delete()
             .also { testRapid.sendTestMessage(it) }
 
+        utkastRepository.getUtkastForIdent(testPersonIdent).firstOrNull {
+            it.utkastId == testId
+        } shouldBe null
 
-        verify { repositoryMock.deleteUtkast(testId) }
     }
 
+    private fun sendCreatedMelding(utkastId: String) {
+
+        UtkastJsonBuilder()
+            .withUtkastId(utkastId)
+            .withIdent(testPersonIdent)
+            .withTittel("Test tittel")
+            .withLink("https://wattevs.test")
+            .withMetrics("Skjemanavn", "99/88")
+            .create()
+            .also { testRapid.sendTestMessage(it) }
+
+    }
 }

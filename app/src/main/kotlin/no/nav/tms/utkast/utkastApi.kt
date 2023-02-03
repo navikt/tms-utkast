@@ -34,10 +34,10 @@ internal fun Application.utkastApi(
         authenticate {
             route("utkast") {
                 get {
-                    call.respond(utkastRepository.getUtkast(userIdent, localeParam))
+                    call.respond(utkastRepository.getUtkastForIdent(userIdent, localeParam))
                 }
                 get("antall"){
-                    val antall = utkastRepository.getUtkast(userIdent).size
+                    val antall = utkastRepository.getUtkastForIdent(userIdent).size
                     call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
                 }
             }

@@ -40,7 +40,7 @@ internal fun createUtkastTestPacket(
     tittel: String = "http://testlink",
     tittelI18n: Map<String, String>? = null,
     link: String = "http://testlink",
-    metrics: String? = null
+    metrics: Map<String, String>? = null
 ) = """
     {
      "@event_name": "created",
@@ -49,7 +49,7 @@ internal fun createUtkastTestPacket(
     "link": "$link",
     "tittel": "$tittel"
     ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
-    ${if (metrics != null) ",$metrics" else ""}
+    ${if (metrics != null) ",\"metrics\": ${metrics.toJson()}" else ""}
     }
 
 """.trimIndent()
@@ -59,7 +59,8 @@ internal fun updateUtkastTestPacket(
     utkastId: String,
     tittel: String? = null,
     link: String? = null,
-    tittelI18n: Map<String, String>? = null
+    tittelI18n: Map<String, String>? = null,
+    metrics: Map<String, String>? = null
 ) = """
     {
     "@event_name":"updated",
@@ -67,6 +68,7 @@ internal fun updateUtkastTestPacket(
     ${if (tittel != null) ",\"tittel\": \"$tittel\"" else ""}
     ${if (link != null) ",\"link\": \"$link\"" else ""}
     ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
+    ${if (metrics != null) ",\"metrics\": ${metrics.toJson()}" else ""}
     }
 """.trimIndent()
 

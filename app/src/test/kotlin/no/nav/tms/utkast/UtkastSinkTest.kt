@@ -66,8 +66,16 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId1, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId2, ident = testFnr, tittelI18n = mapOf("no" to tittelNo)))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId1, tittel = nyTittel))
-        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId2, tittelI18n = mapOf("en" to nyTittelEn)))
+        testRapid.sendTestMessage(updateUtkastTestPacket(
+            testUtkastId1,
+            tittel = nyTittel
+        ))
+        testRapid.sendTestMessage(updateUtkastTestPacket(
+            testUtkastId2,
+            tittelI18n = mapOf("en" to nyTittelEn),
+            metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
+        ))
+        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId2, metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")))
 
         database.list { alleUtkast }.assert {
             size shouldBe 3
@@ -98,8 +106,15 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId1, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId2, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId3, ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1))
-        testRapid.sendTestMessage(updateUtkastTestPacket(utkastId = utkastId1, link = "Bad link"))
+        testRapid.sendTestMessage(updateUtkastTestPacket(
+            utkastId = utkastId1,
+            metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
+        ))
+        testRapid.sendTestMessage(updateUtkastTestPacket(
+            utkastId = utkastId1,
+            link = "Bad link",
+            metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
+        ))
         database.list { alleUtkast }.assert {
             size shouldBe 3
 
@@ -115,7 +130,10 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = oppdatertUtkastId, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = slettetUtkastId, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(oppdatertUtkastId))
+        testRapid.sendTestMessage(updateUtkastTestPacket(
+            oppdatertUtkastId,
+            metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
+        ))
         testRapid.sendTestMessage(deleteUtkastTestPacket(slettetUtkastId))
 
         database.list { alleUtkast }.assert {

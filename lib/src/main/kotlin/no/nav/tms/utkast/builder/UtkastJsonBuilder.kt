@@ -15,7 +15,7 @@ class UtkastJsonBuilder {
     private var origin: String = this::class.qualifiedName!!
     private var defaultTittel: String? = null
     private val tittelByLanguage = mutableMapOf<String, String>()
-    private var metrics: MutableMap<String, String>? = null
+    private var metrics = mutableMapOf<String, String>()
 
 
     fun withUtkastId(utkastId: String) = apply {
@@ -72,6 +72,7 @@ class UtkastJsonBuilder {
     private fun serializeToJson(): String {
 
         val tittelObject = tittelByLanguage.toJsonObject()
+        val metricsObject = metrics.toJsonObject()
 
         val fields: MutableMap<String, Any?> = mutableMapOf(
             "utkastId" to utkastId,
@@ -80,10 +81,9 @@ class UtkastJsonBuilder {
             "tittel_i18n" to tittelObject,
             "link" to link,
             "@event_name" to eventName?.name,
-            "@origin" to origin
+            "@origin" to origin,
+            "metrics" to metricsObject
         )
-        if(metrics!=null)
-            fields.put("metrics", Pair("metrics",metrics))
 
         return fields.toJsonObject().toString()
     }

@@ -62,7 +62,7 @@ class UtkastRepository(private val database: Database) {
         }
     }
 
-    internal fun getUtkast(ident: String, locale: Locale? = null): List<Utkast> =
+    internal fun getUtkastForIdent(ident: String, locale: Locale? = null): List<Utkast> =
         database.list {
             queryOf(
                 """
