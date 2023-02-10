@@ -7,8 +7,6 @@ on:
       - main
     paths-ignore:
       - .github/workflows/**
-      - README.md
-      - howto.md
 
 jobs:
   build:
