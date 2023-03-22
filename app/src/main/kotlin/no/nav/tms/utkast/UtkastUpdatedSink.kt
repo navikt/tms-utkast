@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
+import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastUpdatedSink(
@@ -34,13 +35,22 @@ class UtkastUpdatedSink(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val utkastId = packet["utkastId"].asText()
 
+
         packet["tittel_i18n"].takeIf { !it.isEmpty }
             ?.toString()
-            ?.let { utkastRepository.updateUtkastI18n(utkastId, it) }
+            ?.let {
+                withErrorLogging {
+                    utkastRepository.updateUtkastI18n(utkastId, it)
+                }
+            }
 
         packet.keepFields("tittel", "link")
             .toString()
-            .let { utkastRepository.updateUtkast(utkastId, it) }
+            .let {
+                withErrorLogging {
+                    utkastRepository.updateUtkast(utkastId, it)
+                }
+            }
 
         rapidMetricsProbe.countUtkastChanged("updated")
     }

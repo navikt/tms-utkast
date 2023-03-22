@@ -109,3 +109,8 @@ internal data class Utkast(
     val sistEndret: LocalDateTime?,
     val metrics: Map<String,String>?
 )
+
+class DatabaseException: Throwable(){
+    val details= ""
+
+}

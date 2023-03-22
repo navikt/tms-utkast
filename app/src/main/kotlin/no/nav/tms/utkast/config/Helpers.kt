@@ -2,10 +2,9 @@ package no.nav.tms.utkast.config
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.tms.utkast.builder.FieldValidationException
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -21,7 +20,7 @@ object JsonMessageHelper {
 
         fields.forEach { field ->
             get(field)
-                .takeUnless { it.isMissingOrNull()}
+                .takeUnless { it.isMissingOrNull() }
                 ?.let { objectNode.replace(field, it) }
         }
 
@@ -29,30 +28,68 @@ object JsonMessageHelper {
     }
 }
 
-object JsonNodeHelper {
-    fun JsonNode.checkForProblems(fieldName: String, validator: (String) -> Unit): String? {
-        return try {
-            val field = get(fieldName)
-            when {
-                field == null -> {}
-                field.isTextual -> field.checkForProblems(validator)
-                field.isObject -> field.elements().forEach { it.checkForProblems(validator) }
-                field.isArray -> field.elements().forEach { it.checkForProblems(validator) }
-                else -> throw IllegalArgumentException()
-            }
-            null
-        } catch (ie: IllegalArgumentException) {
-            "Felt $fieldName må være en String eller et objekt med kun String-verdier"
-        } catch (fe: FieldValidationException) {
-            fe.message
-        }
-    }
+private val secureLog = KotlinLogging.logger("secureLog")
+private val log = KotlinLogging.logger {}
 
-    private fun JsonNode.checkForProblems(validator: (String) -> Unit) {
-        if (isTextual) {
-            validator(textValue())
-        } else {
-            throw IllegalArgumentException()
+fun withErrorLogging(function: ErrorContext.() -> Any) {
+    val errorContext = ErrorContext()
+    try {
+        errorContext.function()
+    } catch (exception: Throwable) {
+        log.error { errorContext.message }
+        secureLog.error {
+            """
+            ${errorContext.message}\n
+            ident: ${errorContext.ident}\n
+            "origin": $exception
+        """
         }
     }
 }
+
+fun logExceptionAsWarning(unsafeLogInfo: String, cause: Throwable, secureLogInfo: String? = null) {
+    log.warn { unsafeLogInfo }
+    secureLog.error {
+        """
+            ${secureLogInfo?.let { secureLogInfo }}
+            "origin": ${cause.stackTrace}
+        """
+    }
+
+}
+
+
+class ErrorContext() {
+    var ident: String? = null
+        get() = field ?: "Ukjent"
+        set(value) {
+            if (field == null)
+                field = value
+        }
+
+    var message: String? = null
+        get() = field ?: ""
+        set(value) {
+            if (field == null)
+                field = value
+        }
+
+    var jsonMessage: JsonMessage? = null
+        set(value) {
+            field = value
+            ident = value.ident()
+            message = "Feil i utkast med id ${value.utkastId()}"
+        }
+}
+
+private fun JsonMessage?.utkastId(): String =
+    this?.let { packet ->
+        packet["utkastId"].asText("Ukjent")
+    } ?: "ukjent"
+
+
+private fun JsonMessage?.ident(): String? =
+    this?.let { packet ->
+        packet["ident"].asText("Ukjent")
+    } ?: "ukjent"
+

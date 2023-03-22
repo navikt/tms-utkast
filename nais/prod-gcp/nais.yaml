@@ -24,8 +24,6 @@ spec:
     min: 2
     max: 4
     cpuThresholdPercentage: 100
-  ingresses:
-    - "https://tms-utkast-gcp.nav.no"
   kafka:
     pool: nav-prod
   tokenx:

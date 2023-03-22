@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
+import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastCreatedSink(
@@ -34,9 +35,14 @@ class UtkastCreatedSink(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n","metrics")
+        packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n", "metrics")
             .toString()
-            .let { utkastRepository.createUtkast(it) }
+            .let {
+                withErrorLogging {
+                    jsonMessage = packet
+                    utkastRepository.createUtkast(it)
+                }
+            }
         rapidMetricsProbe.countUtkastReceived()
     }
 
