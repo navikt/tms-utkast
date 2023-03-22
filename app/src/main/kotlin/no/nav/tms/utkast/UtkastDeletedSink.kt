@@ -23,9 +23,10 @@ class UtkastDeletedSink(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         withErrorLogging {
-            jsonMessage = packet
+            message = "Feil ved sletting av utkast med id ${packet["utkastId"].asText()}"
             utkastRepository.deleteUtkast(packet["utkastId"].asText())
         }
+
         rapidMetricsProbe.countUtkastChanged("deleted")
     }
 }

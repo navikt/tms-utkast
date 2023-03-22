@@ -35,11 +35,11 @@ class UtkastUpdatedSink(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val utkastId = packet["utkastId"].asText()
 
+
         packet["tittel_i18n"].takeIf { !it.isEmpty }
             ?.toString()
             ?.let {
                 withErrorLogging {
-                    jsonMessage = packet
                     utkastRepository.updateUtkastI18n(utkastId, it)
                 }
             }
@@ -48,7 +48,6 @@ class UtkastUpdatedSink(
             .toString()
             .let {
                 withErrorLogging {
-                    jsonMessage = packet
                     utkastRepository.updateUtkast(utkastId, it)
                 }
             }

@@ -9,8 +9,10 @@ import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
 import java.util.*
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class UtkastSinkTest {
     private val database = LocalPostgresDatabase.cleanDb()
     private val testRapid = TestRapid()

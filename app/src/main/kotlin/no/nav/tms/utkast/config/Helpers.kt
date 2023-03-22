@@ -35,17 +35,29 @@ fun withErrorLogging(function: ErrorContext.() -> Any) {
     val errorContext = ErrorContext()
     try {
         errorContext.function()
-    } catch (exception: Exception) {
+    } catch (exception: Throwable) {
         log.error { errorContext.message }
         secureLog.error {
             """
             ${errorContext.message}\n
             ident: ${errorContext.ident}\n
             "origin": $exception
-        """.trimIndent()
+        """
         }
     }
 }
+
+fun logExceptionAsWarning(unsafeLogInfo: String, cause: Throwable, secureLogInfo: String? = null) {
+    log.warn { unsafeLogInfo }
+    secureLog.error {
+        """
+            ${secureLogInfo?.let { secureLogInfo }}
+            "origin": ${cause.stackTrace}
+        """
+    }
+
+}
+
 
 class ErrorContext() {
     var ident: String? = null

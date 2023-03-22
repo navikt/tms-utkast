@@ -2,17 +2,20 @@ package no.nav.tms.utkast
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.serialization.jackson.jackson
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.authenticate
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import io.ktor.server.auth.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import no.nav.tms.token.support.authentication.installer.installAuthenticators
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
+import no.nav.tms.utkast.config.logExceptionAsWarning
+import no.nav.tms.utkast.database.DatabaseException
 import no.nav.tms.utkast.database.UtkastRepository
 import java.text.DateFormat
 import java.util.*
@@ -23,6 +26,25 @@ internal fun Application.utkastApi(
 ) {
     installAuthenticatorsFunction()
 
+    install(StatusPages) {
+        exception<Throwable> { call, cause ->
+            if (cause is DatabaseException) {
+                logExceptionAsWarning(
+                    unsafeLogInfo = "Henting fra database feilet for kall til ${call.request.uri}",
+                    secureLogInfo = cause.details,
+                    cause = cause
+                )
+                call.respond(HttpStatusCode.InternalServerError)
+            } else {
+                logExceptionAsWarning(
+                    unsafeLogInfo = "Ukjent feil for kall itl ${call.request.uri}",
+                    cause = cause
+                )
+                call.respond(HttpStatusCode.InternalServerError)
+            }
+        }
+
+    }
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
@@ -36,7 +58,7 @@ internal fun Application.utkastApi(
                 get {
                     call.respond(utkastRepository.getUtkastForIdent(userIdent, localeParam))
                 }
-                get("antall"){
+                get("antall") {
                     val antall = utkastRepository.getUtkastForIdent(userIdent).size
                     call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
                 }
@@ -55,4 +77,9 @@ private fun installAuth(): Application.() -> Unit = {
 
 private val PipelineContext<Unit, ApplicationCall>.userIdent get() = TokenXUserFactory.createTokenXUser(call).ident
 
-private val PipelineContext<Unit, ApplicationCall>.localeParam get() = call.request.queryParameters["la"]?.let { Locale(it) }
+private val PipelineContext<Unit, ApplicationCall>.localeParam
+    get() = call.request.queryParameters["la"]?.let {
+        Locale(
+            it
+        )
+    }
