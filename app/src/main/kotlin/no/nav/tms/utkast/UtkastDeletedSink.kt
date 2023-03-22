@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastDeletedSink(
@@ -21,7 +22,10 @@ class UtkastDeletedSink(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        utkastRepository.deleteUtkast(packet["utkastId"].asText())
+        withErrorLogging {
+            jsonMessage = packet
+            utkastRepository.deleteUtkast(packet["utkastId"].asText())
+        }
         rapidMetricsProbe.countUtkastChanged("deleted")
     }
 }

@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
+import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastUpdatedSink(
@@ -36,11 +37,21 @@ class UtkastUpdatedSink(
 
         packet["tittel_i18n"].takeIf { !it.isEmpty }
             ?.toString()
-            ?.let { utkastRepository.updateUtkastI18n(utkastId, it) }
+            ?.let {
+                withErrorLogging {
+                    jsonMessage = packet
+                    utkastRepository.updateUtkastI18n(utkastId, it)
+                }
+            }
 
         packet.keepFields("tittel", "link")
             .toString()
-            .let { utkastRepository.updateUtkast(utkastId, it) }
+            .let {
+                withErrorLogging {
+                    jsonMessage = packet
+                    utkastRepository.updateUtkast(utkastId, it)
+                }
+            }
 
         rapidMetricsProbe.countUtkastChanged("updated")
     }
