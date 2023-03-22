@@ -29,30 +29,3 @@ object JsonMessageHelper {
     }
 }
 
-object JsonNodeHelper {
-    fun JsonNode.checkForProblems(fieldName: String, validator: (String) -> Unit): String? {
-        return try {
-            val field = get(fieldName)
-            when {
-                field == null -> {}
-                field.isTextual -> field.checkForProblems(validator)
-                field.isObject -> field.elements().forEach { it.checkForProblems(validator) }
-                field.isArray -> field.elements().forEach { it.checkForProblems(validator) }
-                else -> throw IllegalArgumentException()
-            }
-            null
-        } catch (ie: IllegalArgumentException) {
-            "Felt $fieldName må være en String eller et objekt med kun String-verdier"
-        } catch (fe: FieldValidationException) {
-            fe.message
-        }
-    }
-
-    private fun JsonNode.checkForProblems(validator: (String) -> Unit) {
-        if (isTextual) {
-            validator(textValue())
-        } else {
-            throw IllegalArgumentException()
-        }
-    }
-}
