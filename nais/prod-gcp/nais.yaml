@@ -20,6 +20,8 @@ spec:
   prometheus:
     path: /metrics
     enabled: true
+  secureLogs:
+    enabled: true
   replicas:
     min: 2
     max: 4
