@@ -20,7 +20,7 @@ class UtkastRepository(private val database: Database) {
     fun updateUtkast(utkastId: String, update: String) {
         database.update {
             queryOf(
-                "UPDATE utkast SET sistEndret=:now, packet=packet || :update WHERE packet->>'utkastId'=:utkastId",
+                "UPDATE utkast SET sistEndret=:now, packet=packet || :update WHERE packet-> 'utkastId' ?? :utkastId",
                 mapOf(
                     "update" to update.jsonB(),
                     "utkastId" to utkastId,
@@ -41,7 +41,7 @@ class UtkastRepository(private val database: Database) {
                         WHEN packet->'tittel_i18n' is null
                         THEN jsonb_insert(packet, '{tittel_i18n}', :update)
                     END )
-                WHERE packet->>'utkastId'=:utkastId
+                WHERE packet-> 'utkastId' ?? :utkastId
                 """,
                 mapOf(
                     "update" to tittelI18nUpdate.jsonB(),
@@ -56,7 +56,7 @@ class UtkastRepository(private val database: Database) {
     fun deleteUtkast(utkastId: String) {
         database.update {
             queryOf(
-                "UPDATE utkast SET slettet=:now WHERE packet->>'utkastId'=:utkastId",
+                "UPDATE utkast SET slettet=:now WHERE packet-> 'utkastId' ?? :utkastId",
                 mapOf("now" to LocalDateTimeHelper.nowAtUtc(), "utkastId" to utkastId)
             )
         }
@@ -73,7 +73,7 @@ class UtkastRepository(private val database: Database) {
                         packet->>'metrics' AS metrics,
                         sistendret, opprettet
                     FROM utkast
-                    WHERE packet->>'ident'=:ident AND slettet IS NULL""",
+                    WHERE packet->'ident' ?? :ident AND slettet IS NULL""",
                 mapOf("ident" to ident, "locale" to locale?.language)
             )
                 .map { row ->
