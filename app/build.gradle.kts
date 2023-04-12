@@ -48,6 +48,7 @@ dependencies {
     implementation(RapidsAndRivers.rapidsAndRivers)
     implementation(KotliQuery.kotliquery)
     implementation(project(":lib"))
+    implementation("io.ktor:ktor-server-default-headers-jvm:2.1.2")
 
     testImplementation(Junit.api)
     testImplementation(Junit.engine)
