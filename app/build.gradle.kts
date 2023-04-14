@@ -44,6 +44,7 @@ dependencies {
     implementation(Ktor2.Client.apache)
     implementation(TmsKtorTokenSupport.tokenXValidation)
     implementation(TmsKtorTokenSupport.authenticationInstaller)
+    implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(Postgresql.postgresql)
     implementation(Prometheus.common)
     implementation(Prometheus.hotspot)

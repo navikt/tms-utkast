@@ -3,7 +3,6 @@ package no.nav.tms.utkast
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -13,10 +12,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.*
+import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
+import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.config.configureJackson
@@ -29,6 +30,10 @@ import kotlin.random.Random
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DigiSosApiTest {
+
+    val tokendingsMockk = mockk<TokendingsService>().also {
+        coEvery { it.exchangeToken(any(), any()) } returns "<dummytoken>"
+    }
 
     private val objectMapper = jacksonObjectMapper().apply {
         registerModule(JavaTimeModule())
@@ -105,7 +110,7 @@ class DigiSosApiTest {
         application {
             utkastApi(
                 utkastRepository = mockk(),
-                digisosHttpClient = DigisosHttpClient(digisosTestHost, client),
+                digisosHttpClient = DigisosHttpClient(digisosTestHost, client, "dummyid", tokendingsMockk),
                 installAuthenticatorsFunction = {
                     installMockedAuthenticators {
                         installTokenXAuthMock {

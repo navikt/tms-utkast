@@ -6,11 +6,17 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.utkast.database.Utkast
 import java.time.LocalDateTime
 
 
-class DigisosHttpClient(val baseUrl: String, val httpClient: HttpClient) {
+class DigisosHttpClient(
+    val baseUrl: String,
+    val httpClient: HttpClient,
+    val digisosClientId: String,
+    val tokendingsService: TokendingsService
+) {
 
     suspend fun getUtkast(accessToken: String) = httpClient.getUtkastFromDigisos(accessToken).map { it.toUtkast() }
     suspend fun getAntall(accessToken: String) = httpClient.getUtkastFromDigisos(accessToken).size
@@ -29,6 +35,11 @@ class DigisosHttpClient(val baseUrl: String, val httpClient: HttpClient) {
             originalException = e
         )
     }
+
+
+    suspend fun exchangeToken(accessToken: String): String =
+        tokendingsService.exchangeToken(accessToken, digisosClientId)
+
 }
 
 class DigisosBeskjed(

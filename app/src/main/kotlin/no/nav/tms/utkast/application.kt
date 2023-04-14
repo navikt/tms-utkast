@@ -8,6 +8,7 @@ import no.nav.personbruker.dittnav.common.metrics.MetricsReporter
 import no.nav.personbruker.dittnav.common.metrics.StubMetricsReporter
 import no.nav.personbruker.dittnav.common.metrics.influxdb.InfluxConfig
 import no.nav.personbruker.dittnav.common.metrics.influxdb.InfluxMetricsReporter
+import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.utkast.config.Environment
 import no.nav.tms.utkast.config.Flyway
 import no.nav.tms.utkast.config.configureJackson
@@ -21,13 +22,16 @@ fun main() {
         configureJackson()
     }
     val rapidMetricsProbe = RapidMetricsProbe(resolveMetricsReporter(environment))
-
     startRapid(
         environment = environment,
         rapidMetricsProbe = rapidMetricsProbe,
         utkastRepository = UtkastRepository(PostgresDatabase(environment)),
-        digisosHttpClient = DigisosHttpClient(environment.digisosBaseUrl, httpClient)
-
+        digisosHttpClient = DigisosHttpClient(
+            baseUrl = environment.digisosBaseUrl,
+            httpClient = httpClient,
+            digisosClientId = environment.digisosClientId,
+            tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
+        )
     )
 }
 

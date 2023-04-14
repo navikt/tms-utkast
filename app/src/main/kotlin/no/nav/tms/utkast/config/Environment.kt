@@ -28,9 +28,9 @@ data class Environment(
     val aivenSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
     val securityVars: SecurityVars = SecurityVars(),
     val rapidTopic: String = getEnvVar("RAPID_TOPIC"),
-
+    val digisosClientId: String= getEnvVar("DIGISOS_CLIENT_ID"),
+    val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL")
     ) {
-    val digisosBaseUrl: String = ""
 
     fun rapidConfig(): Map<String, String> = mapOf(
         "KAFKA_BROKERS" to aivenBrokers,
