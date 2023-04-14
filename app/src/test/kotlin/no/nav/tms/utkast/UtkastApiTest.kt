@@ -4,10 +4,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.testApplication
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -18,7 +19,7 @@ import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.UUID
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UtkastApiTest {
@@ -39,20 +40,23 @@ class UtkastApiTest {
         testUtkastData()
     )
 
-    private val utkastForTestFnr2 = testUtkastData(tittelI18n = mapOf("en" to "English title", "nn" to "Nynorsk tittel"))
+    private val utkastForTestFnr2 =
+        testUtkastData(tittelI18n = mapOf("en" to "English title", "nn" to "Nynorsk tittel"))
 
 
     @BeforeAll
     fun populate() {
-        setupSinks(testRapid,utkastRepository)
+        setupSinks(testRapid, utkastRepository)
         utkastForTestFnr1.forEach {
             testRapid.sendTestMessage(it.toTestMessage(testFnr1))
         }
         testRapid.sendTestMessage(utkastForTestFnr2.toTestMessage(testFnr2))
-        testRapid.sendTestMessage(updateUtkastTestPacket(
-            utkastForTestFnr1[0].utkastId,
-            metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
-        ))
+        testRapid.sendTestMessage(
+            updateUtkastTestPacket(
+                utkastForTestFnr1[0].utkastId,
+                metrics = mapOf("skjemakode" to "skjemakode", "skjemanavn" to "skjemanavn")
+            )
+        )
         utkastForTestFnr1[0] = utkastForTestFnr1[0].copy(sistEndret = LocalDateTimeHelper.nowAtUtc())
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
@@ -61,18 +65,24 @@ class UtkastApiTest {
 
     @Test
     fun `henter utkast for bruker med ident`() = testApplication {
-        application { utkastApi(utkastRepository = utkastRepository, installAuthenticatorsFunction = {
-            installMockedAuthenticators {
-                installTokenXAuthMock {
-                    alwaysAuthenticated = true
-                    setAsDefault = true
-                    staticUserPid = testFnr1
-                    staticSecurityLevel = SecurityLevel.LEVEL_4
-                }
-            }
-        } ) }
+        application {
+            utkastApi(
+                utkastRepository = utkastRepository,
+                installAuthenticatorsFunction = {
+                    installMockedAuthenticators {
+                        installTokenXAuthMock {
+                            alwaysAuthenticated = true
+                            setAsDefault = true
+                            staticUserPid = testFnr1
+                            staticSecurityLevel = SecurityLevel.LEVEL_4
+                        }
+                    }
+                },
+                digisosHttpClient = mockk()
+            )
+        }
 
-        client.get("/utkast/antall").assert{
+        client.get("/utkast/antall").assert {
             status shouldBe HttpStatusCode.OK
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
@@ -90,8 +100,10 @@ class UtkastApiTest {
                     jsonNode["link"].asText() shouldBe forventedeVerdier.link
                     jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
                     jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
-                    jsonNode["metrics"]?.get("skjemakode")?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
-                    jsonNode["metrics"]?.get("skjemanavn")?.asText() shouldBe forventedeVerdier.metrics?.get("skjemanavn")
+                    jsonNode["metrics"]?.get("skjemakode")
+                        ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
+                    jsonNode["metrics"]?.get("skjemanavn")
+                        ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemanavn")
                 }
             }
         }
@@ -99,16 +111,19 @@ class UtkastApiTest {
 
     @Test
     fun `forsøker å hente tittel på ønsket språk`() = testApplication {
-        application { utkastApi(utkastRepository = utkastRepository, installAuthenticatorsFunction = {
-            installMockedAuthenticators {
-                installTokenXAuthMock {
-                    alwaysAuthenticated = true
-                    setAsDefault = true
-                    staticUserPid = testFnr2
-                    staticSecurityLevel = SecurityLevel.LEVEL_4
+        application {
+            utkastApi(
+                utkastRepository = utkastRepository, installAuthenticatorsFunction = {
+                installMockedAuthenticators {
+                    installTokenXAuthMock {
+                        alwaysAuthenticated = true
+                        setAsDefault = true
+                        staticUserPid = testFnr2
+                        staticSecurityLevel = SecurityLevel.LEVEL_4
+                    }
                 }
-            }
-        } ) }
+            }, digisosHttpClient = mockk())
+        }
 
         client.get("/utkast").assert {
             status.shouldBe(HttpStatusCode.OK)

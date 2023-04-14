@@ -4,24 +4,27 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.response.respondBytes
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.ktor.server.testing.*
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
+import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
+import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
 import no.nav.tms.utkast.config.LocalDateTimeHelper
+import no.nav.tms.utkast.config.configureJackson
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import kotlin.random.Random
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -30,7 +33,7 @@ class DigiSosApiTest {
     private val objectMapper = jacksonObjectMapper().apply {
         registerModule(JavaTimeModule())
     }
-    private val digisosTestHost = "https://digisos.test"
+    private val digisosTestHost = "http://www.digisos.test"
     private val testFnr = "88776655"
 
 
@@ -40,8 +43,8 @@ class DigiSosApiTest {
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc())
         )
-
         digisosService(digisosTestHost, expextedUtkastData)
+        api(createClient { configureJackson() })
 
         client.get("/utkast/digisos").assert {
             status shouldBe HttpStatusCode.OK
@@ -52,7 +55,7 @@ class DigiSosApiTest {
                     require(this != null)
                     this["tittel"].asText() shouldBe expected.tittel
                     this["link"].asText() shouldBe expected.link
-                    this["opprettet"].asLocalDateTime() shouldNotBe null
+                    this["opprettet"].asLocalDateTime() shouldBeCaSameAs expected.opprettet
                     this["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs expected.sistEndret
                     this["metrics"]?.get("skjemakode")?.asText() shouldBe expected.metrics?.get("skjemakode")
                     this["metrics"]?.get("skjemanavn")?.asText() shouldBe expected.metrics?.get("skjemanavn")
@@ -66,12 +69,15 @@ class DigiSosApiTest {
     fun `henter riktig antall 'utkast' fra digisos`() = testApplication {
         val expextedUtkastData = listOf(
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
-            testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc())
+            testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
+            testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
+            testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
         )
         digisosService(digisosTestHost, expextedUtkastData)
+        api(createClient { configureJackson() })
         client.get("/utkast/digisos/antall").assert {
             status shouldBe HttpStatusCode.OK
-            objectMapper.readTree(bodyAsText())["antall"] shouldBe 2
+            objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
 
 
@@ -79,28 +85,37 @@ class DigiSosApiTest {
 
     private fun ApplicationTestBuilder.digisosService(testHost: String, expextedUtkastData: List<UtkastData>) =
         externalServices {
-            require(expextedUtkastData.size == 2)
             hosts(testHost) {
                 routing {
                     get("/dittnav/pabegynte/aktive") {
-                        if ("hfajhfak" == testFnr) {
-                            val digisosResp = """
-                            [
-                                ${expextedUtkastData.first().toDigisosResponse()},
-                                ${expextedUtkastData.last().toDigisosResponse()}
-                            ]
-                        """.trimIndent()
-                            call.respondBytes(
-                                contentType = ContentType.Application.Json,
-                                provider = { digisosResp.toByteArray() })
-                        } else {
-                            call.respondBytes(
-                                contentType = ContentType.Application.Json,
-                                provider = { "[]".toByteArray() })
-                        }
+                        val digisosResp = expextedUtkastData.joinToString(
+                            prefix = "[",
+                            postfix = "]",
+                            separator = ","
+                        ) { it.toDigisosResponse() }
+                        call.respondBytes(
+                            contentType = ContentType.Application.Json,
+                            provider = { digisosResp.toByteArray() })
                     }
                 }
             }
+        }
+
+    private fun ApplicationTestBuilder.api(client: HttpClient) =
+        application {
+            utkastApi(
+                utkastRepository = mockk(),
+                digisosHttpClient = DigisosHttpClient(digisosTestHost, client),
+                installAuthenticatorsFunction = {
+                    installMockedAuthenticators {
+                        installTokenXAuthMock {
+                            alwaysAuthenticated = true
+                            setAsDefault = true
+                            staticUserPid = testFnr
+                            staticSecurityLevel = SecurityLevel.LEVEL_4
+                        }
+                    }
+                })
         }
 }
 
@@ -113,12 +128,12 @@ private fun UtkastData.toDigisosResponse() =
         "eventId":"$utkastId",
         "grupperingsId":"tadda",
         "sikkerhetsniva": "3",
-        "link": "$link"
-        "tekst": "dummytekst",
-        "sistOppdatert": "${opprettet.plusMinutes(3)}"
+        "link": "$link",
+        "tekst": "$tittel",
+        "sistOppdatert": null,
         "isAktiv": true
         }
-    """
+    """.trimIndent()
 
 private fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startTestTime: LocalDateTime) = UtkastData(
     utkastId = UUID.randomUUID().toString(),

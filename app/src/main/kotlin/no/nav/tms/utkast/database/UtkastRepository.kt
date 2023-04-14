@@ -101,7 +101,7 @@ private fun String.jsonB() = PGobject().apply {
     value = this@jsonB
 }
 
-internal data class Utkast(
+data class Utkast(
     val utkastId: String,
     val tittel: String,
     val link: String,
