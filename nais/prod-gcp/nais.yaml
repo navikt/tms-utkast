@@ -7,7 +7,6 @@ metadata:
     team: min-side
 spec:
   envFrom:
-    - secret: tms-utkast-secrets
     - secret: influxdb-credentials
   image: {{version}}
   port: 8080
@@ -34,6 +33,9 @@ spec:
     inbound:
       rules:
         - application: tms-min-side-proxy
+    outbound:
+      external:
+        - host: sosialhjelp-soknad-api.dev-fss-pub.nais.io
   gcp:
     sqlInstances:
       - name: utkast
@@ -57,3 +59,12 @@ spec:
     requests:
       cpu: "50m"
       memory: 256Mi
+  env:
+    - name: GROUP_ID
+      value: tms-utkast-rapid-01
+    - name: RAPID_TOPIC
+      value: min-side.aapen-utkast-v1
+    - name: DIGISOS_BASE_URL
+      value: https://sosialhjelp-soknad-api.prod-fss-pub.nais.io/sosialhjelp/soknad-api
+    - name: DIGISOS_CLIENT_ID
+      value: prod-fss:teamdigisos:sosialhjelp-soknad-api

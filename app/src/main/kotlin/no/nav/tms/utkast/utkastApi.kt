@@ -2,6 +2,7 @@ package no.nav.tms.utkast
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -22,28 +23,43 @@ import java.util.*
 
 internal fun Application.utkastApi(
     utkastRepository: UtkastRepository,
+    digisosHttpClient: DigisosHttpClient,
     installAuthenticatorsFunction: Application.() -> Unit = installAuth(),
 ) {
     installAuthenticatorsFunction()
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            if (cause is DatabaseException) {
-                logExceptionAsWarning(
-                    unsafeLogInfo = "Henting fra database feilet for kall til ${call.request.uri}",
-                    secureLogInfo = cause.details,
-                    cause = cause
-                )
-                call.respond(HttpStatusCode.InternalServerError)
-            } else {
-                logExceptionAsWarning(
-                    unsafeLogInfo = "Ukjent feil for kall itl ${call.request.uri}",
-                    cause = cause
-                )
-                call.respond(HttpStatusCode.InternalServerError)
-            }
-        }
+            when (cause) {
+                is DatabaseException -> {
+                    logExceptionAsWarning(
+                        unsafeLogInfo = "Henting fra database feilet for kall til ${call.request.uri}",
+                        secureLogInfo = cause.details,
+                        cause = cause
+                    )
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
 
+                is DigisosException -> {
+                    val ident = TokenXUserFactory.createTokenXUser(call)
+                    logExceptionAsWarning(
+                        unsafeLogInfo = cause.message!!,
+                        secureLogInfo = "${cause.message} for $ident",
+                        cause = cause.originalException
+                    )
+                    call.respond(HttpStatusCode.ServiceUnavailable)
+                }
+
+                else -> {
+                    logExceptionAsWarning(
+                        unsafeLogInfo = "Ukjent feil for kall til ${call.request.uri}",
+                        cause = cause
+                    )
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
+
+        }
     }
     install(ContentNegotiation) {
         jackson {
@@ -62,6 +78,14 @@ internal fun Application.utkastApi(
                     val antall = utkastRepository.getUtkastForIdent(userIdent).size
                     call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
                 }
+                get("digisos") {
+                    call.respond(digisosHttpClient.getUtkast(accessToken))
+
+                }
+                get("digisos/antall") {
+                    val antall = digisosHttpClient.getAntall(accessToken)
+                    call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
+                }
             }
         }
     }
@@ -76,6 +100,8 @@ private fun installAuth(): Application.() -> Unit = {
 }
 
 private val PipelineContext<Unit, ApplicationCall>.userIdent get() = TokenXUserFactory.createTokenXUser(call).ident
+private val PipelineContext<Unit, ApplicationCall>.accessToken get() = TokenXUserFactory.createTokenXUser(call).tokenString
+
 
 private val PipelineContext<Unit, ApplicationCall>.localeParam
     get() = call.request.queryParameters["la"]?.let {

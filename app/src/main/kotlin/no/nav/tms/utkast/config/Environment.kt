@@ -1,5 +1,10 @@
 package no.nav.tms.utkast.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.jackson.*
 import no.nav.personbruker.dittnav.common.util.config.IntEnvVar.getEnvVarAsInt
 import no.nav.personbruker.dittnav.common.util.config.StringEnvVar.getEnvVar
 
@@ -23,7 +28,10 @@ data class Environment(
     val aivenSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
     val securityVars: SecurityVars = SecurityVars(),
     val rapidTopic: String = getEnvVar("RAPID_TOPIC"),
+    val digisosClientId: String= getEnvVar("DIGISOS_CLIENT_ID"),
+    val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL")
     ) {
+
     fun rapidConfig(): Map<String, String> = mapOf(
         "KAFKA_BROKERS" to aivenBrokers,
         "KAFKA_CONSUMER_GROUP_ID" to groupId,
@@ -51,3 +59,15 @@ fun getDbUrl(host: String, port: String, name: String): String {
         "jdbc:postgresql://${host}:${port}/${name}"
     }
 }
+
+fun HttpClientConfig<*>.configureJackson() {
+    install(ContentNegotiation) {
+        jackson {
+            registerModule(JavaTimeModule())
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
+    }
+}
+
+
+

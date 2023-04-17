@@ -34,13 +34,17 @@ dependencies {
     implementation(KotlinLogging.logging)
     implementation(Ktor2.Server.core)
     implementation(Ktor2.Server.netty)
-    implementation(Ktor2.Server.contentNegotiation)
     implementation(Ktor2.Server.auth)
     implementation(Ktor2.Server.authJwt)
     implementation(Ktor2.Server.statusPages)
+    implementation(Ktor2.Server.contentNegotiation)
     implementation(Ktor2.Serialization.jackson)
+    implementation(Ktor2.Client.core)
+    implementation(Ktor2.Client.contentNegotiation)
+    implementation(Ktor2.Client.apache)
     implementation(TmsKtorTokenSupport.tokenXValidation)
     implementation(TmsKtorTokenSupport.authenticationInstaller)
+    implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(Postgresql.postgresql)
     implementation(Prometheus.common)
     implementation(Prometheus.hotspot)
@@ -59,7 +63,11 @@ dependencies {
     testImplementation(TmsKtorTokenSupport.authenticationInstallerMock)
     testImplementation(TmsKtorTokenSupport.tokenXValidationMock)
     testImplementation(KotlinxSerialization.json)
+    testImplementation(Ktor2.Server.defaultHeaders)
+
     testImplementation(project(":lib"))
+    testImplementation("io.ktor:ktor-server-tests-jvm:2.1.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.7.20")
 }
 
 application {
