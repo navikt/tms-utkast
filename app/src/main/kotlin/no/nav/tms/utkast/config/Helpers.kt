@@ -52,7 +52,7 @@ fun logExceptionAsWarning(unsafeLogInfo: String, cause: Throwable, secureLogInfo
     secureLog.error {
         """
             ${secureLogInfo?.let { secureLogInfo }}
-            "origin": ${cause.stackTrace}
+            "origin": ${cause.stackTrace.contentToString()}
         """
     }
 
