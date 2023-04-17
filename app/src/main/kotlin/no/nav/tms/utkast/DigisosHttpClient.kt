@@ -18,15 +18,18 @@ class DigisosHttpClient(
     val tokendingsService: TokendingsService
 ) {
 
-    suspend fun getUtkast(accessToken: String) = httpClient.getUtkastFromDigisos(accessToken).map { it.toUtkast() }
+    suspend fun getUtkast(accessToken: String) =
+        httpClient.getUtkastFromDigisos(accessToken).map { it.toUtkast() }
+
     suspend fun getAntall(accessToken: String) = httpClient.getUtkastFromDigisos(accessToken).size
 
     private suspend fun HttpClient.getUtkastFromDigisos(accessToken: String) = try {
+        val digisosToken = tokendingsService.exchangeToken(accessToken, digisosClientId)
         withContext(Dispatchers.IO) {
             request {
                 url("$baseUrl/dittnav/pabegynte/aktive")
                 method = HttpMethod.Get
-                header(HttpHeaders.Authorization, "Bearer $accessToken")
+                header(HttpHeaders.Authorization, "Bearer $digisosToken")
             }
         }.body<List<DigisosBeskjed>>()
     } catch (e: Exception) {
@@ -36,9 +39,6 @@ class DigisosHttpClient(
         )
     }
 
-
-    suspend fun exchangeToken(accessToken: String): String =
-        tokendingsService.exchangeToken(accessToken, digisosClientId)
 
 }
 
