@@ -34,8 +34,8 @@ spec:
       rules:
         - application: tms-min-side-proxy
     outbound:
-      rules:
-        - host: sosialhjelp-soknad-api.prod-fss-pub.nais.io
+      external:
+        - host: sosialhjelp-soknad-api.dev-fss-pub.nais.io
   gcp:
     sqlInstances:
       - name: utkast
