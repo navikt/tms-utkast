@@ -13,7 +13,7 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
-import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
+import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.BeforeAll
@@ -74,7 +74,7 @@ class UtkastApiTest {
                             alwaysAuthenticated = true
                             setAsDefault = true
                             staticUserPid = testFnr1
-                            staticSecurityLevel = SecurityLevel.LEVEL_4
+                            staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
                         }
                     }
                 },
@@ -119,7 +119,7 @@ class UtkastApiTest {
                         alwaysAuthenticated = true
                         setAsDefault = true
                         staticUserPid = testFnr2
-                        staticSecurityLevel = SecurityLevel.LEVEL_4
+                        staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
                     }
                 }
             }, digisosHttpClient = mockk())

@@ -9,8 +9,7 @@ import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastDeletedSink(
     rapidsConnection: RapidsConnection,
-    private val utkastRepository: UtkastRepository,
-    private val rapidMetricsProbe: RapidMetricsProbe
+    private val utkastRepository: UtkastRepository
 ) :
     River.PacketListener {
 
@@ -27,7 +26,7 @@ class UtkastDeletedSink(
             utkastRepository.deleteUtkast(packet["utkastId"].asText())
         }
 
-        rapidMetricsProbe.countUtkastChanged("deleted")
+        UtkastMetricsReporter.countUtkastSlettet()
     }
 }
 

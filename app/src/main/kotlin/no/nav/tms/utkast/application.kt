@@ -4,10 +4,6 @@ import io.ktor.client.*
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidApplication.RapidApplicationConfig.Companion.fromEnv
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.personbruker.dittnav.common.metrics.MetricsReporter
-import no.nav.personbruker.dittnav.common.metrics.StubMetricsReporter
-import no.nav.personbruker.dittnav.common.metrics.influxdb.InfluxConfig
-import no.nav.personbruker.dittnav.common.metrics.influxdb.InfluxMetricsReporter
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.utkast.config.Environment
 import no.nav.tms.utkast.config.Flyway
@@ -18,13 +14,11 @@ import java.util.concurrent.TimeUnit
 
 fun main() {
     val environment = Environment()
-    val httpClient = HttpClient() {
+    val httpClient = HttpClient {
         configureJackson()
     }
-    val rapidMetricsProbe = RapidMetricsProbe(resolveMetricsReporter(environment))
     startRapid(
         environment = environment,
-        rapidMetricsProbe = rapidMetricsProbe,
         utkastRepository = UtkastRepository(PostgresDatabase(environment)),
         digisosHttpClient = DigisosHttpClient(
             baseUrl = environment.digisosBaseUrl,
@@ -38,7 +32,6 @@ fun main() {
 private fun startRapid(
     environment: Environment,
     utkastRepository: UtkastRepository,
-    rapidMetricsProbe: RapidMetricsProbe,
     digisosHttpClient: DigisosHttpClient
 ) {
 
@@ -47,18 +40,15 @@ private fun startRapid(
     }.build().apply {
         UtkastCreatedSink(
             rapidsConnection = this,
-            utkastRepository = utkastRepository,
-            rapidMetricsProbe = rapidMetricsProbe
+            utkastRepository = utkastRepository
         )
         UtkastUpdatedSink(
             rapidsConnection = this,
-            utkastRepository = utkastRepository,
-            rapidMetricsProbe = rapidMetricsProbe
+            utkastRepository = utkastRepository
         )
         UtkastDeletedSink(
             rapidsConnection = this,
-            utkastRepository = utkastRepository,
-            rapidMetricsProbe = rapidMetricsProbe
+            utkastRepository = utkastRepository
         )
     }.apply {
         register(object : RapidsConnection.StatusListener {
@@ -67,24 +57,4 @@ private fun startRapid(
             }
         })
     }.start()
-}
-
-fun resolveMetricsReporter(environment: Environment): MetricsReporter {
-    return if (environment.influxdbHost == "" || environment.influxdbHost == "stub") {
-        StubMetricsReporter()
-    } else {
-        val influxConfig = InfluxConfig(
-            applicationName = "tms-utkast",
-            hostName = environment.influxdbHost,
-            hostPort = environment.influxdbPort,
-            databaseName = environment.influxdbName,
-            retentionPolicyName = environment.influxdbRetentionPolicy,
-            clusterName = environment.clusterName,
-            namespace = environment.namespace,
-            userName = environment.influxdbUser,
-            password = environment.influxdbPassword,
-            timePrecision = TimeUnit.NANOSECONDS
-        )
-        InfluxMetricsReporter(influxConfig)
-    }
 }
