@@ -13,6 +13,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
+import nav.no.tms.common.metrics.installTmsApiMetrics
 import no.nav.tms.token.support.authentication.installer.installAuthenticators
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.utkast.config.logExceptionAsWarning
@@ -27,6 +28,10 @@ internal fun Application.utkastApi(
     installAuthenticatorsFunction: Application.() -> Unit = installAuth(),
 ) {
     installAuthenticatorsFunction()
+
+    installTmsApiMetrics {
+        setupMetricsRoute = false
+    }
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->

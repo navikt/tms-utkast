@@ -10,3 +10,12 @@ tasks {
         enabled = false
     }
 }
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation(kotlin("stdlib-jdk8"))
+}

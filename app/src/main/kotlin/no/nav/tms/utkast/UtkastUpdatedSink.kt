@@ -1,6 +1,6 @@
 package no.nav.tms.utkast
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -13,8 +13,7 @@ import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastUpdatedSink(
     rapidsConnection: RapidsConnection,
-    private val utkastRepository: UtkastRepository,
-    private val rapidMetricsProbe: RapidMetricsProbe
+    private val utkastRepository: UtkastRepository
 ) :
     River.PacketListener {
 
@@ -52,10 +51,10 @@ class UtkastUpdatedSink(
                 }
             }
 
-        rapidMetricsProbe.countUtkastChanged("updated")
+        UtkastMetricsReporter.countUtkastEndret()
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        log.info(problems.toString())
+        log.info { problems.toString() }
     }
 }

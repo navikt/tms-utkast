@@ -14,22 +14,18 @@ import java.time.LocalDateTime
 internal fun setupSinks(
     rapidsConnection: RapidsConnection,
     utkastRepository: UtkastRepository,
-    metricsProbe: RapidMetricsProbe = mockk(relaxed = true)
 ) {
     UtkastUpdatedSink(
         rapidsConnection = rapidsConnection,
-        utkastRepository = utkastRepository,
-        rapidMetricsProbe = metricsProbe
+        utkastRepository = utkastRepository
     )
     UtkastDeletedSink(
         rapidsConnection = rapidsConnection,
-        utkastRepository = utkastRepository,
-        rapidMetricsProbe = metricsProbe
+        utkastRepository = utkastRepository
     )
     UtkastCreatedSink(
         rapidsConnection = rapidsConnection,
-        utkastRepository = utkastRepository,
-        rapidMetricsProbe = metricsProbe
+        utkastRepository = utkastRepository
     )
 }
 
