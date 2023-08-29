@@ -1,6 +1,7 @@
 package no.nav.tms.utkast.database
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.queryOf
 import no.nav.tms.utkast.config.Database
 import no.nav.tms.utkast.config.LocalDateTimeHelper
@@ -85,11 +86,7 @@ class UtkastRepository(private val database: Database) {
                         sistEndret = row.localDateTimeOrNull("sistendret"),
                         metrics = row.stringOrNull("metrics")
                             ?.let {
-                                val jsonValues = jacksonObjectMapper().readTree(it)
-                                mapOf(
-                                    "skjemakode" to jsonValues["skjemakode"].asText(),
-                                    "skjemanavn" to jsonValues["skjemanavn"].asText()
-                                )
+                              jacksonObjectMapper().readValue<Map<String,String>>(it)
                             }
                     )
                 }.asList
@@ -112,5 +109,5 @@ data class Utkast(
 
 class DatabaseException: Throwable(){
     val details= ""
-
 }
+
