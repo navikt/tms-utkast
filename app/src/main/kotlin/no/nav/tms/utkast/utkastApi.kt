@@ -14,7 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import nav.no.tms.common.metrics.installTmsApiMetrics
-import no.nav.tms.token.support.authentication.installer.installAuthenticators
+import no.nav.tms.token.support.tokenx.validation.tokenX
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.utkast.config.logExceptionAsWarning
 import no.nav.tms.utkast.database.DatabaseException
@@ -97,8 +97,8 @@ internal fun Application.utkastApi(
 }
 
 private fun installAuth(): Application.() -> Unit = {
-    installAuthenticators {
-        installTokenXAuth {
+    authentication {
+        tokenX {
             setAsDefault = true
         }
     }

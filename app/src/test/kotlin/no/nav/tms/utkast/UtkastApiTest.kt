@@ -7,13 +7,14 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
+import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.BeforeAll
@@ -69,8 +70,8 @@ class UtkastApiTest {
             utkastApi(
                 utkastRepository = utkastRepository,
                 installAuthenticatorsFunction = {
-                    installMockedAuthenticators {
-                        installTokenXAuthMock {
+                    authentication {
+                        tokenXMock {
                             alwaysAuthenticated = true
                             setAsDefault = true
                             staticUserPid = testFnr1
@@ -114,8 +115,8 @@ class UtkastApiTest {
         application {
             utkastApi(
                 utkastRepository = utkastRepository, installAuthenticatorsFunction = {
-                installMockedAuthenticators {
-                    installTokenXAuthMock {
+                authentication {
+                    tokenXMock {
                         alwaysAuthenticated = true
                         setAsDefault = true
                         staticUserPid = testFnr2
