@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -16,9 +17,9 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
-import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
+import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.config.configureJackson
 import org.intellij.lang.annotations.Language
@@ -112,8 +113,8 @@ class DigiSosApiTest {
                 utkastRepository = mockk(),
                 digisosHttpClient = DigisosHttpClient(digisosTestHost, client, "dummyid", tokendingsMockk),
                 installAuthenticatorsFunction = {
-                    installMockedAuthenticators {
-                        installTokenXAuthMock {
+                    authentication {
+                        tokenXMock {
                             alwaysAuthenticated = true
                             setAsDefault = true
                             staticUserPid = testFnr
