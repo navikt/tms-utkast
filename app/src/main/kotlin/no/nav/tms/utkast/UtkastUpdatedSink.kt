@@ -1,14 +1,15 @@
 package no.nav.tms.utkast
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.tms.utkast.Events.updated
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
-import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastUpdatedSink(
@@ -33,25 +34,24 @@ class UtkastUpdatedSink(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val utkastId = packet["utkastId"].asText()
+        traceUtkast(utkastId, updated) {
 
-
-        packet["tittel_i18n"].takeIf { !it.isEmpty }
-            ?.toString()
-            ?.let {
-                withErrorLogging {
+            packet["tittel_i18n"].takeIf { !it.isEmpty }
+                ?.toString()
+                ?.let {
+                    log.info { "Oppdaterer språk for utkast" }
                     utkastRepository.updateUtkastI18n(utkastId, it)
                 }
-            }
 
-        packet.keepFields("tittel", "link")
-            .toString()
-            .let {
-                withErrorLogging {
+            packet.keepFields("tittel", "link")
+                .toString()
+                .let {
+                    log.info { "Oppdaterer tittel/link for utkast" }
                     utkastRepository.updateUtkast(utkastId, it)
                 }
-            }
 
-        UtkastMetricsReporter.countUtkastEndret()
+            UtkastMetricsReporter.countUtkastEndret()
+        }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

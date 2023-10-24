@@ -31,22 +31,6 @@ object JsonMessageHelper {
 private val secureLog = KotlinLogging.logger("secureLog")
 private val log = KotlinLogging.logger {}
 
-fun withErrorLogging(function: ErrorContext.() -> Any) {
-    val errorContext = ErrorContext()
-    try {
-        errorContext.function()
-    } catch (exception: Throwable) {
-        log.error { errorContext.message }
-        secureLog.error {
-            """
-            ${errorContext.message}\n
-            ident: ${errorContext.ident}\n
-            "origin": $exception
-        """
-        }
-    }
-}
-
 fun logExceptionAsWarning(unsafeLogInfo: String, cause: Throwable, secureLogInfo: String? = null) {
     log.warn { unsafeLogInfo }
     secureLog.error {

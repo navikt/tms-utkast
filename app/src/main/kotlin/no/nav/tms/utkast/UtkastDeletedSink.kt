@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.tms.utkast.config.withErrorLogging
+import no.nav.tms.utkast.Events.deleted
 import no.nav.tms.utkast.database.UtkastRepository
 
 class UtkastDeletedSink(
@@ -21,12 +21,10 @@ class UtkastDeletedSink(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        withErrorLogging {
-            message = "Feil ved sletting av utkast med id ${packet["utkastId"].asText()}"
+        traceUtkast(packet["utkastId"].asText(), deleted) {
             utkastRepository.deleteUtkast(packet["utkastId"].asText())
+            UtkastMetricsReporter.countUtkastSlettet()
         }
-
-        UtkastMetricsReporter.countUtkastSlettet()
     }
 }
 
