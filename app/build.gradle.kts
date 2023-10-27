@@ -45,7 +45,7 @@ dependencies {
     implementation(Postgresql.postgresql)
     implementation(RapidsAndRivers.rapidsAndRivers)
     implementation(KotliQuery.kotliquery)
-    implementation(TmsCommonLib.commonLib)
+    implementation(TmsCommonLib17.commonLib)
     implementation(project(":lib"))
 
     testImplementation(Junit.api)

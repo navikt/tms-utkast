@@ -10,3 +10,10 @@ object SulkyUlid: DependencyGroup {
 
     val sulkyUlid get() = dependency("de.huxhorn.sulky.ulid")
 }
+
+object TmsCommonLib17: DependencyGroup {
+    override val groupId get() = "com.github.navikt"
+    override val version get() = "1.7.0"
+    val commonLib get() = dependency("tms-common-lib")
+
+}
