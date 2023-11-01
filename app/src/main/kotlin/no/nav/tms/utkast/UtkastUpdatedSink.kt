@@ -10,6 +10,7 @@ import no.nav.tms.utkast.builder.UtkastValidator.validateLink
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
+import observability.traceUtkast
 
 class UtkastUpdatedSink(
     rapidsConnection: RapidsConnection,
@@ -33,25 +34,26 @@ class UtkastUpdatedSink(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val utkastId = packet["utkastId"].asText()
-
-
-        packet["tittel_i18n"].takeIf { !it.isEmpty }
-            ?.toString()
-            ?.let {
-                withErrorLogging {
-                    utkastRepository.updateUtkastI18n(utkastId, it)
+        traceUtkast(id = utkastId) {
+            log.info { "utkast updated" }
+            packet["tittel_i18n"].takeIf { !it.isEmpty }
+                ?.toString()
+                ?.let {
+                    withErrorLogging {
+                        utkastRepository.updateUtkastI18n(utkastId, it)
+                    }
                 }
-            }
 
-        packet.keepFields("tittel", "link")
-            .toString()
-            .let {
-                withErrorLogging {
-                    utkastRepository.updateUtkast(utkastId, it)
+            packet.keepFields("tittel", "link")
+                .toString()
+                .let {
+                    withErrorLogging {
+                        utkastRepository.updateUtkast(utkastId, it)
+                    }
                 }
-            }
 
-        UtkastMetricsReporter.countUtkastEndret()
+            UtkastMetricsReporter.countUtkastEndret()
+        }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

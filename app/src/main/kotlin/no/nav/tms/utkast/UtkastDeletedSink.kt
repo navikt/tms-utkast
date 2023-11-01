@@ -1,11 +1,13 @@
 package no.nav.tms.utkast
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
+import observability.traceUtkast
 
 class UtkastDeletedSink(
     rapidsConnection: RapidsConnection,
@@ -20,13 +22,18 @@ class UtkastDeletedSink(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        withErrorLogging {
-            message = "Feil ved sletting av utkast med id ${packet["utkastId"].asText()}"
-            utkastRepository.deleteUtkast(packet["utkastId"].asText())
-        }
+    private val log = KotlinLogging.logger {  }
 
-        UtkastMetricsReporter.countUtkastSlettet()
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        traceUtkast(id = packet["utkastId"].asText()) {
+            log.info { "Utkast deleted" }
+            withErrorLogging {
+                message = "Feil ved sletting av utkast med id ${packet["utkastId"].asText()}"
+                utkastRepository.deleteUtkast(packet["utkastId"].asText())
+            }
+
+            UtkastMetricsReporter.countUtkastSlettet()
+        }
     }
 }
 

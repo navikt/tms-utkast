@@ -10,7 +10,9 @@ import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.config.withErrorLogging
 import no.nav.tms.utkast.database.UtkastRepository
+import observability.Contenttype
 import observability.traceUtkast
+import observability.withTraceLogging
 
 class UtkastCreatedSink(
     rapidsConnection: RapidsConnection,
@@ -36,7 +38,7 @@ class UtkastCreatedSink(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         traceUtkast(id = packet["utkastId"].asText()) {
-            log.info { "created event motatt" }
+            log.info { "utkast created" }
             packet.keepFields("utkastId", "ident", "link", "tittel", "tittel_i18n", "metrics")
                 .toString()
                 .let {
@@ -53,4 +55,3 @@ class UtkastCreatedSink(
         log.info { problems.toString() }
     }
 }
-
