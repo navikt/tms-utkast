@@ -29,10 +29,5 @@ object Prometheus: PrometheusDefaults
 object RapidsAndRivers: RapidsAndRiversDefaults
 object Shadow: ShadowDefaults
 object TestContainers: TestContainersDefaults
-object TmsCommonLib: DependencyGroup {
-        override val groupId get() = "com.github.navikt"
-        override val version get() = "1.7.0"
-        val commonLib get() = dependency("tms-common-lib")
-
-}
+object TmsCommonLib: TmsCommonLibDefaults
 object TmsKtorTokenSupport: TmsKtorTokenSupportDefaults
