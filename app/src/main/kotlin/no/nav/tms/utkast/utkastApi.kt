@@ -19,6 +19,8 @@ import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.utkast.config.logExceptionAsWarning
 import no.nav.tms.utkast.database.DatabaseException
 import no.nav.tms.utkast.database.UtkastRepository
+import observability.Contenttype
+import observability.withApiTracing
 import java.text.DateFormat
 import java.util.*
 
@@ -77,19 +79,27 @@ internal fun Application.utkastApi(
         authenticate {
             route("utkast") {
                 get {
-                    call.respond(utkastRepository.getUtkastForIdent(userIdent, localeParam))
+                    withApiMDC("utkast/utkast", extra = mapOf("lang" to localeCode)) {
+                        call.respond(utkastRepository.getUtkastForIdent(userIdent, localeParam))
+                    }
                 }
                 get("antall") {
-                    val antall = utkastRepository.getUtkastForIdent(userIdent).size
-                    call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
+                    withApiMDC("utkast/antall") {
+                        val antall = utkastRepository.getUtkastForIdent(userIdent).size
+                        call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
+                    }
                 }
                 get("digisos") {
-                    call.respond(digisosHttpClient.getUtkast(accessToken))
+                    withApiMDC("utkast/digisos") {
+                        call.respond(digisosHttpClient.getUtkast(accessToken))
+                    }
 
                 }
                 get("digisos/antall") {
-                    val antall = digisosHttpClient.getAntall(accessToken)
-                    call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
+                    withApiMDC("utkast/digisos/antall") {
+                        val antall = digisosHttpClient.getAntall(accessToken)
+                        call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
+                    }
                 }
             }
         }
@@ -114,3 +124,17 @@ private val PipelineContext<Unit, ApplicationCall>.localeParam
             it
         )
     }
+
+private val PipelineContext<Unit, ApplicationCall>.localeCode
+    get() = call.request.queryParameters["la"] ?: "nb"
+
+private suspend fun withApiMDC(
+    route: String,
+    extra: Map<String, String> = emptyMap(),
+    method: String = "GET",
+    function: suspend () -> Unit
+) {
+    withApiTracing(route = route, contenttype = Contenttype.utkast, extra = extra, method = method) {
+        function()
+    }
+}
