@@ -53,7 +53,7 @@ _utkast støtter tre hendelser: created, updated, og deleted_
   "utkastId": "<uuid>"
 }
 ```
-Det finnes også et [message-builder bibliotek](https://jitpack.io/#navikt/tms-utkast) som lager meldingene for deg.
+Det finnes også et [message-builder bibliotek](https://github.com/navikt/tms-utkast/pkgs/container/tms-utkast%2Ftms-utkast) som lager meldingene for deg.
 NB! Det er kun ting som **ikke er innsendt** som skal ligge på utkast-siden.
 
 ## Amplitude målinger

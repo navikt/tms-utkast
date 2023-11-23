@@ -5,8 +5,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.jackson.*
-import no.nav.personbruker.dittnav.common.util.config.IntEnvVar.getEnvVarAsInt
-import no.nav.personbruker.dittnav.common.util.config.StringEnvVar.getEnvVar
+import no.nav.tms.common.util.config.IntEnvVar.getEnvVarAsInt
+import no.nav.tms.common.util.config.StringEnvVar.getEnvVar
 
 data class Environment(
     val groupId: String = getEnvVar("GROUP_ID"),
@@ -18,12 +18,6 @@ data class Environment(
     val dbUrl: String = getDbUrl(dbHost, dbPort, dbName),
     val clusterName: String = getEnvVar("NAIS_CLUSTER_NAME"),
     val namespace: String = getEnvVar("NAIS_NAMESPACE"),
-    val influxdbHost: String = getEnvVar("INFLUXDB_HOST"),
-    val influxdbPort: Int = getEnvVarAsInt("INFLUXDB_PORT"),
-    val influxdbName: String = getEnvVar("INFLUXDB_DATABASE_NAME"),
-    val influxdbUser: String = getEnvVar("INFLUXDB_USER"),
-    val influxdbPassword: String = getEnvVar("INFLUXDB_PASSWORD"),
-    val influxdbRetentionPolicy: String = getEnvVar("INFLUXDB_RETENTION_POLICY"),
     val aivenBrokers: String = getEnvVar("KAFKA_BROKERS"),
     val aivenSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
     val securityVars: SecurityVars = SecurityVars(),
