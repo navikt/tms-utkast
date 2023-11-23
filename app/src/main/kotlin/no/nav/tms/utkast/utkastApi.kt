@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
@@ -19,6 +20,7 @@ import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.utkast.config.logExceptionAsWarning
 import no.nav.tms.utkast.database.DatabaseException
 import no.nav.tms.utkast.database.UtkastRepository
+import observability.ApiMdc
 import observability.Contenttype
 import observability.withApiTracing
 import java.text.DateFormat
@@ -34,7 +36,7 @@ internal fun Application.utkastApi(
     installTmsApiMetrics {
         setupMetricsRoute = false
     }
-
+    install(ApiMdc)
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             when (cause) {
@@ -59,7 +61,7 @@ internal fun Application.utkastApi(
 
                 else -> {
                     logExceptionAsWarning(
-                        unsafeLogInfo = "Ukjent feil for kall til ${call.request.uri}",
+                        unsafeLogInfo = "Ukjent feil",
                         cause = cause
                     )
                     call.respond(HttpStatusCode.InternalServerError)
