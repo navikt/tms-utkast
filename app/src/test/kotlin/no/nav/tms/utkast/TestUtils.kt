@@ -1,15 +1,21 @@
 package no.nav.tms.utkast
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.tms.utkast.database.UtkastRepository
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
+import java.util.*
+import kotlin.random.Random
 
 internal fun setupSinks(
     rapidsConnection: RapidsConnection,
@@ -99,5 +105,64 @@ internal data class UtkastData(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
     val slettet: LocalDateTime?,
-    val metrics: Map<String,String>? = null
+    val metrics: Map<String, String>? = null
+) {
+    @Language("JSON")
+    fun toDigisosResponse() =
+        """
+        {
+        "eventTidspunkt" : "$opprettet",
+        "eventId":"$utkastId",
+        "grupperingsId":"tadda",
+        "sikkerhetsniva": "3",
+        "link": "$link",
+        "tekst": "$tittel",
+        "sistOppdatert": null,
+        "isAktiv": true
+        }
+    """.trimIndent()
+
+    @Language("JSON")
+    internal fun toAapResponse() =
+        """
+        {
+        "tittel": "$tittel",
+        "link": "$link",
+        "tekst": "$tittel",
+        "sistOppdatert": "$opprettet"
+        }
+    """.trimIndent()
+}
+
+internal fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startTestTime: LocalDateTime) = UtkastData(
+    utkastId = UUID.randomUUID().toString(),
+    tittel = "testTittel ${Random.nextInt(0, 10)}",
+    tittelI18n = tittelI18n,
+    link = "https://test.link",
+    opprettet = startTestTime,
+    sistEndret = null,
+    slettet = null
 )
+
+internal fun Application.digisosExternalRouting(expextedUtkastData: List<UtkastData>) =
+    routing {
+        get("/dittnav/pabegynte/aktive") {
+            val digisosResp = expextedUtkastData.joinToString(
+                prefix = "[",
+                postfix = "]",
+                separator = ","
+            ) { it.toDigisosResponse() }
+            call.respondBytes(
+                contentType = ContentType.Application.Json,
+                provider = { digisosResp.toByteArray() })
+        }
+    }
+
+internal fun Application.aapExternalRouting(expextedUtkastData: UtkastData) =
+    routing {
+        get("/aap/todoendepunkt") {
+            call.respondBytes(
+                contentType = ContentType.Application.Json,
+                provider = { expextedUtkastData.toAapResponse().toByteArray() })
+        }
+    }

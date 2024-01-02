@@ -9,17 +9,21 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.testing.*
+import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
 import no.nav.tms.utkast.config.LocalDateTimeHelper
+import no.nav.tms.utkast.config.configureJackson
 import no.nav.tms.utkast.database.UtkastRepository
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -33,6 +37,10 @@ class UtkastApiTest {
     private val testFnr1 = "19873569100"
     private val testFnr2 = "19873100100"
     private val startTestTime = LocalDateTimeHelper.nowAtUtc()
+    private val digisosTestHost = "http://www.digisos.test"
+    private val tokendingsMockk = mockk<TokendingsService>().also {
+        coEvery { it.exchangeToken(any(), any()) } returns "<dummytoken>"
+    }
 
     private val utkastForTestFnr1 = mutableListOf(
         testUtkastData(),
@@ -111,19 +119,93 @@ class UtkastApiTest {
     }
 
     @Test
+    fun `henter utkast fra database, aap og digisos`() {
+        val digisosUtkast = testUtkastData(
+            opprettet = LocalDateTime.now().minusDays(2)
+        )
+        val aapUtkast = testUtkastData(
+            opprettet = LocalDateTime.now().plusHours(1)
+        )
+
+        val alleForventedeUtkast = (utkastForTestFnr1 + listOf(digisosUtkast, aapUtkast))
+            .sortedBy { data -> data.opprettet }
+
+        testApplication {
+            val applicationClient = createClient { configureJackson() }
+            application {
+                utkastApi(
+                    utkastRepository = utkastRepository,
+                    installAuthenticatorsFunction = {
+                        authentication {
+                            tokenXMock {
+                                alwaysAuthenticated = true
+                                setAsDefault = true
+                                staticUserPid = testFnr2
+                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
+                            }
+                        }
+                    },
+                    digisosHttpClient = DigisosHttpClient(
+                        digisosTestHost,
+                        applicationClient,
+                        "dummyid",
+                        tokendingsMockk
+                    )
+                )
+            }
+            externalServices {
+                hosts(digisosTestHost) {
+                    digisosExternalRouting(listOf(digisosUtkast))
+                    aapExternalRouting(aapUtkast)
+                }
+            }
+
+            client.get("v2/utkast/antall").assert {
+                status shouldBe HttpStatusCode.OK
+                objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 6
+            }
+
+            client.get("v2/utkast").assert {
+                status.shouldBe(HttpStatusCode.OK)
+                objectMapper.readTree(bodyAsText()).assert {
+                    map { it["opprettet"].asLocalDateTime() } shouldBe alleForventedeUtkast.map { it.opprettet }
+
+                    size() shouldBe 6
+                    forEach { jsonNode ->
+                        val utkastId = jsonNode["utkastId"].asText()
+                        val forventedeVerdier =
+                            alleForventedeUtkast.find { it.utkastId == utkastId }
+                                ?: throw AssertionError("Fant utkast som ikke tilhører ident, utkastId : $utkastId")
+                        jsonNode["tittel"].asText() shouldBe forventedeVerdier.tittel
+                        jsonNode["link"].asText() shouldBe forventedeVerdier.link
+                        jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
+                        jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
+                        jsonNode["metrics"]?.get("skjemakode")
+                            ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
+                        jsonNode["metrics"]?.get("skjemanavn")
+                            ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemanavn")
+                    }
+
+                }
+            }
+        }
+    }
+
+    @Test
     fun `forsøker å hente tittel på ønsket språk`() = testApplication {
         application {
             utkastApi(
                 utkastRepository = utkastRepository, installAuthenticatorsFunction = {
-                authentication {
-                    tokenXMock {
-                        alwaysAuthenticated = true
-                        setAsDefault = true
-                        staticUserPid = testFnr2
-                        staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
+                    authentication {
+                        tokenXMock {
+                            alwaysAuthenticated = true
+                            setAsDefault = true
+                            staticUserPid = testFnr2
+                            staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
+                        }
                     }
-                }
-            }, digisosHttpClient = mockk())
+                }, digisosHttpClient = mockk()
+            )
         }
 
         client.get("/utkast").assert {
@@ -170,14 +252,15 @@ class UtkastApiTest {
         tittelI18n = tittelI18n
     )
 
-    private fun testUtkastData(tittelI18n: Map<String, String> = emptyMap()) = UtkastData(
-        utkastId = UUID.randomUUID().toString(),
-        tittel = "testTittel",
-        tittelI18n = tittelI18n,
-        link = "https://test.link",
-        opprettet = startTestTime,
-        sistEndret = null,
-        slettet = null
-    )
+    private fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), opprettet: LocalDateTime = startTestTime) =
+        UtkastData(
+            utkastId = UUID.randomUUID().toString(),
+            tittel = "testTittel",
+            tittelI18n = tittelI18n,
+            link = "https://test.link",
+            opprettet = startTestTime,
+            sistEndret = null,
+            slettet = null
+        )
 }
 
