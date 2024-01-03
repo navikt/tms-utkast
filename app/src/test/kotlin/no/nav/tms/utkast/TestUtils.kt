@@ -1,18 +1,21 @@
 package no.nav.tms.utkast
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.tms.utkast.database.UtkastRepository
 import org.intellij.lang.annotations.Language
+import org.slf4j.MDC
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.random.Random
@@ -128,8 +131,7 @@ internal data class UtkastData(
         {
         "tittel": "$tittel",
         "link": "$link",
-        "tekst": "$tittel",
-        "sistOppdatert": "$opprettet"
+        "sistEndret": "$opprettet"
         }
     """.trimIndent()
 }
@@ -160,9 +162,24 @@ internal fun Application.digisosExternalRouting(expextedUtkastData: List<UtkastD
 
 internal fun Application.aapExternalRouting(expextedUtkastData: UtkastData) =
     routing {
-        get("/aap/todoendepunkt") {
+        get("/mellomlagring/søknad/finnes") {
             call.respondBytes(
                 contentType = ContentType.Application.Json,
                 provider = { expextedUtkastData.toAapResponse().toByteArray() })
         }
     }
+
+
+class ExternalServicesDebug{
+    companion object Plugin : BaseApplicationPlugin<ApplicationCallPipeline, Configuration, ExternalServicesDebug> {
+
+        override val key = AttributeKey<ExternalServicesDebug>("ExternalServicesDebug")
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ExternalServicesDebug {
+            val plugin = ExternalServicesDebug()
+            pipeline.intercept(ApplicationCallPipeline.Monitoring) {
+                MDC.put("route", call.request.uri)
+            }
+            return plugin
+        }
+    }
+}

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
@@ -28,7 +27,7 @@ import java.util.*
 
 internal fun Application.utkastApi(
     utkastRepository: UtkastRepository,
-    digisosHttpClient: DigisosHttpClient,
+    utkastFetcher: UtkastFetcher,
     installAuthenticatorsFunction: Application.() -> Unit = installAuth(),
 ) {
     installAuthenticatorsFunction()
@@ -49,7 +48,7 @@ internal fun Application.utkastApi(
                     call.respond(HttpStatusCode.InternalServerError)
                 }
 
-                is DigisosException -> {
+                is ExternalServiceException -> {
                     val ident = TokenXUserFactory.createTokenXUser(call)
                     logExceptionAsWarning(
                         unsafeLogInfo = cause.message!!,
@@ -93,14 +92,35 @@ internal fun Application.utkastApi(
                 }
                 get("digisos") {
                     withApiMDC("utkast/digisos") {
-                        call.respond(digisosHttpClient.getUtkast(accessToken))
+                        call.respond(utkastFetcher.digisos(accessToken))
                     }
 
                 }
                 get("digisos/antall") {
                     withApiMDC("utkast/digisos/antall") {
-                        val antall = digisosHttpClient.getAntall(accessToken)
+                        val antall = utkastFetcher.digisos(accessToken).size
                         call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
+                    }
+                }
+            }
+            route("v2/utkast") {
+                get {
+                    withApiMDC("v2/utkast", extra = mapOf("lang" to localeCode)) {
+                        call.respond(
+                            utkastRepository.getUtkastForIdent(
+                                userIdent,
+                                localeParam
+                            ) + utkastFetcher.fetchExternalUtkast(accessToken)
+                        )
+                    }
+                }
+                get("antall") {
+                    withApiMDC("v2/utkast/antall") {
+                        val alleUtkast =
+                            utkastRepository.getUtkastForIdent(
+                                userIdent
+                            ) + utkastFetcher.fetchExternalUtkast(accessToken)
+                        call.respond(jacksonObjectMapper().createObjectNode().put("antall", alleUtkast.size))
                     }
                 }
             }

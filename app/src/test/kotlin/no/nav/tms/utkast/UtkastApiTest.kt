@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
@@ -38,6 +39,7 @@ class UtkastApiTest {
     private val testFnr2 = "19873100100"
     private val startTestTime = LocalDateTimeHelper.nowAtUtc()
     private val digisosTestHost = "http://www.digisos.test"
+    private val aapTestHost = "http://innsending.aap"
     private val tokendingsMockk = mockk<TokendingsService>().also {
         coEvery { it.exchangeToken(any(), any()) } returns "<dummytoken>"
     }
@@ -87,7 +89,7 @@ class UtkastApiTest {
                         }
                     }
                 },
-                digisosHttpClient = mockk()
+                utkastFetcher = mockk()
             )
         }
 
@@ -119,16 +121,17 @@ class UtkastApiTest {
     }
 
     @Test
-    fun `henter utkast fra database, aap og digisos`() {
+    fun `henter utkast fra flere kilder`() {
         val digisosUtkast = testUtkastData(
             opprettet = LocalDateTime.now().minusDays(2)
         )
         val aapUtkast = testUtkastData(
-            opprettet = LocalDateTime.now().plusHours(1)
+            opprettet = LocalDateTime.now().plusHours(1),
+            id = "AAP"
         )
 
         val alleForventedeUtkast = (utkastForTestFnr1 + listOf(digisosUtkast, aapUtkast))
-            .sortedBy { data -> data.opprettet }
+            .sortedBy { data -> data.sistEndret ?: data.opprettet }
 
         testApplication {
             val applicationClient = createClient { configureJackson() }
@@ -140,21 +143,24 @@ class UtkastApiTest {
                             tokenXMock {
                                 alwaysAuthenticated = true
                                 setAsDefault = true
-                                staticUserPid = testFnr2
+                                staticUserPid = testFnr1
                                 staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
                             }
                         }
                     },
-                    digisosHttpClient = DigisosHttpClient(
-                        digisosTestHost,
-                        applicationClient,
-                        "dummyid",
-                        tokendingsMockk
+                    utkastFetcher = UtkastFetcher(
+                        digiSosBaseUrl = digisosTestHost,
+                        httpClient = applicationClient,
+                        digisosClientId = "dummyid",
+                        tokendingsService = tokendingsMockk,
+                        aapClientId = "dummyAAp"
                     )
                 )
             }
+
             externalServices {
-                hosts(digisosTestHost) {
+                hosts(digisosTestHost, aapTestHost) {
+                    install(ExternalServicesDebug)
                     digisosExternalRouting(listOf(digisosUtkast))
                     aapExternalRouting(aapUtkast)
                 }
@@ -168,7 +174,13 @@ class UtkastApiTest {
             client.get("v2/utkast").assert {
                 status.shouldBe(HttpStatusCode.OK)
                 objectMapper.readTree(bodyAsText()).assert {
-                    map { it["opprettet"].asLocalDateTime() } shouldBe alleForventedeUtkast.map { it.opprettet }
+                    map {
+                        it["sistEndret"].asOptionalLocalDateTime()?.toLocalDate() ?: it["opprettet"].asLocalDateTime()
+                            .toLocalDate()
+                    }.sortedByDescending { it } shouldBe alleForventedeUtkast.map {
+                        it.sistEndret?.toLocalDate() ?: it.opprettet.toLocalDate()
+                    }
+                        .sortedByDescending { it }
 
                     size() shouldBe 6
                     forEach { jsonNode ->
@@ -179,7 +191,6 @@ class UtkastApiTest {
                         jsonNode["tittel"].asText() shouldBe forventedeVerdier.tittel
                         jsonNode["link"].asText() shouldBe forventedeVerdier.link
                         jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
-                        jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
                         jsonNode["metrics"]?.get("skjemakode")
                             ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
                         jsonNode["metrics"]?.get("skjemanavn")
@@ -204,7 +215,7 @@ class UtkastApiTest {
                             staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
                         }
                     }
-                }, digisosHttpClient = mockk()
+                }, utkastFetcher = mockk()
             )
         }
 
@@ -252,13 +263,17 @@ class UtkastApiTest {
         tittelI18n = tittelI18n
     )
 
-    private fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), opprettet: LocalDateTime = startTestTime) =
+    private fun testUtkastData(
+        tittelI18n: Map<String, String> = emptyMap(),
+        opprettet: LocalDateTime = startTestTime,
+        id: String = UUID.randomUUID().toString()
+    ) =
         UtkastData(
-            utkastId = UUID.randomUUID().toString(),
+            utkastId = id,
             tittel = "testTittel",
             tittelI18n = tittelI18n,
             link = "https://test.link",
-            opprettet = startTestTime,
+            opprettet = opprettet,
             sistEndret = null,
             slettet = null
         )

@@ -7,11 +7,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -22,12 +18,8 @@ import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.config.configureJackson
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
-import java.util.*
-import kotlin.random.Random
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DigiSosApiTest {
@@ -102,7 +94,13 @@ class DigiSosApiTest {
         application {
             utkastApi(
                 utkastRepository = mockk(),
-                digisosHttpClient = DigisosHttpClient(digisosTestHost, client, "dummyid", tokendingsMockk),
+                utkastFetcher = UtkastFetcher(
+                    digiSosBaseUrl = digisosTestHost,
+                    httpClient = client,
+                    digisosClientId = "dummyid",
+                    tokendingsService = tokendingsMockk,
+                    aapClientId = "dummyAapId"
+                ),
                 installAuthenticatorsFunction = {
                     authentication {
                         tokenXMock {

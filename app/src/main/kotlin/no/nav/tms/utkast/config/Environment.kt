@@ -23,7 +23,8 @@ data class Environment(
     val securityVars: SecurityVars = SecurityVars(),
     val rapidTopic: String = getEnvVar("RAPID_TOPIC"),
     val digisosClientId: String= getEnvVar("DIGISOS_CLIENT_ID"),
-    val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL")
+    val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL"),
+    val aapClientId : String = getEnvVar("AAP_CLIENT_ID")
     ) {
 
     fun rapidConfig(): Map<String, String> = mapOf(
