@@ -160,21 +160,28 @@ internal fun Application.digisosExternalRouting(expextedUtkastData: List<UtkastD
         }
     }
 
-internal fun Application.aapExternalRouting(expextedUtkastData: UtkastData) =
+internal fun Application.aapExternalRouting(expextedUtkastData: UtkastData?) =
     routing {
         get("/mellomlagring/søknad/finnes") {
-            call.respondBytes(
-                contentType = ContentType.Application.Json,
-                provider = { expextedUtkastData.toAapResponse().toByteArray() })
+            if (expextedUtkastData == null) {
+                call.respond(HttpStatusCode.NotFound)
+            } else {
+                call.respondBytes(
+                    contentType = ContentType.Application.Json,
+                    provider = { expextedUtkastData.toAapResponse().toByteArray() })
+            }
         }
     }
 
 
-class ExternalServicesDebug{
+class ExternalServicesDebug {
     companion object Plugin : BaseApplicationPlugin<ApplicationCallPipeline, Configuration, ExternalServicesDebug> {
 
         override val key = AttributeKey<ExternalServicesDebug>("ExternalServicesDebug")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ExternalServicesDebug {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): ExternalServicesDebug {
             val plugin = ExternalServicesDebug()
             pipeline.intercept(ApplicationCallPipeline.Monitoring) {
                 MDC.put("route", call.request.uri)

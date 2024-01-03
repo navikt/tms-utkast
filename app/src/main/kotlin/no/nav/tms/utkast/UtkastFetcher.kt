@@ -18,7 +18,8 @@ class UtkastFetcher(
     val aapClientId: String,
     val tokendingsService: TokendingsService,
 ) {
-    suspend fun fetchExternalUtkast(accessToken: String) = digisos(accessToken) + aap(accessToken)
+    suspend fun allExternal(accessToken: String) = digisos(accessToken) + aap(accessToken)
+
     suspend fun digisos(accessToken: String) =
         httpClient.fetchUtkast<List<DigisosBeskjed>>(
             url = "$digiSosBaseUrl/dittnav/pabegynte/aktive",

@@ -110,7 +110,7 @@ internal fun Application.utkastApi(
                             utkastRepository.getUtkastForIdent(
                                 userIdent,
                                 localeParam
-                            ) + utkastFetcher.fetchExternalUtkast(accessToken)
+                            ) + utkastFetcher.allExternal(accessToken)
                         )
                     }
                 }
@@ -119,7 +119,7 @@ internal fun Application.utkastApi(
                         val alleUtkast =
                             utkastRepository.getUtkastForIdent(
                                 userIdent
-                            ) + utkastFetcher.fetchExternalUtkast(accessToken)
+                            ) + utkastFetcher.allExternal(accessToken)
                         call.respond(jacksonObjectMapper().createObjectNode().put("antall", alleUtkast.size))
                     }
                 }

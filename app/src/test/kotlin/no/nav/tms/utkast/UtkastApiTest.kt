@@ -121,7 +121,7 @@ class UtkastApiTest {
     }
 
     @Test
-    fun `henter utkast fra flere kilder`() {
+    fun `v2 henter utkast fra flere kilder`() {
         val digisosUtkast = testUtkastData(
             opprettet = LocalDateTime.now().minusDays(2)
         )
@@ -197,6 +197,70 @@ class UtkastApiTest {
                             ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemanavn")
                     }
 
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `v2 henter utkast når det ikke finnes noen eksterne`() {
+
+        testApplication {
+            val applicationClient = createClient { configureJackson() }
+            application {
+                utkastApi(
+                    utkastRepository = utkastRepository,
+                    installAuthenticatorsFunction = {
+                        authentication {
+                            tokenXMock {
+                                alwaysAuthenticated = true
+                                setAsDefault = true
+                                staticUserPid = testFnr1
+                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
+                            }
+                        }
+                    },
+                    utkastFetcher = UtkastFetcher(
+                        digiSosBaseUrl = digisosTestHost,
+                        httpClient = applicationClient,
+                        digisosClientId = "dummyid",
+                        tokendingsService = tokendingsMockk,
+                        aapClientId = "dummyAAp"
+                    )
+                )
+            }
+
+            externalServices {
+                hosts(digisosTestHost, aapTestHost) {
+                    install(ExternalServicesDebug)
+                    digisosExternalRouting(listOf())
+                    aapExternalRouting(null)
+                }
+            }
+
+            client.get("v2/utkast/antall").assert {
+                status shouldBe HttpStatusCode.OK
+                objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
+            }
+
+            client.get("v2/utkast").assert {
+                status.shouldBe(HttpStatusCode.OK)
+                objectMapper.readTree(bodyAsText()).assert {
+                    size() shouldBe 4
+                    forEach { jsonNode ->
+                        val utkastId = jsonNode["utkastId"].asText()
+                        val forventedeVerdier =
+                            utkastForTestFnr1.find { it.utkastId == utkastId }
+                                ?: throw AssertionError("Fant utkast som ikke tilhører ident, utkastId : $utkastId")
+                        jsonNode["tittel"].asText() shouldBe forventedeVerdier.tittel
+                        jsonNode["link"].asText() shouldBe forventedeVerdier.link
+                        jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
+                        jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
+                        jsonNode["metrics"]?.get("skjemakode")
+                            ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
+                        jsonNode["metrics"]?.get("skjemanavn")
+                            ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemanavn")
+                    }
                 }
             }
         }
