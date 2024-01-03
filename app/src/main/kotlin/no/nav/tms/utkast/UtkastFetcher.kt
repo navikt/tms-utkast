@@ -4,9 +4,11 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.server.response.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.utkast.config.logExceptionAsWarning
 import no.nav.tms.utkast.database.Utkast
 import java.time.LocalDateTime
 
@@ -18,7 +20,9 @@ class UtkastFetcher(
     val aapClientId: String,
     val tokendingsService: TokendingsService,
 ) {
-    suspend fun allExternal(accessToken: String) = digisos(accessToken) + aap(accessToken)
+    suspend fun allExternal(accessToken: String): List<FetchResult> =
+        listOf(digisos(accessToken), aap(accessToken))
+
 
     suspend fun digisos(accessToken: String) =
         httpClient.fetchUtkast<List<DigisosBeskjed>>(
@@ -40,7 +44,7 @@ class UtkastFetcher(
         tokenxToken: String,
         service: String,
         transform: T.() -> List<Utkast>
-    ) =
+    ): FetchResult =
         try {
             withContext(Dispatchers.IO) {
                 request {
@@ -49,16 +53,17 @@ class UtkastFetcher(
                     header(HttpHeaders.Authorization, "Bearer $tokenxToken")
                 }
             }.let {
-                if (it.status == HttpStatusCode.NotFound)
-                    emptyList<T>()
+                val result = if (it.status == HttpStatusCode.NotFound)
+                    emptyList()
                 else it.body<T>().transform()
+                FetchResult(wasSuccess = true, result)
             }
         } catch (e: Exception) {
-            throw ExternalServiceException(
-                operation = "henting av utkast ($url)",
-                originalException = e,
-                service = service
+            logExceptionAsWarning(
+                unsafeLogInfo = "Feil i henting av utkast ($url) fra $service: ${e.message}",
+                cause = e
             )
+            FetchResult(wasSuccess = false, emptyList())
         }
 }
 
@@ -95,7 +100,10 @@ class ExternalUtkast(
     )
 }
 
-class ExternalServiceException(val operation: String, val service: String, val originalException: Exception) :
-    Exception("Feil i $operation fra $service: ${originalException.message}")
-
-
+class FetchResult(val wasSuccess: Boolean, val utkast: List<Utkast>) {
+    companion object {
+        fun List<FetchResult>.responseStatus() =
+            if (any { !it.wasSuccess }) HttpStatusCode.PartialContent else HttpStatusCode.OK
+        fun List<FetchResult>.utkast(): List<Utkast> = flatMap { it.utkast }
+    }
+}

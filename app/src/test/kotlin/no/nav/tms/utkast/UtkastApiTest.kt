@@ -9,6 +9,8 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -262,6 +264,63 @@ class UtkastApiTest {
                             ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemanavn")
                     }
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `v2 håndterer feil fra eksterne tjenester`() {
+
+        testApplication {
+            val applicationClient = createClient { configureJackson() }
+            application {
+                utkastApi(
+                    utkastRepository = utkastRepository,
+                    installAuthenticatorsFunction = {
+                        authentication {
+                            tokenXMock {
+                                alwaysAuthenticated = true
+                                setAsDefault = true
+                                staticUserPid = testFnr1
+                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
+                            }
+                        }
+                    },
+                    utkastFetcher = UtkastFetcher(
+                        digiSosBaseUrl = digisosTestHost,
+                        httpClient = applicationClient,
+                        digisosClientId = "dummyid",
+                        tokendingsService = tokendingsMockk,
+                        aapClientId = "dummyAAp"
+                    )
+                )
+            }
+
+            externalServices {
+                hosts(digisosTestHost, aapTestHost) {
+                    install(ExternalServicesDebug)
+                    routing {
+                        get("/dittnav/pabegynte/aktive") {
+                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+                    aapExternalRouting(
+                        testUtkastData(
+                            opprettet = LocalDateTime.now().plusHours(1),
+                            id = "AAP"
+                        )
+                    )
+                }
+            }
+
+            client.get("v2/utkast/antall").assert {
+                status shouldBe HttpStatusCode.PartialContent
+                objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 5
+            }
+
+            client.get("v2/utkast").assert {
+                status.shouldBe(HttpStatusCode.PartialContent)
+                objectMapper.readTree(bodyAsText()).size() shouldBe 5
             }
         }
     }
