@@ -314,12 +314,12 @@ class UtkastApiTest {
             }
 
             client.get("v2/utkast/antall").assert {
-                status shouldBe HttpStatusCode.PartialContent
+                status shouldBe HttpStatusCode.MultiStatus
                 objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 5
             }
 
             client.get("v2/utkast").assert {
-                status.shouldBe(HttpStatusCode.PartialContent)
+                status.shouldBe(HttpStatusCode.MultiStatus)
                 objectMapper.readTree(bodyAsText()).size() shouldBe 5
             }
         }

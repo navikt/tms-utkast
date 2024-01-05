@@ -103,7 +103,7 @@ class ExternalUtkast(
 class FetchResult(val wasSuccess: Boolean, val utkast: List<Utkast>) {
     companion object {
         fun List<FetchResult>.responseStatus() =
-            if (any { !it.wasSuccess }) HttpStatusCode.PartialContent else HttpStatusCode.OK
+            if (any { !it.wasSuccess }) HttpStatusCode.MultiStatus else HttpStatusCode.OK
         fun List<FetchResult>.utkast(): List<Utkast> = flatMap { it.utkast }
     }
 }
