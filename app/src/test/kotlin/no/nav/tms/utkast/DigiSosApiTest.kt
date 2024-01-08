@@ -7,11 +7,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -22,17 +18,13 @@ import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
 import no.nav.tms.utkast.config.LocalDateTimeHelper
 import no.nav.tms.utkast.config.configureJackson
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
-import java.util.*
-import kotlin.random.Random
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DigiSosApiTest {
 
-    val tokendingsMockk = mockk<TokendingsService>().also {
+    private val tokendingsMockk = mockk<TokendingsService>().also {
         coEvery { it.exchangeToken(any(), any()) } returns "<dummytoken>"
     }
 
@@ -49,7 +41,12 @@ class DigiSosApiTest {
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc())
         )
-        digisosService(digisosTestHost, expextedUtkastData)
+        externalServices {
+            hosts(digisosTestHost) {
+                digisosExternalRouting(expextedUtkastData)
+            }
+        }
+
         api(createClient { configureJackson() })
 
         client.get("/utkast/digisos").assert {
@@ -79,7 +76,11 @@ class DigiSosApiTest {
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
         )
-        digisosService(digisosTestHost, expextedUtkastData)
+        externalServices {
+            hosts(digisosTestHost) {
+                digisosExternalRouting(expextedUtkastData)
+            }
+        }
         api(createClient { configureJackson() })
         client.get("/utkast/digisos/antall").assert {
             status shouldBe HttpStatusCode.OK
@@ -89,29 +90,17 @@ class DigiSosApiTest {
 
     }
 
-    private fun ApplicationTestBuilder.digisosService(testHost: String, expextedUtkastData: List<UtkastData>) =
-        externalServices {
-            hosts(testHost) {
-                routing {
-                    get("/dittnav/pabegynte/aktive") {
-                        val digisosResp = expextedUtkastData.joinToString(
-                            prefix = "[",
-                            postfix = "]",
-                            separator = ","
-                        ) { it.toDigisosResponse() }
-                        call.respondBytes(
-                            contentType = ContentType.Application.Json,
-                            provider = { digisosResp.toByteArray() })
-                    }
-                }
-            }
-        }
-
     private fun ApplicationTestBuilder.api(client: HttpClient) =
         application {
             utkastApi(
                 utkastRepository = mockk(),
-                digisosHttpClient = DigisosHttpClient(digisosTestHost, client, "dummyid", tokendingsMockk),
+                utkastFetcher = UtkastFetcher(
+                    digiSosBaseUrl = digisosTestHost,
+                    httpClient = client,
+                    digisosClientId = "dummyid",
+                    tokendingsService = tokendingsMockk,
+                    aapClientId = "dummyAapId"
+                ),
                 installAuthenticatorsFunction = {
                     authentication {
                         tokenXMock {
@@ -124,29 +113,3 @@ class DigiSosApiTest {
                 })
         }
 }
-
-
-@Language("JSON")
-private fun UtkastData.toDigisosResponse() =
-    """
-        {
-        "eventTidspunkt" : "$opprettet",
-        "eventId":"$utkastId",
-        "grupperingsId":"tadda",
-        "sikkerhetsniva": "3",
-        "link": "$link",
-        "tekst": "$tittel",
-        "sistOppdatert": null,
-        "isAktiv": true
-        }
-    """.trimIndent()
-
-private fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startTestTime: LocalDateTime) = UtkastData(
-    utkastId = UUID.randomUUID().toString(),
-    tittel = "testTittel ${Random.nextInt(0, 10)}",
-    tittelI18n = tittelI18n,
-    link = "https://test.link",
-    opprettet = startTestTime,
-    sistEndret = null,
-    slettet = null
-)

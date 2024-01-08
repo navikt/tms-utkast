@@ -34,6 +34,10 @@ spec:
       rules:
         - application: tms-min-side-proxy
     outbound:
+      rules:
+        - application: innsending
+          namespace: aap
+          cluster: dev-gcp
       external:
         - host: sosialhjelp-soknad-api.prod-fss-pub.nais.io
   gcp:
@@ -68,3 +72,5 @@ spec:
       value: https://sosialhjelp-soknad-api.prod-fss-pub.nais.io/sosialhjelp/soknad-api
     - name: DIGISOS_CLIENT_ID
       value: prod-fss:teamdigisos:sosialhjelp-soknad-api
+    - name: AAP_CLIENT_ID
+      value: prod-gcp:aap:innsending

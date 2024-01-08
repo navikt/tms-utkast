@@ -10,7 +10,6 @@ import no.nav.tms.utkast.config.Flyway
 import no.nav.tms.utkast.config.configureJackson
 import no.nav.tms.utkast.database.PostgresDatabase
 import no.nav.tms.utkast.database.UtkastRepository
-import java.util.concurrent.TimeUnit
 
 fun main() {
     val environment = Environment()
@@ -20,11 +19,12 @@ fun main() {
     startRapid(
         environment = environment,
         utkastRepository = UtkastRepository(PostgresDatabase(environment)),
-        digisosHttpClient = DigisosHttpClient(
-            baseUrl = environment.digisosBaseUrl,
+        utkastFetcher = UtkastFetcher(
+            digiSosBaseUrl = environment.digisosBaseUrl,
             httpClient = httpClient,
             digisosClientId = environment.digisosClientId,
-            tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
+            tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),
+            aapClientId = environment.aapClientId,
         )
     )
 }
@@ -32,11 +32,11 @@ fun main() {
 private fun startRapid(
     environment: Environment,
     utkastRepository: UtkastRepository,
-    digisosHttpClient: DigisosHttpClient
+    utkastFetcher: UtkastFetcher
 ) {
 
     RapidApplication.Builder(fromEnv(environment.rapidConfig())).withKtorModule {
-        utkastApi(utkastRepository, digisosHttpClient)
+        utkastApi(utkastRepository, utkastFetcher)
     }.build().apply {
         UtkastCreatedSink(
             rapidsConnection = this,
