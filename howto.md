@@ -11,6 +11,7 @@ Utkast er en underside av min side (tilgjengelig på `<navurl>/minside/utkast`) 
 ## Hvordan fungerer det?
 Koble på [min-side-utkast-iac-topicet](https://github.com/navikt/min-side-utkast-topic-iac) og kjør på!
 _utkast støtter tre hendelser: created, updated, og deleted_
+
 1. Send en created-melding når en bruker har lagret et utkast
 2. Send en updated-melding hvis url-en eller tittelen til utkastet har endret seg.
 3. Send en deleted melding når bruker enten har sendt inn, eller hvis utkastet har blitt slettet enten av bruker eller systemet.
