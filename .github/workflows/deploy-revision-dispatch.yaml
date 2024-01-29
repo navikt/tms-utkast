@@ -47,7 +47,7 @@ jobs:
           ref: ${{ env.COMMIT_SHA }}
 
       - name: 'Setup java'
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
           java-version: '17.x'
 

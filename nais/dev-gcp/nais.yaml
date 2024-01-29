@@ -61,8 +61,8 @@ spec:
       cpu: "1"
       memory: 1024Mi
     requests:
-      cpu: "50m"
-      memory: 256Mi
+      cpu: "20m"
+      memory: 128Mi
   env:
     - name: GROUP_ID
       value: tms-utkast-rapid-02
