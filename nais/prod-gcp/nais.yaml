@@ -48,11 +48,11 @@ spec:
         diskType: SSD
         diskSize: 10
         diskAutoresize: true
-        autoBackupTime: "03:00"
+        autoBackupHour: 3
         databases:
           - name: utkast
             envVarPrefix: DB
-        maintenanceWindow:
+        maintenance:
           day: 1
           hour: 4
         cascadingDelete: false
