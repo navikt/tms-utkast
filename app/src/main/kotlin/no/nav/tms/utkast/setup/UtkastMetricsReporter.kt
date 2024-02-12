@@ -1,4 +1,4 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.setup
 
 import io.prometheus.client.Counter
 

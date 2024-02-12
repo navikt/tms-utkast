@@ -1,4 +1,4 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.api
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -16,8 +16,12 @@ import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
-import no.nav.tms.utkast.config.LocalDateTimeHelper
-import no.nav.tms.utkast.config.configureJackson
+import no.nav.tms.utkast.sink.assert
+import no.nav.tms.utkast.digisosExternalRouting
+import no.nav.tms.utkast.setup.configureJackson
+import no.nav.tms.utkast.shouldBeCaSameAs
+import no.nav.tms.utkast.sink.LocalDateTimeHelper
+import no.nav.tms.utkast.testUtkastData
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 

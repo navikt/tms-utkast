@@ -1,9 +1,7 @@
-package no.nav.tms.utkast.database
+package no.nav.tms.utkast.setup
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.tms.utkast.config.Database
-import no.nav.tms.utkast.config.Environment
 
 class PostgresDatabase(env: Environment) : Database {
 

@@ -1,19 +1,26 @@
 package no.nav.tms.utkast
 
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.builder.UtkastJsonBuilder
-import no.nav.tms.utkast.database.UtkastRepository
+import no.nav.tms.utkast.database.LocalPostgresDatabase
+import no.nav.tms.utkast.sink.Utkast
+import no.nav.tms.utkast.sink.UtkastSinkRepository
 import org.junit.jupiter.api.Test
 import java.util.*
 
 class ProducerLibraryVerification {
-    private val utkastRepository = UtkastRepository(LocalPostgresDatabase.cleanDb())
+    private val database = LocalPostgresDatabase.cleanDb()
+
+    private val utkastApiRepository = UtkastApiRepository(LocalPostgresDatabase.cleanDb())
+    private val utkastSinkRepository = UtkastSinkRepository(LocalPostgresDatabase.cleanDb())
     private val testRapid = TestRapid()
     private val testPersonIdent = "1122334455"
 
     init {
-        setupSinks(testRapid, utkastRepository)
+        setupSinks(testRapid, utkastSinkRepository)
     }
 
     @Test
@@ -27,7 +34,7 @@ class ProducerLibraryVerification {
             .withMetrics("Skjemanavn", "99/88")
             .create()
             .also { testRapid.sendTestMessage(it) }
-        val testUtkast = utkastRepository.getUtkastForIdent(testPersonIdent).first {
+        val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent).first {
             it.utkastId == utkastId
         }
 
@@ -51,7 +58,7 @@ class ProducerLibraryVerification {
                 testRapid.sendTestMessage(it)
             }
 
-        val testUtkast = utkastRepository.getUtkastForIdent(testPersonIdent).first {
+        val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent).first {
             it.utkastId == testId
         }
         testUtkast.tittel shouldBe "Ny tittel"
@@ -68,7 +75,7 @@ class ProducerLibraryVerification {
             .delete()
             .also { testRapid.sendTestMessage(it) }
 
-        utkastRepository.getUtkastForIdent(testPersonIdent).firstOrNull {
+        utkastApiRepository.getUtkastForIdent(testPersonIdent).firstOrNull {
             it.utkastId == testId
         } shouldBe null
 

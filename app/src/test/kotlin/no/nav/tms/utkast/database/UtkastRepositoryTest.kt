@@ -6,18 +6,19 @@ import com.fasterxml.jackson.databind.node.TextNode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
-import no.nav.tms.utkast.LocalPostgresDatabase
-import no.nav.tms.utkast.alleUtkast
-import no.nav.tms.utkast.assert
-import no.nav.tms.utkast.config.LocalDateTimeHelper
+import no.nav.tms.utkast.api.UtkastApiRepository
+import no.nav.tms.utkast.sink.assert
+import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.shouldBeCaSameAs
+import no.nav.tms.utkast.sink.UtkastSinkRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
 internal class UtkastRepositoryTest {
     private val database = LocalPostgresDatabase.cleanDb()
-    private val utkastRepository = UtkastRepository(database)
+    private val utkastSinkRepository = UtkastSinkRepository(database)
+    private val utkastApiRepository = UtkastApiRepository(database)
     private val testFnr = "12345678910"
 
     @AfterEach
@@ -29,10 +30,10 @@ internal class UtkastRepositoryTest {
 
     @Test
     fun createUtkast() {
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", ident = testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd3", testFnr))
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", ident = testFnr))
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd3", testFnr))
         database.list { alleUtkast }.assert {
             size shouldBe 3
             forEach { utkast ->
@@ -47,7 +48,7 @@ internal class UtkastRepositoryTest {
     fun updateUtkast() {
 
         val originalTittel = "Original tittel."
-        utkastRepository.createUtkast(
+        utkastSinkRepository.createUtkast(
             createUtkastTestPacket(
                 "123",
                 testFnr,
@@ -55,10 +56,10 @@ internal class UtkastRepositoryTest {
                 metrics = metrics("11-08", "Skjemnavn med Å")
             )
         )
-        utkastRepository.createUtkast(createUtkastTestPacket("456", testFnr, tittel = originalTittel))
+        utkastSinkRepository.createUtkast(createUtkastTestPacket("456", testFnr, tittel = originalTittel))
 
         val oppdatertTittel = "Oppdatert tittel."
-        utkastRepository.updateUtkast("123", updateJson(oppdatertTittel).toString())
+        utkastSinkRepository.updateUtkast("123", updateJson(oppdatertTittel).toString())
 
 
         database.list { alleUtkast }.assert {
@@ -85,7 +86,7 @@ internal class UtkastRepositoryTest {
     @Test
     fun updateTittelI18n() {
         val originalTittelNo = "Original tittel."
-        utkastRepository.createUtkast(
+        utkastSinkRepository.createUtkast(
             createUtkastTestPacket(
                 "123",
                 testFnr,
@@ -94,7 +95,7 @@ internal class UtkastRepositoryTest {
         )
 
         val nyTittelEn = "Original title."
-        utkastRepository.updateUtkastI18n("123", """{"en": "$nyTittelEn"}""")
+        utkastSinkRepository.updateUtkastI18n("123", """{"en": "$nyTittelEn"}""")
 
 
         database.list { alleUtkast }.assert {
@@ -111,9 +112,9 @@ internal class UtkastRepositoryTest {
     @Test
     fun deleteUtkast() {
         val testUtkastId = "77fhs"
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
-        utkastRepository.deleteUtkast(testUtkastId)
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
+        utkastSinkRepository.deleteUtkast(testUtkastId)
         database.list { alleUtkast }.assert {
             size shouldBe 2
             find { it.utkastId == testUtkastId }.assert {
@@ -132,9 +133,9 @@ internal class UtkastRepositoryTest {
         val expectedLink = "https://utkast.test/$utkastId"
         val slettUtkastId = "77fii"
         val oppdaterUtkastId = "77fhs"
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = slettUtkastId, testFnr))
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = oppdaterUtkastId, testFnr))
-        utkastRepository.createUtkast(
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = slettUtkastId, testFnr))
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = oppdaterUtkastId, testFnr))
+        utkastSinkRepository.createUtkast(
             createUtkastTestPacket(
                 utkastId = utkastId,
                 ident = testFnr,
@@ -143,11 +144,11 @@ internal class UtkastRepositoryTest {
                 link = expectedLink
             )
         )
-        utkastRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd8", ident = "99887766"))
-        utkastRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
-        utkastRepository.deleteUtkast(slettUtkastId)
+        utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd8", ident = "99887766"))
+        utkastSinkRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
+        utkastSinkRepository.deleteUtkast(slettUtkastId)
 
-        utkastRepository.getUtkastForIdent(testFnr).assert {
+        utkastApiRepository.getUtkastForIdent(testFnr).assert {
             size shouldBe 2
             find { utkast -> utkast.utkastId == utkastId }.assert {
                 require(this != null)

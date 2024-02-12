@@ -1,15 +1,14 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.api
 
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.server.response.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.utkast.config.logExceptionAsWarning
-import no.nav.tms.utkast.database.Utkast
+import no.nav.tms.utkast.setup.logExceptionAsWarning
+import no.nav.tms.utkast.sink.Utkast
 import java.time.LocalDateTime
 
 

@@ -1,11 +1,16 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.sink
 
 import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.tms.utkast.database.UtkastRepository
+import no.nav.tms.utkast.createUtkastTestPacket
+import no.nav.tms.utkast.database.LocalPostgresDatabase
+import no.nav.tms.utkast.database.alleUtkast
+import no.nav.tms.utkast.deleteUtkastTestPacket
+import no.nav.tms.utkast.setupSinks
+import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeAll
@@ -20,7 +25,7 @@ internal class UtkastSinkTest {
 
     @BeforeAll
     fun setup() {
-        setupSinks(testRapid, UtkastRepository(database))
+        setupSinks(testRapid, UtkastSinkRepository(database))
     }
 
     @AfterEach
@@ -68,15 +73,19 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId1, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId2, ident = testFnr, tittelI18n = mapOf("no" to tittelNo)))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(
+        testRapid.sendTestMessage(
+            updateUtkastTestPacket(
             testUtkastId1,
             tittel = nyTittel
-        ))
-        testRapid.sendTestMessage(updateUtkastTestPacket(
+        )
+        )
+        testRapid.sendTestMessage(
+            updateUtkastTestPacket(
             testUtkastId2,
             tittelI18n = mapOf("en" to nyTittelEn),
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
-        ))
+        )
+        )
         testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId2, metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")))
 
         database.list { alleUtkast }.assert {
@@ -108,15 +117,19 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId1, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId2, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId3, ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(
+        testRapid.sendTestMessage(
+            updateUtkastTestPacket(
             utkastId = utkastId1,
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
-        ))
-        testRapid.sendTestMessage(updateUtkastTestPacket(
+        )
+        )
+        testRapid.sendTestMessage(
+            updateUtkastTestPacket(
             utkastId = utkastId1,
             link = "Bad link",
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
-        ))
+        )
+        )
         database.list { alleUtkast }.assert {
             size shouldBe 3
 
@@ -132,10 +145,12 @@ internal class UtkastSinkTest {
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = oppdatertUtkastId, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = slettetUtkastId, ident = testFnr))
         testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(updateUtkastTestPacket(
+        testRapid.sendTestMessage(
+            updateUtkastTestPacket(
             oppdatertUtkastId,
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
-        ))
+        )
+        )
         testRapid.sendTestMessage(deleteUtkastTestPacket(slettetUtkastId))
 
         database.list { alleUtkast }.assert {
