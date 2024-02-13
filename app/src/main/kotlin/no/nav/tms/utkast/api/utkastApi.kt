@@ -1,4 +1,4 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.api
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -16,11 +16,10 @@ import io.ktor.util.pipeline.*
 import nav.no.tms.common.metrics.installTmsApiMetrics
 import no.nav.tms.token.support.tokenx.validation.tokenX
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
-import no.nav.tms.utkast.FetchResult.Companion.responseStatus
-import no.nav.tms.utkast.FetchResult.Companion.utkast
-import no.nav.tms.utkast.config.logExceptionAsWarning
-import no.nav.tms.utkast.database.DatabaseException
-import no.nav.tms.utkast.database.UtkastRepository
+import no.nav.tms.utkast.api.FetchResult.Companion.responseStatus
+import no.nav.tms.utkast.api.FetchResult.Companion.utkast
+import no.nav.tms.utkast.setup.logExceptionAsWarning
+import no.nav.tms.utkast.sink.DatabaseException
 import observability.ApiMdc
 import observability.Contenttype
 import observability.withApiTracing
@@ -28,7 +27,7 @@ import java.text.DateFormat
 import java.util.*
 
 internal fun Application.utkastApi(
-    utkastRepository: UtkastRepository,
+    utkastRepository: UtkastApiRepository,
     utkastFetcher: UtkastFetcher,
     installAuthenticatorsFunction: Application.() -> Unit = installAuth(),
 ) {

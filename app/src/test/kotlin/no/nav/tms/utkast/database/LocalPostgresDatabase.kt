@@ -1,11 +1,11 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.database
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.zaxxer.hikari.HikariDataSource
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotliquery.queryOf
-import no.nav.tms.utkast.config.Database
+import no.nav.tms.utkast.UtkastData
+import no.nav.tms.utkast.setup.Database
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 

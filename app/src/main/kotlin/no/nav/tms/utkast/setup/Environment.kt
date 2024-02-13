@@ -1,11 +1,10 @@
-package no.nav.tms.utkast.config
+package no.nav.tms.utkast.setup
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.jackson.*
-import no.nav.tms.common.util.config.IntEnvVar.getEnvVarAsInt
 import no.nav.tms.common.util.config.StringEnvVar.getEnvVar
 
 data class Environment(
@@ -16,10 +15,8 @@ data class Environment(
     val dbUser: String = getEnvVar("DB_USERNAME"),
     val dbPassword: String = getEnvVar("DB_PASSWORD"),
     val dbUrl: String = getDbUrl(dbHost, dbPort, dbName),
-    val clusterName: String = getEnvVar("NAIS_CLUSTER_NAME"),
-    val namespace: String = getEnvVar("NAIS_NAMESPACE"),
-    val aivenBrokers: String = getEnvVar("KAFKA_BROKERS"),
-    val aivenSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
+    val kafkaBrokers: String = getEnvVar("KAFKA_BROKERS"),
+    val kafkaSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
     val securityVars: SecurityVars = SecurityVars(),
     val rapidTopic: String = getEnvVar("RAPID_TOPIC"),
     val digisosClientId: String= getEnvVar("DIGISOS_CLIENT_ID"),
@@ -28,23 +25,23 @@ data class Environment(
     ) {
 
     fun rapidConfig(): Map<String, String> = mapOf(
-        "KAFKA_BROKERS" to aivenBrokers,
+        "KAFKA_BROKERS" to kafkaBrokers,
         "KAFKA_CONSUMER_GROUP_ID" to groupId,
         "KAFKA_RAPID_TOPIC" to rapidTopic,
-        "KAFKA_KEYSTORE_PATH" to securityVars.aivenKeystorePath,
-        "KAFKA_CREDSTORE_PASSWORD" to securityVars.aivenCredstorePassword,
-        "KAFKA_TRUSTSTORE_PATH" to securityVars.aivenTruststorePath,
+        "KAFKA_KEYSTORE_PATH" to securityVars.kafkaKeystorePath,
+        "KAFKA_CREDSTORE_PASSWORD" to securityVars.kafkaCredstorePassword,
+        "KAFKA_TRUSTSTORE_PATH" to securityVars.kafkaTruststorePath,
         "KAFKA_RESET_POLICY" to "earliest",
         "HTTP_PORT" to "8080"
     )
 }
 
 data class SecurityVars(
-    val aivenTruststorePath: String = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
-    val aivenKeystorePath: String = getEnvVar("KAFKA_KEYSTORE_PATH"),
-    val aivenCredstorePassword: String = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
-    val aivenSchemaRegistryUser: String = getEnvVar("KAFKA_SCHEMA_REGISTRY_USER"),
-    val aivenSchemaRegistryPassword: String = getEnvVar("KAFKA_SCHEMA_REGISTRY_PASSWORD")
+    val kafkaTruststorePath: String = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
+    val kafkaKeystorePath: String = getEnvVar("KAFKA_KEYSTORE_PATH"),
+    val kafkaCredstorePassword: String = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
+    val kafkaSchemaRegistryUser: String = getEnvVar("KAFKA_SCHEMA_REGISTRY_USER"),
+    val kafkaSchemaRegistryPassword: String = getEnvVar("KAFKA_SCHEMA_REGISTRY_PASSWORD")
 )
 
 fun getDbUrl(host: String, port: String, name: String): String {

@@ -13,7 +13,10 @@ import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.tms.utkast.database.UtkastRepository
+import no.nav.tms.utkast.sink.UtkastSinkRepository
+import no.nav.tms.utkast.sink.UtkastCreatedSink
+import no.nav.tms.utkast.sink.UtkastDeletedSink
+import no.nav.tms.utkast.sink.UtkastUpdatedSink
 import org.intellij.lang.annotations.Language
 import org.slf4j.MDC
 import java.time.LocalDateTime
@@ -22,7 +25,7 @@ import kotlin.random.Random
 
 internal fun setupSinks(
     rapidsConnection: RapidsConnection,
-    utkastRepository: UtkastRepository,
+    utkastRepository: UtkastSinkRepository,
 ) {
     UtkastUpdatedSink(
         rapidsConnection = rapidsConnection,

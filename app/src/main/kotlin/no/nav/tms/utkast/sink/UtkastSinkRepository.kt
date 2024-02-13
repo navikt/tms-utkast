@@ -1,15 +1,11 @@
-package no.nav.tms.utkast.database
+package no.nav.tms.utkast.sink
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.queryOf
-import no.nav.tms.utkast.config.Database
-import no.nav.tms.utkast.config.LocalDateTimeHelper
+import no.nav.tms.utkast.setup.Database
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
-import java.util.*
 
-class UtkastRepository(private val database: Database) {
+class UtkastSinkRepository(private val database: Database) {
     fun createUtkast(created: String) =
         database.update {
             queryOf(
@@ -53,7 +49,6 @@ class UtkastRepository(private val database: Database) {
         }
     }
 
-
     fun deleteUtkast(utkastId: String) {
         database.update {
             queryOf(
@@ -63,34 +58,7 @@ class UtkastRepository(private val database: Database) {
         }
     }
 
-    internal fun getUtkastForIdent(ident: String, locale: Locale? = null): List<Utkast> =
-        database.list {
-            queryOf(
-                """
-                    SELECT 
-                        packet->>'utkastId' AS utkastId,
-                        coalesce(packet->'tittel_i18n'->>:locale, packet->>'tittel') AS tittel,
-                        packet->>'link' AS link,
-                        packet->>'metrics' AS metrics,
-                        sistendret, opprettet
-                    FROM utkast
-                    WHERE packet->'ident' ?? :ident AND slettet IS NULL""",
-                mapOf("ident" to ident, "locale" to locale?.language)
-            )
-                .map { row ->
-                    Utkast(
-                        utkastId = row.string("utkastId"),
-                        tittel = row.string("tittel"),
-                        link = row.string("link"),
-                        opprettet = row.localDateTime("opprettet"),
-                        sistEndret = row.localDateTimeOrNull("sistendret"),
-                        metrics = row.stringOrNull("metrics")
-                            ?.let {
-                              jacksonObjectMapper().readValue<Map<String,String>>(it)
-                            }
-                    )
-                }.asList
-        }
+
 }
 
 private fun String.jsonB() = PGobject().apply {

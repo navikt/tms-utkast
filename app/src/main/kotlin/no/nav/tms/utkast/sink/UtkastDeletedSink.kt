@@ -1,17 +1,17 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.sink
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.tms.utkast.config.withErrorLogging
-import no.nav.tms.utkast.database.UtkastRepository
+import no.nav.tms.utkast.setup.UtkastMetricsReporter
+import no.nav.tms.utkast.setup.withErrorLogging
 import observability.traceUtkast
 
 class UtkastDeletedSink(
     rapidsConnection: RapidsConnection,
-    private val utkastRepository: UtkastRepository
+    private val utkastRepository: UtkastSinkRepository
 ) :
     River.PacketListener {
 
@@ -22,7 +22,7 @@ class UtkastDeletedSink(
         }.register(this)
     }
 
-    private val log = KotlinLogging.logger {  }
+    private val log = KotlinLogging.logger { }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         traceUtkast(id = packet["utkastId"].asText()) {
@@ -36,5 +36,3 @@ class UtkastDeletedSink(
         }
     }
 }
-
-

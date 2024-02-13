@@ -1,22 +1,16 @@
-package no.nav.tms.utkast
+package no.nav.tms.utkast.sink
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.*
 import no.nav.tms.utkast.builder.UtkastValidator
-import no.nav.tms.utkast.config.JsonMessageHelper.keepFields
-import no.nav.tms.utkast.config.withErrorLogging
-import no.nav.tms.utkast.database.UtkastRepository
-import observability.Contenttype
+import no.nav.tms.utkast.sink.JsonMessageHelper.keepFields
+import no.nav.tms.utkast.setup.UtkastMetricsReporter
+import no.nav.tms.utkast.setup.withErrorLogging
 import observability.traceUtkast
-import observability.withTraceLogging
 
 class UtkastCreatedSink(
     rapidsConnection: RapidsConnection,
-    private val utkastRepository: UtkastRepository
+    private val utkastRepository: UtkastSinkRepository
 ) :
     River.PacketListener {
 
