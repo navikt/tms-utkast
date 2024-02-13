@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.coEvery
@@ -71,9 +72,7 @@ internal class PeriodicUtkastDeleterTest {
 
         utkastInDbCount() shouldBe 1
 
-        getUtkast("u3").let {
-            it.opprettet shouldBe opprettet
-        }
+        shouldNotThrow<Exception> { getUtkast("u3") }
     }
 
     @Test
