@@ -9,6 +9,8 @@ import java.util.*
 
 class UtkastApiRepository(private val database: Database) {
 
+    private val objectMapper = jacksonObjectMapper()
+
     internal fun getUtkastForIdent(ident: String, locale: Locale? = null): List<Utkast> =
         database.list {
             queryOf(
@@ -32,12 +34,7 @@ class UtkastApiRepository(private val database: Database) {
                         sistEndret = row.localDateTimeOrNull("sistendret"),
                         metrics = row.stringOrNull("metrics")
                             ?.let {
-                                val jsonValues = jacksonObjectMapper().readTree(it)
-                                mapOf(
-                                    "skjemakode" to jsonValues["skjemakode"].asText(),
-                                    "skjemanavn" to jsonValues["skjemanavn"].asText()
-                                )
-                                jacksonObjectMapper().readValue<Map<String,String>>(it)
+                                objectMapper.readValue<Map<String,String>>(it)
                             }
                     )
                 }.asList
