@@ -24,12 +24,7 @@ fun withErrorLogging(function: ErrorContext.() -> Any) {
 
 fun logExceptionAsWarning(unsafeLogInfo: String, cause: Throwable, secureLogInfo: String? = null) {
     log.warn { unsafeLogInfo }
-    secureLog.error {
-        """
-            ${secureLogInfo?.let { secureLogInfo }}
-            "origin": ${cause.stackTrace.contentToString()}
-        """
-    }
+    secureLog.error(cause) {  secureLogInfo ?: unsafeLogInfo }
 }
 
 class ErrorContext {
