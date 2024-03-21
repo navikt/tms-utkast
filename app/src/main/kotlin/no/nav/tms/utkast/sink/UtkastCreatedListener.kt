@@ -28,7 +28,7 @@ class UtkastCreatedListener(
 
             withErrorLogging {
                 eventMessage = jsonMessage
-                utkastRepository.createUtkast(jsonMessage.json.textValue())
+                utkastRepository.createUtkast(jsonMessage.json.toString())
             }
 
             log.info { "utkast created" }
