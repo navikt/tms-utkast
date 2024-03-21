@@ -5,7 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidApplication.RapidApplicationConfig.Companion.fromEnv
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.tms.common.kubernetes.PodLeaderElection
+import no.nav.tms.kafka.reader.KafkaApplication
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.api.UtkastFetcher
@@ -16,11 +16,11 @@ import no.nav.tms.utkast.setup.Flyway
 import no.nav.tms.utkast.setup.configureJackson
 import no.nav.tms.utkast.setup.PostgresDatabase
 import no.nav.tms.utkast.sink.UtkastSinkRepository
-import no.nav.tms.utkast.sink.UtkastCreatedSink
-import no.nav.tms.utkast.sink.UtkastDeletedSink
-import no.nav.tms.utkast.sink.UtkastUpdatedSink
+import no.nav.tms.utkast.sink.UtkastCreatedListener
+import no.nav.tms.utkast.sink.UtkastDeletedListener
+import no.nav.tms.utkast.sink.UtkastUpdatedListener
 
-fun main() {
+suspend fun main() {
     val environment = Environment()
 
     val httpClient = HttpClient {
@@ -46,7 +46,7 @@ fun main() {
     )
 }
 
-private fun startRapid(
+private suspend fun startRapid(
     environment: Environment,
     readUtkastRepository: UtkastApiRepository,
     writeUtkastRepository: UtkastSinkRepository,
@@ -54,33 +54,37 @@ private fun startRapid(
     utkastDeleter: PeriodicUtkastDeleter
 ) {
 
-    RapidApplication.Builder(fromEnv(environment.rapidConfig())).withKtorModule {
-        utkastApi(readUtkastRepository, utkastFetcher)
-    }.build().apply {
-        UtkastCreatedSink(
-            rapidsConnection = this,
-            utkastRepository = writeUtkastRepository
-        )
-        UtkastUpdatedSink(
-            rapidsConnection = this,
-            utkastRepository = writeUtkastRepository
-        )
-        UtkastDeletedSink(
-            rapidsConnection = this,
-            utkastRepository = writeUtkastRepository
-        )
-    }.apply {
-        register(object : RapidsConnection.StatusListener {
-            override fun onStartup(rapidsConnection: RapidsConnection) {
-                Flyway.runFlywayMigrations(environment)
-                utkastDeleter.start()
-            }
+    KafkaApplication.build {
+        kafkaConfig {
+            readTopic(environment.kafkaTopic)
+            groupId = environment.groupId
+        }
 
-            override fun onShutdown(rapidsConnection: RapidsConnection) {
-                runBlocking {
-                    utkastDeleter.stop()
-                }
+        ktorModule {
+            utkastApi(readUtkastRepository, utkastFetcher)
+        }
+
+        subscriber {
+            UtkastCreatedListener(utkastRepository = writeUtkastRepository)
+        }
+
+        subscriber {
+            UtkastUpdatedListener(utkastRepository = writeUtkastRepository)
+        }
+
+        subscriber {
+            UtkastDeletedListener(utkastRepository = writeUtkastRepository)
+        }
+
+        onStartup {
+            Flyway.runFlywayMigrations(environment)
+            utkastDeleter.start()
+        }
+
+        onShutdown {
+            runBlocking {
+                utkastDeleter.stop()
             }
-        })
+        }
     }.start()
 }

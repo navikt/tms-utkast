@@ -49,6 +49,7 @@ dependencies {
     implementation(TmsCommonLib.metrics)
     implementation(TmsCommonLib.observability)
     implementation(TmsCommonLib.utils)
+    implementation("no.nav.tms.kafka:kafka-reader:0.1.0-alpha")
     implementation(project(":lib"))
 
     testImplementation(JacksonDatatype.moduleKotlin)

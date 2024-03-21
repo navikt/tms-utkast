@@ -2,7 +2,6 @@ package no.nav.tms.utkast.sink
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -14,7 +13,7 @@ object LocalDateTimeHelper {
 object JsonMessageHelper {
     private val objectMapper = ObjectMapper()
 
-    fun JsonMessage.keepFields(vararg fields: String): JsonNode {
+    fun JsonNode.keepFields(vararg fields: String): JsonNode {
         val objectNode = objectMapper.createObjectNode()
 
         fields.forEach { field ->
