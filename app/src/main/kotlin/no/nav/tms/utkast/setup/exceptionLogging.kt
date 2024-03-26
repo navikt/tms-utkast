@@ -1,7 +1,7 @@
 package no.nav.tms.utkast.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.tms.kafka.application.JsonMessage
 
 private val secureLog = KotlinLogging.logger("secureLog")
 private val log = KotlinLogging.logger {}
@@ -42,7 +42,7 @@ class ErrorContext {
                 field = value
         }
 
-    var jsonMessage: JsonMessage? = null
+    var originalMessage: JsonMessage? = null
         set(value) {
             field = value
             ident = value.ident()

@@ -11,11 +11,10 @@ import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
-import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
+import no.nav.tms.utkast.asLocalDateTime
 import no.nav.tms.utkast.sink.assert
 import no.nav.tms.utkast.digisosExternalRouting
 import no.nav.tms.utkast.setup.configureJackson
@@ -59,11 +58,11 @@ class DigiSosApiTest {
             content.size shouldBe 2
             expextedUtkastData.forEach { expected ->
                 content.find { it["utkastId"].asText() == expected.utkastId }.assert {
-                    require(this != null)
+                    requireNotNull(this)
                     this["tittel"].asText() shouldBe expected.tittel
                     this["link"].asText() shouldBe expected.link
-                    this["opprettet"].asLocalDateTime() shouldBeCaSameAs expected.opprettet
-                    this["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs expected.sistEndret
+                    this["opprettet"]?.asLocalDateTime() shouldBeCaSameAs expected.opprettet
+                    this["sistEndret"]?.asLocalDateTime() shouldBeCaSameAs expected.sistEndret
                     this["metrics"]?.get("skjemakode")?.asText() shouldBe expected.metrics?.get("skjemakode")
                     this["metrics"]?.get("skjemanavn")?.asText() shouldBe expected.metrics?.get("skjemanavn")
                 }
