@@ -11,13 +11,13 @@ import no.nav.tms.utkast.sink.assert
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.shouldBeCaSameAs
-import no.nav.tms.utkast.sink.UtkastSinkRepository
+import no.nav.tms.utkast.sink.UtkastRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
 internal class UtkastRepositoryTest {
     private val database = LocalPostgresDatabase.cleanDb()
-    private val utkastSinkRepository = UtkastSinkRepository(database)
+    private val utkastSinkRepository = UtkastRepository(database)
     private val utkastApiRepository = UtkastApiRepository(database)
     private val testFnr = "12345678910"
 

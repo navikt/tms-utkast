@@ -5,7 +5,7 @@ import no.nav.tms.utkast.setup.Database
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
 
-class UtkastSinkRepository(private val database: Database) {
+class UtkastRepository(private val database: Database) {
     fun createUtkast(created: String) =
         database.update {
             queryOf(
