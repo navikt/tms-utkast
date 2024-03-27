@@ -1,5 +1,6 @@
 package no.nav.tms.utkast
 
+import com.fasterxml.jackson.databind.JsonNode
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.shouldBe
@@ -12,33 +13,32 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.tms.utkast.sink.UtkastSinkRepository
-import no.nav.tms.utkast.sink.UtkastCreatedSink
-import no.nav.tms.utkast.sink.UtkastDeletedSink
-import no.nav.tms.utkast.sink.UtkastUpdatedSink
+import no.nav.tms.kafka.application.MessageBroadcaster
+import no.nav.tms.kafka.application.isMissingOrNull
+import no.nav.tms.utkast.sink.UtkastRepository
+import no.nav.tms.utkast.sink.UtkastCreatedSubscriber
+import no.nav.tms.utkast.sink.UtkastDeletedSubscriber
+import no.nav.tms.utkast.sink.UtkastUpdatedSubscriber
 import org.intellij.lang.annotations.Language
 import org.slf4j.MDC
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.random.Random
 
-internal fun setupSinks(
-    rapidsConnection: RapidsConnection,
-    utkastRepository: UtkastSinkRepository,
-) {
-    UtkastUpdatedSink(
-        rapidsConnection = rapidsConnection,
-        utkastRepository = utkastRepository
+internal fun setupBroadcaster(
+    utkastRepository: UtkastRepository,
+) = MessageBroadcaster(
+    listOf(
+        UtkastUpdatedSubscriber(utkastRepository),
+        UtkastDeletedSubscriber(utkastRepository),
+        UtkastCreatedSubscriber(utkastRepository)
     )
-    UtkastDeletedSink(
-        rapidsConnection = rapidsConnection,
-        utkastRepository = utkastRepository
-    )
-    UtkastCreatedSink(
-        rapidsConnection = rapidsConnection,
-        utkastRepository = utkastRepository
-    )
+)
+
+fun JsonNode.asLocalDateTime() = if (this.isMissingOrNull()) {
+    null
+} else {
+    LocalDateTime.parse(this.asText())
 }
 
 @Language("JSON")

@@ -14,9 +14,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
-import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.helse.rapids_rivers.asOptionalLocalDateTime
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
@@ -25,9 +23,9 @@ import no.nav.tms.utkast.UtkastData
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.database.LocalPostgresDatabase
 import no.nav.tms.utkast.setup.configureJackson
-import no.nav.tms.utkast.setupSinks
+import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
-import no.nav.tms.utkast.sink.UtkastSinkRepository
+import no.nav.tms.utkast.sink.UtkastRepository
 import no.nav.tms.utkast.sink.assert
 import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.BeforeAll
@@ -43,7 +41,6 @@ class UtkastApiTest {
     }
 
     private val repository = UtkastApiRepository(LocalPostgresDatabase.cleanDb())
-    private val testRapid = TestRapid()
     private val testFnr1 = "19873569100"
     private val testFnr2 = "19873100100"
     private val startTestTime = LocalDateTimeHelper.nowAtUtc()
@@ -52,6 +49,8 @@ class UtkastApiTest {
     private val tokendingsMockk = mockk<TokendingsService>().also {
         coEvery { it.exchangeToken(any(), any()) } returns "<dummytoken>"
     }
+
+    private lateinit var broadcaster: MessageBroadcaster
 
     private val utkastForTestFnr1 = mutableListOf(
         testUtkastData(),
@@ -66,21 +65,21 @@ class UtkastApiTest {
 
     @BeforeAll
     fun populate() {
-        setupSinks(testRapid, UtkastSinkRepository(LocalPostgresDatabase.cleanDb()))
+        broadcaster = setupBroadcaster(UtkastRepository(LocalPostgresDatabase.cleanDb()))
         utkastForTestFnr1.forEach {
-            testRapid.sendTestMessage(it.toTestMessage(testFnr1))
+            broadcaster.broadcastJson(it.toTestMessage(testFnr1))
         }
-        testRapid.sendTestMessage(utkastForTestFnr2.toTestMessage(testFnr2))
-        testRapid.sendTestMessage(
+        broadcaster.broadcastJson(utkastForTestFnr2.toTestMessage(testFnr2))
+        broadcaster.broadcastJson(
             updateUtkastTestPacket(
                 utkastForTestFnr1[0].utkastId,
                 metrics = mapOf("skjemakode" to "skjemakode", "skjemanavn" to "skjemanavn")
             )
         )
         utkastForTestFnr1[0] = utkastForTestFnr1[0].copy(sistEndret = LocalDateTimeHelper.nowAtUtc())
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
     }
 
     @Test
@@ -119,7 +118,7 @@ class UtkastApiTest {
                     jsonNode["tittel"].asText() shouldBe forventedeVerdier.tittel
                     jsonNode["link"].asText() shouldBe forventedeVerdier.link
                     jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
-                    jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
+                    jsonNode["sistEndret"]?.asLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
                     jsonNode["metrics"]?.get("skjemakode")
                         ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
                     jsonNode["metrics"]?.get("skjemanavn")
@@ -184,8 +183,8 @@ class UtkastApiTest {
                 status.shouldBe(HttpStatusCode.OK)
                 objectMapper.readTree(bodyAsText()).assert {
                     map {
-                        it["sistEndret"].asOptionalLocalDateTime()?.toLocalDate() ?: it["opprettet"].asLocalDateTime()
-                            .toLocalDate()
+                        it["sistEndret"]?.asLocalDateTime()?.toLocalDate() ?: it["opprettet"].asLocalDateTime()
+                            ?.toLocalDate()
                     }.sortedByDescending { it } shouldBe alleForventedeUtkast.map {
                         it.sistEndret?.toLocalDate() ?: it.opprettet.toLocalDate()
                     }
@@ -264,7 +263,7 @@ class UtkastApiTest {
                         jsonNode["tittel"].asText() shouldBe forventedeVerdier.tittel
                         jsonNode["link"].asText() shouldBe forventedeVerdier.link
                         jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
-                        jsonNode["sistEndret"].asOptionalLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
+                        jsonNode["sistEndret"]?.asLocalDateTime() shouldBeCaSameAs forventedeVerdier.sistEndret
                         jsonNode["metrics"]?.get("skjemakode")
                             ?.asText() shouldBe forventedeVerdier.metrics?.get("skjemakode")
                         jsonNode["metrics"]?.get("skjemanavn")

@@ -4,12 +4,12 @@ import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.database.LocalPostgresDatabase
 import no.nav.tms.utkast.database.alleUtkast
 import no.nav.tms.utkast.deleteUtkastTestPacket
-import no.nav.tms.utkast.setupSinks
+import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -20,13 +20,10 @@ import java.util.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class UtkastSinkTest {
     private val database = LocalPostgresDatabase.cleanDb()
-    private val testRapid = TestRapid()
     private val testFnr = "12345678910"
 
-    @BeforeAll
-    fun setup() {
-        setupSinks(testRapid, UtkastSinkRepository(database))
-    }
+    private val repository = UtkastRepository(database)
+    private val broadcaster = setupBroadcaster(repository)
 
     @AfterEach
     fun cleanup() {
@@ -37,11 +34,12 @@ internal class UtkastSinkTest {
 
     @Test
     fun `plukker opp created events`() {
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
         database.list { alleUtkast }.assert {
             size shouldBe 5
@@ -52,10 +50,11 @@ internal class UtkastSinkTest {
 
     @Test
     fun `forkaster created events med ugyldig data`() {
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = "bad utkastId", ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = "tooLongIdent"))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = "bad utkastId", ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = "tooLongIdent"))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
         database.list { alleUtkast }.assert {
             size shouldBe 1
@@ -63,30 +62,31 @@ internal class UtkastSinkTest {
     }
 
     @Test
-    fun `plukker opp updated events`() {
+    fun `plukker opp updated events`()  {
         val testUtkastId1 = randomUUID()
         val testUtkastId2 = randomUUID()
         val nyTittel = "Ny tittel"
         val tittelNo = "En tittel"
         val nyTittelEn = "Other title"
 
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId1, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = testUtkastId2, ident = testFnr, tittelI18n = mapOf("no" to tittelNo)))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(
+
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = testUtkastId1, ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = testUtkastId2, ident = testFnr, tittelI18n = mapOf("no" to tittelNo)))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        broadcaster.broadcastJson(
             updateUtkastTestPacket(
             testUtkastId1,
             tittel = nyTittel
         )
         )
-        testRapid.sendTestMessage(
+        broadcaster.broadcastJson(
             updateUtkastTestPacket(
             testUtkastId2,
             tittelI18n = mapOf("en" to nyTittelEn),
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
         )
         )
-        testRapid.sendTestMessage(updateUtkastTestPacket(testUtkastId2, metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")))
+        broadcaster.broadcastJson(updateUtkastTestPacket(testUtkastId2, metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")))
 
         database.list { alleUtkast }.assert {
             size shouldBe 3
@@ -114,16 +114,17 @@ internal class UtkastSinkTest {
         val utkastId2 = randomUUID()
         val utkastId3 = randomUUID()
 
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId1, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId2, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = utkastId3, ident = testFnr))
-        testRapid.sendTestMessage(
+
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = utkastId1, ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = utkastId2, ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = utkastId3, ident = testFnr))
+        broadcaster.broadcastJson(
             updateUtkastTestPacket(
             utkastId = utkastId1,
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
         )
         )
-        testRapid.sendTestMessage(
+        broadcaster.broadcastJson(
             updateUtkastTestPacket(
             utkastId = utkastId1,
             link = "Bad link",
@@ -142,16 +143,16 @@ internal class UtkastSinkTest {
         val oppdatertUtkastId = randomUUID()
         val slettetUtkastId = randomUUID()
 
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = oppdatertUtkastId, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = slettetUtkastId, ident = testFnr))
-        testRapid.sendTestMessage(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
-        testRapid.sendTestMessage(
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = oppdatertUtkastId, ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = slettetUtkastId, ident = testFnr))
+        broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
+        broadcaster.broadcastJson(
             updateUtkastTestPacket(
             oppdatertUtkastId,
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
         )
         )
-        testRapid.sendTestMessage(deleteUtkastTestPacket(slettetUtkastId))
+        broadcaster.broadcastJson(deleteUtkastTestPacket(slettetUtkastId))
 
         database.list { alleUtkast }.assert {
             size shouldBe 3

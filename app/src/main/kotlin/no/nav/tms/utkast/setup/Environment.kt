@@ -18,7 +18,7 @@ data class Environment(
     val kafkaBrokers: String = getEnvVar("KAFKA_BROKERS"),
     val kafkaSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
     val securityVars: SecurityVars = SecurityVars(),
-    val rapidTopic: String = getEnvVar("RAPID_TOPIC"),
+    val utkastTopic: String = getEnvVar("RAPID_TOPIC"),
     val digisosClientId: String= getEnvVar("DIGISOS_CLIENT_ID"),
     val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL"),
     val aapClientId : String = getEnvVar("AAP_CLIENT_ID")
@@ -27,7 +27,7 @@ data class Environment(
     fun rapidConfig(): Map<String, String> = mapOf(
         "KAFKA_BROKERS" to kafkaBrokers,
         "KAFKA_CONSUMER_GROUP_ID" to groupId,
-        "KAFKA_RAPID_TOPIC" to rapidTopic,
+        "KAFKA_RAPID_TOPIC" to utkastTopic,
         "KAFKA_KEYSTORE_PATH" to securityVars.kafkaKeystorePath,
         "KAFKA_CREDSTORE_PASSWORD" to securityVars.kafkaCredstorePassword,
         "KAFKA_TRUSTSTORE_PATH" to securityVars.kafkaTruststorePath,

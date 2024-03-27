@@ -2,8 +2,7 @@ package no.nav.tms.utkast.sink
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.tms.kafka.application.JsonMessage
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -18,8 +17,7 @@ object JsonMessageHelper {
         val objectNode = objectMapper.createObjectNode()
 
         fields.forEach { field ->
-            get(field)
-                .takeUnless { it.isMissingOrNull() }
+            getOrNull(field)
                 ?.let { objectNode.replace(field, it) }
         }
 
