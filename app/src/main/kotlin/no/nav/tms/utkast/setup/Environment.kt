@@ -17,31 +17,10 @@ data class Environment(
     val dbUrl: String = getDbUrl(dbHost, dbPort, dbName),
     val kafkaBrokers: String = getEnvVar("KAFKA_BROKERS"),
     val kafkaSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
-    val securityVars: SecurityVars = SecurityVars(),
-    val rapidTopic: String = getEnvVar("RAPID_TOPIC"),
+    val utkastTopic: String = getEnvVar("RAPID_TOPIC"),
     val digisosClientId: String= getEnvVar("DIGISOS_CLIENT_ID"),
     val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL"),
     val aapClientId : String = getEnvVar("AAP_CLIENT_ID")
-    ) {
-
-    fun rapidConfig(): Map<String, String> = mapOf(
-        "KAFKA_BROKERS" to kafkaBrokers,
-        "KAFKA_CONSUMER_GROUP_ID" to groupId,
-        "KAFKA_RAPID_TOPIC" to rapidTopic,
-        "KAFKA_KEYSTORE_PATH" to securityVars.kafkaKeystorePath,
-        "KAFKA_CREDSTORE_PASSWORD" to securityVars.kafkaCredstorePassword,
-        "KAFKA_TRUSTSTORE_PATH" to securityVars.kafkaTruststorePath,
-        "KAFKA_RESET_POLICY" to "earliest",
-        "HTTP_PORT" to "8080"
-    )
-}
-
-data class SecurityVars(
-    val kafkaTruststorePath: String = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
-    val kafkaKeystorePath: String = getEnvVar("KAFKA_KEYSTORE_PATH"),
-    val kafkaCredstorePassword: String = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
-    val kafkaSchemaRegistryUser: String = getEnvVar("KAFKA_SCHEMA_REGISTRY_USER"),
-    val kafkaSchemaRegistryPassword: String = getEnvVar("KAFKA_SCHEMA_REGISTRY_PASSWORD")
 )
 
 fun getDbUrl(host: String, port: String, name: String): String {

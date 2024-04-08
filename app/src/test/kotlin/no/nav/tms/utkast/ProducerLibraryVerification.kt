@@ -1,13 +1,10 @@
 package no.nav.tms.utkast
 
 import io.kotest.matchers.shouldBe
-import kotliquery.queryOf
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.builder.UtkastJsonBuilder
 import no.nav.tms.utkast.database.LocalPostgresDatabase
-import no.nav.tms.utkast.sink.Utkast
-import no.nav.tms.utkast.sink.UtkastSinkRepository
+import no.nav.tms.utkast.sink.UtkastRepository
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -15,13 +12,11 @@ class ProducerLibraryVerification {
     private val database = LocalPostgresDatabase.cleanDb()
 
     private val utkastApiRepository = UtkastApiRepository(LocalPostgresDatabase.cleanDb())
-    private val utkastSinkRepository = UtkastSinkRepository(LocalPostgresDatabase.cleanDb())
-    private val testRapid = TestRapid()
+    private val utkastSinkRepository = UtkastRepository(LocalPostgresDatabase.cleanDb())
     private val testPersonIdent = "1122334455"
 
-    init {
-        setupSinks(testRapid, utkastSinkRepository)
-    }
+    private val broadcaster = setupBroadcaster(utkastSinkRepository)
+
 
     @Test
     fun `Bruker rikigtige felter i create`() {
@@ -33,7 +28,7 @@ class ProducerLibraryVerification {
             .withLink("https://wattevs.test")
             .withMetrics("Skjemanavn", "99/88")
             .create()
-            .also { testRapid.sendTestMessage(it) }
+            .also { broadcaster.broadcastJson(it) }
         val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent).first {
             it.utkastId == utkastId
         }
@@ -55,7 +50,7 @@ class ProducerLibraryVerification {
             .withLink("https://ny.link")
             .update()
             .also {
-                testRapid.sendTestMessage(it)
+                broadcaster.broadcastJson(it)
             }
 
         val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent).first {
@@ -73,7 +68,7 @@ class ProducerLibraryVerification {
         UtkastJsonBuilder()
             .withUtkastId(testId)
             .delete()
-            .also { testRapid.sendTestMessage(it) }
+            .also { broadcaster.broadcastJson(it) }
 
         utkastApiRepository.getUtkastForIdent(testPersonIdent).firstOrNull {
             it.utkastId == testId
@@ -90,7 +85,7 @@ class ProducerLibraryVerification {
             .withLink("https://wattevs.test")
             .withMetrics("Skjemanavn", "99/88")
             .create()
-            .also { testRapid.sendTestMessage(it) }
+            .also { broadcaster.broadcastJson(it) }
 
     }
 }

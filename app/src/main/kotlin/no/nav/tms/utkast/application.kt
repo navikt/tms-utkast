@@ -2,10 +2,7 @@ package no.nav.tms.utkast
 
 import io.ktor.client.*
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidApplication.RapidApplicationConfig.Companion.fromEnv
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.tms.common.kubernetes.PodLeaderElection
+import no.nav.tms.kafka.application.KafkaApplication
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.api.UtkastFetcher
@@ -15,10 +12,10 @@ import no.nav.tms.utkast.setup.Environment
 import no.nav.tms.utkast.setup.Flyway
 import no.nav.tms.utkast.setup.configureJackson
 import no.nav.tms.utkast.setup.PostgresDatabase
-import no.nav.tms.utkast.sink.UtkastSinkRepository
-import no.nav.tms.utkast.sink.UtkastCreatedSink
-import no.nav.tms.utkast.sink.UtkastDeletedSink
-import no.nav.tms.utkast.sink.UtkastUpdatedSink
+import no.nav.tms.utkast.sink.UtkastRepository
+import no.nav.tms.utkast.sink.UtkastCreatedSubscriber
+import no.nav.tms.utkast.sink.UtkastDeletedSubscriber
+import no.nav.tms.utkast.sink.UtkastUpdatedSubscriber
 
 fun main() {
     val environment = Environment()
@@ -31,10 +28,10 @@ fun main() {
 
     val utkastDeleter = PeriodicUtkastDeleter(database)
 
-    startRapid(
+    startApplicaiton(
         environment = environment,
         readUtkastRepository = UtkastApiRepository(database),
-        writeUtkastRepository = UtkastSinkRepository(database),
+        writeUtkastRepository = UtkastRepository(database),
         utkastFetcher = UtkastFetcher(
             digiSosBaseUrl = environment.digisosBaseUrl,
             httpClient = httpClient,
@@ -46,41 +43,36 @@ fun main() {
     )
 }
 
-private fun startRapid(
+private fun startApplicaiton(
     environment: Environment,
     readUtkastRepository: UtkastApiRepository,
-    writeUtkastRepository: UtkastSinkRepository,
+    writeUtkastRepository: UtkastRepository,
     utkastFetcher: UtkastFetcher,
     utkastDeleter: PeriodicUtkastDeleter
-) {
+) = KafkaApplication.build {
+    kafkaConfig {
+        groupId = environment.groupId
+        readTopic(environment.utkastTopic)
+    }
 
-    RapidApplication.Builder(fromEnv(environment.rapidConfig())).withKtorModule {
+    ktorModule {
         utkastApi(readUtkastRepository, utkastFetcher)
-    }.build().apply {
-        UtkastCreatedSink(
-            rapidsConnection = this,
-            utkastRepository = writeUtkastRepository
-        )
-        UtkastUpdatedSink(
-            rapidsConnection = this,
-            utkastRepository = writeUtkastRepository
-        )
-        UtkastDeletedSink(
-            rapidsConnection = this,
-            utkastRepository = writeUtkastRepository
-        )
-    }.apply {
-        register(object : RapidsConnection.StatusListener {
-            override fun onStartup(rapidsConnection: RapidsConnection) {
-                Flyway.runFlywayMigrations(environment)
-                utkastDeleter.start()
-            }
+    }
 
-            override fun onShutdown(rapidsConnection: RapidsConnection) {
-                runBlocking {
-                    utkastDeleter.stop()
-                }
-            }
-        })
-    }.start()
-}
+    subscribers(
+        UtkastCreatedSubscriber(writeUtkastRepository),
+        UtkastUpdatedSubscriber(writeUtkastRepository),
+        UtkastDeletedSubscriber(writeUtkastRepository)
+    )
+
+    onStartup {
+        Flyway.runFlywayMigrations(environment)
+        utkastDeleter.start()
+    }
+
+    onShutdown {
+        runBlocking {
+            utkastDeleter.stop()
+        }
+    }
+}.start()
