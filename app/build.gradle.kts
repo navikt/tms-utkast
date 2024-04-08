@@ -53,7 +53,7 @@ dependencies {
     implementation(Prometheus.common)
     implementation(JacksonDatatype.moduleKotlin)
     implementation(JacksonDatatype.datatypeJsr310)
-    implementation("no.nav.tms.kafka:kafka-application:1.0.0-rc")
+    implementation(TmsKafkaTools.kafkaApplication)
     implementation(project(":lib"))
 
     testImplementation(Junit.api)
