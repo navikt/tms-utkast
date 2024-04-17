@@ -13,16 +13,16 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import nav.no.tms.common.metrics.installTmsApiMetrics
+import no.nav.tms.common.metrics.installTmsApiMetrics
 import no.nav.tms.token.support.tokenx.validation.tokenX
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.utkast.api.FetchResult.Companion.responseStatus
 import no.nav.tms.utkast.api.FetchResult.Companion.utkast
 import no.nav.tms.utkast.setup.logExceptionAsWarning
 import no.nav.tms.utkast.sink.DatabaseException
-import observability.ApiMdc
-import observability.Contenttype
-import observability.withApiTracing
+import no.nav.tms.common.observability.ApiMdc
+import no.nav.tms.common.observability.Contenttype
+import no.nav.tms.common.observability.withApiTracing
 import java.text.DateFormat
 import java.util.*
 

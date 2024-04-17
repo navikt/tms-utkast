@@ -9,7 +9,7 @@ import no.nav.tms.utkast.builder.FieldValidationException
 import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
-import observability.traceUtkast
+import no.nav.tms.common.observability.traceUtkast
 
 class UtkastCreatedSubscriber(
     private val utkastRepository: UtkastRepository

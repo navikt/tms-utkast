@@ -1,12 +1,12 @@
 package no.nav.tms.utkast.sink
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tms.common.observability.traceUtkast
 import no.nav.tms.kafka.application.JsonMessage
 import no.nav.tms.kafka.application.Subscriber
 import no.nav.tms.kafka.application.Subscription
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
-import observability.traceUtkast
 
 class UtkastDeletedSubscriber(
     private val utkastRepository: UtkastRepository

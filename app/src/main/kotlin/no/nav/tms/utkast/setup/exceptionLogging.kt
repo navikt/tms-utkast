@@ -53,11 +53,11 @@ class ErrorContext {
 
 private fun JsonMessage?.utkastId(): String =
     this?.let { packet ->
-        packet["utkastId"].asText("Ukjent")
+        packet.getOrNull("utkastId")?.asText()
     } ?: "ukjent"
 
 
-private fun JsonMessage?.ident(): String? =
+private fun JsonMessage?.ident(): String =
     this?.let { packet ->
-        packet["ident"].asText("Ukjent")
+        packet.getOrNull("ident")?.asText()
     } ?: "ukjent"
