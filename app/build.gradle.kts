@@ -38,6 +38,7 @@ dependencies {
     implementation(Ktor.Client.core)
     implementation(Ktor.Client.contentNegotiation)
     implementation(Ktor.Client.apache)
+    implementation(Logstash.logbackEncoder)
     implementation(TmsKtorTokenSupport.tokenXValidation)
     implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(Postgresql.postgresql)
