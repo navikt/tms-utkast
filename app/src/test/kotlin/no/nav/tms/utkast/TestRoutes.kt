@@ -21,7 +21,7 @@ internal class DigisosTestRoute(private val expextedUtkastData: List<UtkastData>
 
 }
 
-internal class AAPTestRoute(private val expextedUtkastData: UtkastData? = null) :
+internal class AapTestRoute(private val expextedUtkastData: UtkastData? = null) :
     RouteProvider(
         path = "/mellomlagring/søknad/finnes",
         routeMethodFunction = Routing::get,

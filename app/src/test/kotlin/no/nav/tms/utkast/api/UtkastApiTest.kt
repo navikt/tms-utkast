@@ -82,30 +82,16 @@ class UtkastApiTest {
     }
 
     @Test
-    fun `henter utkast for bruker med ident`() = testApplication {
-        application {
-            utkastApi(
-                utkastRepository = repository,
-                installAuthenticatorsFunction = {
-                    authentication {
-                        tokenXMock {
-                            alwaysAuthenticated = true
-                            setAsDefault = true
-                            staticUserPid = testFnr1
-                            staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
-                        }
-                    }
-                },
-                utkastFetcher = mockk()
-            )
-        }
+    fun `henter utkast for bruker med ident`() = utkastTestApplication(testFnr1) {
 
-        client.get("/utkast/antall").assert {
+        initExternalServices(externalServiceHost,DigisosTestRoute(),AapTestRoute())
+
+        client.get("v2/utkast/antall").assert {
             status shouldBe HttpStatusCode.OK
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
 
-        client.get("/utkast").assert {
+        client.get("v2/utkast").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 4
@@ -144,7 +130,7 @@ class UtkastApiTest {
             initExternalServices(
                 externalServiceHost,
                 DigisosTestRoute(listOf(digisosUtkast)),
-                AAPTestRoute(aapUtkast)
+                AapTestRoute(aapUtkast)
             )
 
             client.get("v2/utkast/antall").assert {
@@ -190,7 +176,7 @@ class UtkastApiTest {
             initExternalServices(
                 externalServiceHost,
                 DigisosTestRoute(),
-                AAPTestRoute()
+                AapTestRoute()
             )
 
             client.get("v2/utkast/antall").assert {
@@ -228,7 +214,7 @@ class UtkastApiTest {
             initExternalServices(
                 externalServiceHost,
                 DigisosErrorRoute(),
-                AAPTestRoute(   testUtkastData(
+                AapTestRoute(   testUtkastData(
                     opprettet = LocalDateTime.now().plusHours(1),
                     id = "AAP"
                 ))
@@ -250,7 +236,9 @@ class UtkastApiTest {
     @Test
     fun `forsøker å hente tittel på ønsket språk`() = utkastTestApplication(testFnr2) {
 
-        client.get("/utkast").assert {
+        initExternalServices(externalServiceHost,DigisosTestRoute(),AapTestRoute())
+
+        client.get("v2/utkast").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
@@ -258,7 +246,7 @@ class UtkastApiTest {
             }
         }
 
-        client.get("/utkast?la=en").assert {
+        client.get("v2/utkast?la=en").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
@@ -266,7 +254,7 @@ class UtkastApiTest {
             }
         }
 
-        client.get("/utkast?la=nn").assert {
+        client.get("v2/utkast?la=nn").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
@@ -274,7 +262,7 @@ class UtkastApiTest {
             }
         }
 
-        client.get("/utkast?la=se").assert {
+        client.get("v2/utkast?la=se").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
