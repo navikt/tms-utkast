@@ -10,8 +10,3 @@ object SulkyUlid : DependencyGroup {
 
     val sulkyUlid get() = dependency("de.huxhorn.sulky.ulid")
 }
-
-object TokensupportBeta : TmsKtorTokenSupportDefaults {
-    override val version: String
-        get() = "4.1.1-beta"
-}
