@@ -14,6 +14,7 @@ import java.time.LocalDateTime
 
 class UtkastFetcher(
     val digiSosBaseUrl: String,
+    val aapBaseUrl:String,
     val httpClient: HttpClient,
     val digisosClientId: String,
     val aapClientId: String,
@@ -32,7 +33,7 @@ class UtkastFetcher(
         )
 
     private suspend fun aap(accessToken: String) = httpClient.fetchUtkast<ExternalUtkast>(
-        url = "http://innsending.aap/mellomlagring/søknad/finnes",
+        url = "$aapBaseUrl/mellomlagring/søknad/finnes",
         tokenxToken = tokendingsService.exchangeToken(accessToken, aapClientId),
         service = "AAP",
         transform = { listOf(toUtkast("AAP")) }

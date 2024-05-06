@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.node.TextNode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
+import no.nav.tms.common.testutils.assert
 import no.nav.tms.utkast.api.UtkastApiRepository
-import no.nav.tms.utkast.sink.assert
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.shouldBeCaSameAs

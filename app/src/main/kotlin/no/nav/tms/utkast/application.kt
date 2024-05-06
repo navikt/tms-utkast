@@ -34,6 +34,7 @@ fun main() {
         writeUtkastRepository = UtkastRepository(database),
         utkastFetcher = UtkastFetcher(
             digiSosBaseUrl = environment.digisosBaseUrl,
+            aapBaseUrl = "http://innsending.aap",
             httpClient = httpClient,
             digisosClientId = environment.digisosClientId,
             tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),

@@ -23,6 +23,7 @@ import no.nav.tms.utkast.sink.DatabaseException
 import no.nav.tms.common.observability.ApiMdc
 import no.nav.tms.common.observability.Contenttype
 import no.nav.tms.common.observability.withApiTracing
+import no.nav.tms.token.support.tokendings.exchange.service.TokendingsExchangeException
 import java.text.DateFormat
 import java.util.*
 
@@ -47,6 +48,15 @@ internal fun Application.utkastApi(
                         cause = cause
                     )
                     call.respond(HttpStatusCode.InternalServerError)
+                }
+
+                is TokendingsExchangeException -> {
+                    logExceptionAsWarning(
+                        unsafeLogInfo = cause.stackTraceSummary,
+                        secureLogInfo = cause.stackTraceSummary,
+                        cause = cause.originalThrowable
+                    )
+                    call.respond(HttpStatusCode.ServiceUnavailable)
                 }
 
                 else -> {

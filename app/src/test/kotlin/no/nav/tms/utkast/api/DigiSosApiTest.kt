@@ -3,7 +3,6 @@ package no.nav.tms.utkast.api
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -11,12 +10,13 @@ import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
+import no.nav.tms.common.testutils.assert
+import no.nav.tms.common.testutils.initExternalServices
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
-import no.nav.tms.utkast.asLocalDateTime
-import no.nav.tms.utkast.sink.assert
-import no.nav.tms.utkast.digisosExternalRouting
+import no.nav.tms.utkast.*
+import no.nav.tms.utkast.DigisosTestRoute
 import no.nav.tms.utkast.setup.configureJackson
 import no.nav.tms.utkast.shouldBeCaSameAs
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
@@ -34,7 +34,7 @@ class DigiSosApiTest {
     private val objectMapper = jacksonObjectMapper().apply {
         registerModule(JavaTimeModule())
     }
-    private val digisosTestHost = "http://www.digisos.test"
+    private val externalServiceHost = "http://www.digisos.test"
     private val testFnr = "88776655"
 
 
@@ -44,13 +44,9 @@ class DigiSosApiTest {
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc())
         )
-        externalServices {
-            hosts(digisosTestHost) {
-                digisosExternalRouting(expextedUtkastData)
-            }
-        }
+        initApi()
+        initExternalServices(externalServiceHost, DigisosTestRoute(expextedUtkastData),)
 
-        api(createClient { configureJackson() })
 
         client.get("/utkast/digisos").assert {
             status shouldBe HttpStatusCode.OK
@@ -79,12 +75,10 @@ class DigiSosApiTest {
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
             testUtkastData(startTestTime = LocalDateTimeHelper.nowAtUtc()),
         )
-        externalServices {
-            hosts(digisosTestHost) {
-                digisosExternalRouting(expextedUtkastData)
-            }
-        }
-        api(createClient { configureJackson() })
+
+        initApi()
+        initExternalServices(externalServiceHost,DigisosTestRoute(expextedUtkastData))
+
         client.get("/utkast/digisos/antall").assert {
             status shouldBe HttpStatusCode.OK
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
@@ -93,12 +87,14 @@ class DigiSosApiTest {
 
     }
 
-    private fun ApplicationTestBuilder.api(client: HttpClient) =
+    private fun ApplicationTestBuilder.initApi() {
+        val client = createClient { configureJackson() }
         application {
             utkastApi(
                 utkastRepository = mockk(),
                 utkastFetcher = UtkastFetcher(
-                    digiSosBaseUrl = digisosTestHost,
+                    aapBaseUrl = externalServiceHost,
+                    digiSosBaseUrl = externalServiceHost,
                     httpClient = client,
                     digisosClientId = "dummyid",
                     tokendingsService = tokendingsMockk,
@@ -115,4 +111,5 @@ class DigiSosApiTest {
                     }
                 })
         }
+    }
 }

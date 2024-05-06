@@ -39,8 +39,8 @@ dependencies {
     implementation(Ktor.Client.contentNegotiation)
     implementation(Ktor.Client.apache)
     implementation(Logstash.logbackEncoder)
-    implementation(TmsKtorTokenSupport.tokenXValidation)
-    implementation(TmsKtorTokenSupport.tokendingsExchange)
+    implementation(TokensupportBeta.tokenXValidation)
+    implementation(TokensupportBeta.tokendingsExchange)
     implementation(Postgresql.postgresql)
     implementation(KotliQuery.kotliquery)
     implementation(TmsCommonLib.kubernetes)
@@ -64,6 +64,7 @@ dependencies {
     testImplementation(TmsKtorTokenSupport.tokenXValidationMock)
     testImplementation(KotlinxSerialization.json)
     testImplementation(Ktor.Server.defaultHeaders)
+    testImplementation(TmsCommonLib.testutils)
 }
 
 application {

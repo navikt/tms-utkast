@@ -4,6 +4,7 @@ import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
+import no.nav.tms.common.testutils.assert
 import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.database.LocalPostgresDatabase
@@ -165,9 +166,3 @@ internal class UtkastSinkTest {
 
     private fun randomUUID() = UUID.randomUUID().toString()
 }
-
-internal inline fun <T> T.assert(block: T.() -> Unit): T =
-    apply {
-        block()
-    }
-

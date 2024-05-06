@@ -129,7 +129,7 @@ internal data class UtkastData(
     """.trimIndent()
 
     @Language("JSON")
-    internal fun toAapResponse() =
+    fun toAapResponse() =
         """
         {
         "tittel": "$tittel",
@@ -148,48 +148,3 @@ internal fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startT
     sistEndret = null,
     slettet = null
 )
-
-internal fun Application.digisosExternalRouting(expextedUtkastData: List<UtkastData>) =
-    routing {
-        get("/dittnav/pabegynte/aktive") {
-            val digisosResp = expextedUtkastData.joinToString(
-                prefix = "[",
-                postfix = "]",
-                separator = ","
-            ) { it.toDigisosResponse() }
-            call.respondBytes(
-                contentType = ContentType.Application.Json,
-                provider = { digisosResp.toByteArray() })
-        }
-    }
-
-internal fun Application.aapExternalRouting(expextedUtkastData: UtkastData?) =
-    routing {
-        get("/mellomlagring/søknad/finnes") {
-            if (expextedUtkastData == null) {
-                call.respond(HttpStatusCode.NotFound)
-            } else {
-                call.respondBytes(
-                    contentType = ContentType.Application.Json,
-                    provider = { expextedUtkastData.toAapResponse().toByteArray() })
-            }
-        }
-    }
-
-
-class ExternalServicesDebug {
-    companion object Plugin : BaseApplicationPlugin<ApplicationCallPipeline, Configuration, ExternalServicesDebug> {
-
-        override val key = AttributeKey<ExternalServicesDebug>("ExternalServicesDebug")
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): ExternalServicesDebug {
-            val plugin = ExternalServicesDebug()
-            pipeline.intercept(ApplicationCallPipeline.Monitoring) {
-                MDC.put("route", call.request.uri)
-            }
-            return plugin
-        }
-    }
-}

@@ -1,12 +1,17 @@
 import default.*
 
-object KotlinxSerialization: KotlinxDefaults {
+object KotlinxSerialization : KotlinxDefaults {
     val json = dependency("kotlinx-serialization-json", version = "1.4.1")
 }
 
-object SulkyUlid: DependencyGroup {
+object SulkyUlid : DependencyGroup {
     override val version get() = "8.2.0"
     override val groupId get() = "de.huxhorn.sulky"
 
     val sulkyUlid get() = dependency("de.huxhorn.sulky.ulid")
+}
+
+object TokensupportBeta : TmsKtorTokenSupportDefaults {
+    override val version: String
+        get() = "4.1.1-beta"
 }
