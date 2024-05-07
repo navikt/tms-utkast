@@ -7,13 +7,12 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
+import no.nav.tms.common.testutils.assert
+import no.nav.tms.common.testutils.initExternalServices
 import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
@@ -26,7 +25,6 @@ import no.nav.tms.utkast.setup.configureJackson
 import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.sink.UtkastRepository
-import no.nav.tms.utkast.sink.assert
 import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -44,15 +42,16 @@ class UtkastApiTest {
     private val testFnr1 = "19873569100"
     private val testFnr2 = "19873100100"
     private val startTestTime = LocalDateTimeHelper.nowAtUtc()
-    private val digisosTestHost = "http://www.digisos.test"
-    private val aapTestHost = "http://innsending.aap"
+    private val externalServiceHost = "http://externalhost.test"
     private val tokendingsMockk = mockk<TokendingsService>().also {
         coEvery { it.exchangeToken(any(), any()) } returns "<dummytoken>"
     }
 
     private lateinit var broadcaster: MessageBroadcaster
 
-    private val utkastForTestFnr1 = mutableListOf(
+    private
+
+    val utkastForTestFnr1 = mutableListOf(
         testUtkastData(),
         testUtkastData(),
         testUtkastData(),
@@ -83,30 +82,16 @@ class UtkastApiTest {
     }
 
     @Test
-    fun `henter utkast for bruker med ident`() = testApplication {
-        application {
-            utkastApi(
-                utkastRepository = repository,
-                installAuthenticatorsFunction = {
-                    authentication {
-                        tokenXMock {
-                            alwaysAuthenticated = true
-                            setAsDefault = true
-                            staticUserPid = testFnr1
-                            staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
-                        }
-                    }
-                },
-                utkastFetcher = mockk()
-            )
-        }
+    fun `henter utkast for bruker med ident`() = utkastTestApplication(testFnr1) {
 
-        client.get("/utkast/antall").assert {
+        initExternalServices(externalServiceHost,DigisosTestRoute(),AapTestRoute())
+
+        client.get("v2/utkast/antall").assert {
             status shouldBe HttpStatusCode.OK
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
 
-        client.get("/utkast").assert {
+        client.get("v2/utkast").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 4
@@ -141,38 +126,12 @@ class UtkastApiTest {
         val alleForventedeUtkast = (utkastForTestFnr1 + listOf(digisosUtkast, aapUtkast))
             .sortedBy { data -> data.sistEndret ?: data.opprettet }
 
-        testApplication {
-            val applicationClient = createClient { configureJackson() }
-            application {
-                utkastApi(
-                    utkastRepository = repository,
-                    installAuthenticatorsFunction = {
-                        authentication {
-                            tokenXMock {
-                                alwaysAuthenticated = true
-                                setAsDefault = true
-                                staticUserPid = testFnr1
-                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
-                            }
-                        }
-                    },
-                    utkastFetcher = UtkastFetcher(
-                        digiSosBaseUrl = digisosTestHost,
-                        httpClient = applicationClient,
-                        digisosClientId = "dummyid",
-                        tokendingsService = tokendingsMockk,
-                        aapClientId = "dummyAAp"
-                    )
-                )
-            }
-
-            externalServices {
-                hosts(digisosTestHost, aapTestHost) {
-                    install(ExternalServicesDebug)
-                    digisosExternalRouting(listOf(digisosUtkast))
-                    aapExternalRouting(aapUtkast)
-                }
-            }
+        utkastTestApplication(testFnr1) {
+            initExternalServices(
+                externalServiceHost,
+                DigisosTestRoute(listOf(digisosUtkast)),
+                AapTestRoute(aapUtkast)
+            )
 
             client.get("v2/utkast/antall").assert {
                 status shouldBe HttpStatusCode.OK
@@ -213,38 +172,12 @@ class UtkastApiTest {
     @Test
     fun `v2 henter utkast når det ikke finnes noen eksterne`() {
 
-        testApplication {
-            val applicationClient = createClient { configureJackson() }
-            application {
-                utkastApi(
-                    utkastRepository = repository,
-                    installAuthenticatorsFunction = {
-                        authentication {
-                            tokenXMock {
-                                alwaysAuthenticated = true
-                                setAsDefault = true
-                                staticUserPid = testFnr1
-                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
-                            }
-                        }
-                    },
-                    utkastFetcher = UtkastFetcher(
-                        digiSosBaseUrl = digisosTestHost,
-                        httpClient = applicationClient,
-                        digisosClientId = "dummyid",
-                        tokendingsService = tokendingsMockk,
-                        aapClientId = "dummyAAp"
-                    )
-                )
-            }
-
-            externalServices {
-                hosts(digisosTestHost, aapTestHost) {
-                    install(ExternalServicesDebug)
-                    digisosExternalRouting(listOf())
-                    aapExternalRouting(null)
-                }
-            }
+        utkastTestApplication(testFnr1) {
+            initExternalServices(
+                externalServiceHost,
+                DigisosTestRoute(),
+                AapTestRoute()
+            )
 
             client.get("v2/utkast/antall").assert {
                 status shouldBe HttpStatusCode.OK
@@ -277,47 +210,16 @@ class UtkastApiTest {
     @Test
     fun `v2 håndterer feil fra eksterne tjenester`() {
 
-        testApplication {
-            val applicationClient = createClient { configureJackson() }
-            application {
-                utkastApi(
-                    utkastRepository = repository,
-                    installAuthenticatorsFunction = {
-                        authentication {
-                            tokenXMock {
-                                alwaysAuthenticated = true
-                                setAsDefault = true
-                                staticUserPid = testFnr1
-                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
-                            }
-                        }
-                    },
-                    utkastFetcher = UtkastFetcher(
-                        digiSosBaseUrl = digisosTestHost,
-                        httpClient = applicationClient,
-                        digisosClientId = "dummyid",
-                        tokendingsService = tokendingsMockk,
-                        aapClientId = "dummyAAp"
-                    )
-                )
-            }
+        utkastTestApplication(testFnr1) {
+            initExternalServices(
+                externalServiceHost,
+                DigisosErrorRoute(),
+                AapTestRoute(   testUtkastData(
+                    opprettet = LocalDateTime.now().plusHours(1),
+                    id = "AAP"
+                ))
+            )
 
-            externalServices {
-                hosts(digisosTestHost, aapTestHost) {
-                    install(ExternalServicesDebug)
-                    routing {
-                        get("/dittnav/pabegynte/aktive") {
-                            call.respond(HttpStatusCode.InternalServerError)
-                        }
-                    }
-                    aapExternalRouting(
-                        testUtkastData(
-                            opprettet = LocalDateTime.now().plusHours(1),
-                            id = "AAP"
-                        )
-                    )
-                }
-            }
 
             client.get("v2/utkast/antall").assert {
                 status shouldBe HttpStatusCode.MultiStatus
@@ -332,23 +234,11 @@ class UtkastApiTest {
     }
 
     @Test
-    fun `forsøker å hente tittel på ønsket språk`() = testApplication {
-        application {
-            utkastApi(
-                utkastRepository = repository, installAuthenticatorsFunction = {
-                    authentication {
-                        tokenXMock {
-                            alwaysAuthenticated = true
-                            setAsDefault = true
-                            staticUserPid = testFnr2
-                            staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
-                        }
-                    }
-                }, utkastFetcher = mockk()
-            )
-        }
+    fun `forsøker å hente tittel på ønsket språk`() = utkastTestApplication(testFnr2) {
 
-        client.get("/utkast").assert {
+        initExternalServices(externalServiceHost,DigisosTestRoute(),AapTestRoute())
+
+        client.get("v2/utkast").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
@@ -356,7 +246,7 @@ class UtkastApiTest {
             }
         }
 
-        client.get("/utkast?la=en").assert {
+        client.get("v2/utkast?la=en").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
@@ -364,7 +254,7 @@ class UtkastApiTest {
             }
         }
 
-        client.get("/utkast?la=nn").assert {
+        client.get("v2/utkast?la=nn").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
@@ -372,7 +262,7 @@ class UtkastApiTest {
             }
         }
 
-        client.get("/utkast?la=se").assert {
+        client.get("v2/utkast?la=se").assert {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).assert {
                 size() shouldBe 1
@@ -406,4 +296,37 @@ class UtkastApiTest {
             sistEndret = null,
             slettet = null
         )
+
+    private fun ApplicationTestBuilder.utkastFetcher() =
+        UtkastFetcher(
+            aapBaseUrl = externalServiceHost,
+            digiSosBaseUrl = externalServiceHost,
+            httpClient = createClient { configureJackson() },
+            digisosClientId = "dummyid",
+            tokendingsService = tokendingsMockk,
+            aapClientId = "dummyAAp"
+        )
+
+    private fun utkastTestApplication(testfnr: String, config: suspend ApplicationTestBuilder.() -> Unit) =
+        testApplication {
+            application {
+                utkastApi(
+                    utkastRepository = repository,
+                    installAuthenticatorsFunction = {
+                        authentication {
+                            tokenXMock {
+                                alwaysAuthenticated = true
+                                setAsDefault = true
+                                staticUserPid = testfnr
+                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
+                            }
+                        }
+                    },
+                    utkastFetcher = this@testApplication.utkastFetcher()
+                )
+            }
+            config()
+        }
 }
+
+

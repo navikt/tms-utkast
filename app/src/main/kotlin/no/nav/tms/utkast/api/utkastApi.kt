@@ -23,6 +23,7 @@ import no.nav.tms.utkast.sink.DatabaseException
 import no.nav.tms.common.observability.ApiMdc
 import no.nav.tms.common.observability.Contenttype
 import no.nav.tms.common.observability.withApiTracing
+import no.nav.tms.token.support.tokendings.exchange.service.TokendingsExchangeException
 import java.text.DateFormat
 import java.util.*
 
@@ -49,6 +50,15 @@ internal fun Application.utkastApi(
                     call.respond(HttpStatusCode.InternalServerError)
                 }
 
+                is TokendingsExchangeException -> {
+                    logExceptionAsWarning(
+                        unsafeLogInfo = cause.stackTraceSummary,
+                        secureLogInfo = cause.stackTraceSummary,
+                        cause = cause.originalThrowable
+                    )
+                    call.respond(HttpStatusCode.ServiceUnavailable)
+                }
+
                 else -> {
                     logExceptionAsWarning(
                         unsafeLogInfo = "Ukjent feil",
@@ -69,38 +79,14 @@ internal fun Application.utkastApi(
 
     routing {
         authenticate {
-            route("utkast") {
-                get {
-                    withApiMDC("utkast/utkast", extra = mapOf("lang" to localeCode)) {
-                        call.respond(utkastRepository.getUtkastForIdent(userIdent, localeParam))
-                    }
-                }
-                get("antall") {
-                    withApiMDC("utkast/antall") {
-                        val antall = utkastRepository.getUtkastForIdent(userIdent).size
-                        call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
-                    }
-                }
-                get("digisos") {
-                    withApiMDC("utkast/digisos") {
-                        call.respond(utkastFetcher.digisos(accessToken).utkast)
-                    }
-
-                }
-                get("digisos/antall") {
-                    withApiMDC("utkast/digisos/antall") {
-                        val antall = utkastFetcher.digisos(accessToken).utkast.size
-                        call.respond(jacksonObjectMapper().createObjectNode().put("antall", antall))
-                    }
-                }
-            }
             route("v2/utkast") {
                 get {
                     withApiMDC("v2/utkast", extra = mapOf("lang" to localeCode)) {
                         val externalresult = utkastFetcher.allExternal(accessToken)
                         val internal =
                             utkastRepository.getUtkastForIdent(
-                                userIdent
+                                userIdent,
+                                localeParam
                             )
 
                         call.respond(
