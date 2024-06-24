@@ -52,8 +52,8 @@ internal fun Application.utkastApi(
 
                 is TokendingsExchangeException -> {
                     logExceptionAsWarning(
-                        unsafeLogInfo = cause.stackTraceSummary,
-                        secureLogInfo = cause.stackTraceSummary,
+                        unsafeLogInfo = cause.message ?: "Ukjent feil mot tokendings",
+                        secureLogInfo = cause.message ?: "Ukjent feil mot tokendings",
                         cause = cause.originalThrowable
                     )
                     call.respond(HttpStatusCode.ServiceUnavailable)
