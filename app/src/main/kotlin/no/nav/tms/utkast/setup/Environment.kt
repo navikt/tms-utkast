@@ -17,7 +17,7 @@ data class Environment(
     val dbUrl: String = getDbUrl(dbHost, dbPort, dbName),
     val kafkaBrokers: String = getEnvVar("KAFKA_BROKERS"),
     val kafkaSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
-    val utkastTopic: String = getEnvVar("RAPID_TOPIC"),
+    val utkastTopic: String = getEnvVar("KAFKA_TOPIC"),
     val digisosClientId: String= getEnvVar("DIGISOS_CLIENT_ID"),
     val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL"),
     val aapClientId : String = getEnvVar("AAP_CLIENT_ID")

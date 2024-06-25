@@ -67,7 +67,7 @@ spec:
   env:
     - name: GROUP_ID
       value: tms-utkast-rapid-02
-    - name: RAPID_TOPIC
+    - name: KAFKA_TOPIC
       value: min-side.aapen-utkast-v1
     - name: DIGISOS_BASE_URL
       value: https://sosialhjelp-soknad-api.dev-fss-pub.nais.io/sosialhjelp/soknad-api

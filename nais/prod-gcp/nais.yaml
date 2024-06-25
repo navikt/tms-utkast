@@ -65,8 +65,8 @@ spec:
       memory: 256Mi
   env:
     - name: GROUP_ID
-      value: tms-utkast-rapid-01
-    - name: RAPID_TOPIC
+      value: tms-utkast-01
+    - name: KAFKA_TOPIC
       value: min-side.aapen-utkast-v1
     - name: DIGISOS_BASE_URL
       value: https://sosialhjelp-soknad-api.prod-fss-pub.nais.io/sosialhjelp/soknad-api
