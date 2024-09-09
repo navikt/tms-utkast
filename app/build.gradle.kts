@@ -73,6 +73,12 @@ application {
 }
 
 tasks {
+    shadowJar {
+        mergeServiceFiles()
+    }
+}
+
+tasks {
     withType<Test> {
         useJUnitPlatform()
         testLogging {
