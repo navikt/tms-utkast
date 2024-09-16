@@ -34,6 +34,7 @@ spec:
     inbound:
       rules:
         - application: tms-min-side-proxy
+        - application: tms-utkast-frontend
     outbound:
       rules:
         - application: innsending
