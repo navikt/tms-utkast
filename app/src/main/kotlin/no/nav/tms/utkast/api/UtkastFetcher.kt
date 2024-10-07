@@ -2,6 +2,7 @@ package no.nav.tms.utkast.api
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +52,10 @@ class UtkastFetcher(
                     url(url)
                     method = HttpMethod.Get
                     header(HttpHeaders.Authorization, "Bearer $tokenxToken")
+                    timeout {
+                        this.requestTimeoutMillis = 8000
+                        this.connectTimeoutMillis = 8000
+                    }
                 }
             }.let {
                 val result = if (it.status == HttpStatusCode.NotFound)
