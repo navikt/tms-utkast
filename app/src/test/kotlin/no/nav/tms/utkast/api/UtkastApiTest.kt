@@ -21,7 +21,7 @@ import no.nav.tms.utkast.*
 import no.nav.tms.utkast.UtkastData
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.database.LocalPostgresDatabase
-import no.nav.tms.utkast.setup.configureJackson
+import no.nav.tms.utkast.setup.configureClient
 import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.sink.UtkastRepository
@@ -301,7 +301,9 @@ class UtkastApiTest {
         UtkastFetcher(
             aapBaseUrl = externalServiceHost,
             digiSosBaseUrl = externalServiceHost,
-            httpClient = createClient { configureJackson() },
+            httpClient = createClient {
+                configureClient()
+            },
             digisosClientId = "dummyid",
             tokendingsService = tokendingsMockk,
             aapClientId = "dummyAAp"

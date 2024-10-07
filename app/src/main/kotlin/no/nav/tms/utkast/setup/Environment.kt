@@ -3,6 +3,7 @@ package no.nav.tms.utkast.setup
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.jackson.*
 import no.nav.tms.common.util.config.StringEnvVar.getEnvVar
@@ -31,13 +32,14 @@ fun getDbUrl(host: String, port: String, name: String): String {
     }
 }
 
-fun HttpClientConfig<*>.configureJackson() {
+fun HttpClientConfig<*>.configureClient() {
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         }
     }
+    install(HttpTimeout)
 }
 
 

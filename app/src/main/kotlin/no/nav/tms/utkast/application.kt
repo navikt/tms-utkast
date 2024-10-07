@@ -10,7 +10,7 @@ import no.nav.tms.utkast.api.utkastApi
 import no.nav.tms.utkast.expiry.PeriodicUtkastDeleter
 import no.nav.tms.utkast.setup.Environment
 import no.nav.tms.utkast.setup.Flyway
-import no.nav.tms.utkast.setup.configureJackson
+import no.nav.tms.utkast.setup.configureClient
 import no.nav.tms.utkast.setup.PostgresDatabase
 import no.nav.tms.utkast.sink.UtkastRepository
 import no.nav.tms.utkast.sink.UtkastCreatedSubscriber
@@ -21,7 +21,7 @@ fun main() {
     val environment = Environment()
 
     val httpClient = HttpClient {
-        configureJackson()
+        configureClient()
     }
 
     val database = PostgresDatabase(environment)
