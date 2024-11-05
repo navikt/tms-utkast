@@ -58,7 +58,7 @@ class UtkastFetcher(
                     }
                 }
             }.let {
-                val result = if (it.status == HttpStatusCode.NotFound)
+                val result = if (it.status == HttpStatusCode.NotFound || it.status == HttpStatusCode.NoContent)
                     emptyList()
                 else it.body<T>().transform()
                 FetchResult(wasSuccess = true, result)
