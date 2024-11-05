@@ -32,7 +32,7 @@ internal class AapTestRoute(private val expextedUtkastData: UtkastData? = null) 
     companion object {
 
         private fun statusCode(expextedUtkastData: UtkastData?) =
-            if (expextedUtkastData == null) HttpStatusCode.NotFound else HttpStatusCode.OK
+            if (expextedUtkastData == null) HttpStatusCode.NoContent else HttpStatusCode.OK
 
     }
 }
