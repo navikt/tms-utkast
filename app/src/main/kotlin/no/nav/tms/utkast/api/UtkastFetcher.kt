@@ -22,8 +22,8 @@ class UtkastFetcher(
     val tokendingsService: TokendingsService,
 ) {
     suspend fun allExternal(accessToken: String): List<FetchResult> =
-        listOf(digisos(accessToken), aap(accessToken))
-
+        listOf(aap(accessToken))
+        //listOf(digisos(accessToken), aap(accessToken))
 
     suspend fun digisos(accessToken: String) =
         httpClient.fetchUtkast<List<DigisosBeskjed>>(
