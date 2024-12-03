@@ -8,37 +8,46 @@ import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.utkast.setup.logExceptionAsWarning
+import no.nav.tms.utkast.setup.logExceptionAsError
 import no.nav.tms.utkast.sink.Utkast
 import java.time.LocalDateTime
 
 
 class UtkastFetcher(
     val digiSosBaseUrl: String,
-    val aapBaseUrl:String,
+    val aapBaseUrl: String,
     val httpClient: HttpClient,
     val digisosClientId: String,
     val aapClientId: String,
     val tokendingsService: TokendingsService,
 ) {
     suspend fun allExternal(accessToken: String): List<FetchResult> =
-        listOf(aap(accessToken))
-        //listOf(digisos(accessToken), aap(accessToken))
+        listOf(digisos(accessToken), aap(accessToken))
 
-    suspend fun digisos(accessToken: String) =
+
+    private suspend fun digisos(accessToken: String) = try {
         httpClient.fetchUtkast<List<DigisosBeskjed>>(
             url = "$digiSosBaseUrl/dittnav/pabegynte/aktive",
             tokenxToken = tokendingsService.exchangeToken(accessToken, digisosClientId),
             service = "Digisos",
             transform = { this.map { it.toUtkast() } }
         )
+    } catch (e: Exception) {
+        logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra digisos", cause = e)
+        FetchResult(wasSuccess = false, emptyList())
+    }
 
-    private suspend fun aap(accessToken: String) = httpClient.fetchUtkast<ExternalUtkast>(
-        url = "$aapBaseUrl/mellomlagring/søknad/finnes",
-        tokenxToken = tokendingsService.exchangeToken(accessToken, aapClientId),
-        service = "AAP",
-        transform = { listOf(toUtkast("AAP")) }
-    )
+    private suspend fun aap(accessToken: String) = try {
+        httpClient.fetchUtkast<ExternalUtkast>(
+            url = "$aapBaseUrl/mellomlagring/søknad/finnes",
+            tokenxToken = tokendingsService.exchangeToken(accessToken, aapClientId),
+            service = "AAP",
+            transform = { listOf(toUtkast("AAP")) }
+        )
+    } catch (e: Exception) {
+        logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra aap", cause = e)
+        FetchResult(wasSuccess = false, emptyList())
+    }
 
     private suspend inline fun <reified T> HttpClient.fetchUtkast(
         url: String,
@@ -46,31 +55,24 @@ class UtkastFetcher(
         service: String,
         transform: T.() -> List<Utkast>
     ): FetchResult =
-        try {
-            withContext(Dispatchers.IO) {
-                request {
-                    url(url)
-                    method = HttpMethod.Get
-                    header(HttpHeaders.Authorization, "Bearer $tokenxToken")
-                    timeout {
-                        this.requestTimeoutMillis = 8000
-                        this.connectTimeoutMillis = 8000
-                    }
+        withContext(Dispatchers.IO) {
+            request {
+                url(url)
+                method = HttpMethod.Get
+                header(HttpHeaders.Authorization, "Bearer $tokenxToken")
+                timeout {
+                    this.requestTimeoutMillis = 8000
+                    this.connectTimeoutMillis = 8000
                 }
-            }.let {
-                val result = if (it.status == HttpStatusCode.NotFound || it.status == HttpStatusCode.NoContent)
-                    emptyList()
-                else it.body<T>().transform()
-                FetchResult(wasSuccess = true, result)
             }
-        } catch (e: Exception) {
-            logExceptionAsWarning(
-                unsafeLogInfo = "Feil i henting av utkast ($url) fra $service: ${e.message}",
-                cause = e
-            )
-            FetchResult(wasSuccess = false, emptyList())
+        }.let {
+            val result = if (it.status == HttpStatusCode.NotFound || it.status == HttpStatusCode.NoContent)
+                emptyList()
+            else it.body<T>().transform()
+            FetchResult(wasSuccess = true, result)
         }
 }
+
 
 class DigisosBeskjed(
     private val eventId: String,
@@ -109,6 +111,7 @@ class FetchResult(val wasSuccess: Boolean, val utkast: List<Utkast>) {
     companion object {
         fun List<FetchResult>.responseStatus() =
             if (any { !it.wasSuccess }) HttpStatusCode.MultiStatus else HttpStatusCode.OK
+
         fun List<FetchResult>.utkast(): List<Utkast> = flatMap { it.utkast }
     }
 }
