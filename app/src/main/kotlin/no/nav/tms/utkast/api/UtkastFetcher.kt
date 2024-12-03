@@ -32,10 +32,9 @@ class UtkastFetcher(
             service = "Digisos",
             transform = { this.map { it.toUtkast() } }
         )
-    } catch (e: Error) {
+    } catch (e: Exception) {
         logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra digisos", cause = e)
         FetchResult(wasSuccess = false, emptyList())
-
     }
 
     private suspend fun aap(accessToken: String) = try {
@@ -45,7 +44,7 @@ class UtkastFetcher(
             service = "AAP",
             transform = { listOf(toUtkast("AAP")) }
         )
-    } catch (e: Error) {
+    } catch (e: Exception) {
         logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra aap", cause = e)
         FetchResult(wasSuccess = false, emptyList())
     }
