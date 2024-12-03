@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.utkast.setup.logExceptionAsError
-import no.nav.tms.utkast.setup.logExceptionAsWarning
 import no.nav.tms.utkast.sink.Utkast
 import java.time.LocalDateTime
 
@@ -23,7 +22,7 @@ class UtkastFetcher(
     val tokendingsService: TokendingsService,
 ) {
     suspend fun allExternal(accessToken: String): List<FetchResult> =
-    listOf(digisos(accessToken), aap(accessToken))
+        listOf(digisos(accessToken), aap(accessToken))
 
 
     private suspend fun digisos(accessToken: String) = try {
@@ -57,32 +56,24 @@ class UtkastFetcher(
         service: String,
         transform: T.() -> List<Utkast>
     ): FetchResult =
-        try {
-            withContext(Dispatchers.IO) {
-                request {
-                    url(url)
-                    method = HttpMethod.Get
-                    header(HttpHeaders.Authorization, "Bearer $tokenxToken")
-                    timeout {
-                        this.requestTimeoutMillis = 8000
-                        this.connectTimeoutMillis = 8000
-                    }
+        withContext(Dispatchers.IO) {
+            request {
+                url(url)
+                method = HttpMethod.Get
+                header(HttpHeaders.Authorization, "Bearer $tokenxToken")
+                timeout {
+                    this.requestTimeoutMillis = 8000
+                    this.connectTimeoutMillis = 8000
                 }
-            }.let {
-                val result = if (it.status == HttpStatusCode.NotFound || it.status == HttpStatusCode.NoContent)
-                    emptyList()
-                else it.body<T>().transform()
-                FetchResult(wasSuccess = true, result)
             }
-        } catch (e: Exception) {
-            logExceptionAsWarning(
-                unsafeLogInfo = "Feil i henting av utkast ($url) fra $service: ${e.message}",
-                cause = e
-            )
-            FetchResult(wasSuccess = false, emptyList())
+        }.let {
+            val result = if (it.status == HttpStatusCode.NotFound || it.status == HttpStatusCode.NoContent)
+                emptyList()
+            else it.body<T>().transform()
+            FetchResult(wasSuccess = true, result)
         }
-
 }
+
 
 class DigisosBeskjed(
     private val eventId: String,
