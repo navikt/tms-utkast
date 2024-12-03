@@ -27,6 +27,11 @@ fun logExceptionAsWarning(unsafeLogInfo: String, cause: Throwable, secureLogInfo
     secureLog.error(cause) {  secureLogInfo ?: unsafeLogInfo }
 }
 
+fun logExceptionAsError(unsafeLogInfo: String, cause: Throwable, secureLogInfo: String? = null) {
+    log.error { unsafeLogInfo }
+    secureLog.error(cause) {  secureLogInfo ?: unsafeLogInfo }
+}
+
 class ErrorContext {
     var ident: String? = null
         get() = field ?: "Ukjent"
