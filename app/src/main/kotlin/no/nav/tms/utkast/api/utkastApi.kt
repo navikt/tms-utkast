@@ -12,7 +12,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import no.nav.tms.common.metrics.installTmsApiMetrics
 import no.nav.tms.token.support.tokenx.validation.tokenX
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
@@ -120,18 +119,18 @@ private fun installAuth(): Application.() -> Unit = {
     }
 }
 
-private val PipelineContext<Unit, ApplicationCall>.userIdent get() = TokenXUserFactory.createTokenXUser(call).ident
-private val PipelineContext<Unit, ApplicationCall>.accessToken get() = TokenXUserFactory.createTokenXUser(call).tokenString
+private val RoutingContext.userIdent get() = TokenXUserFactory.createTokenXUser(call).ident
+private val RoutingContext.accessToken get() = TokenXUserFactory.createTokenXUser(call).tokenString
 
 
-private val PipelineContext<Unit, ApplicationCall>.localeParam
+private val RoutingContext.localeParam
     get() = call.request.queryParameters["la"]?.let {
         Locale(
             it
         )
     }
 
-private val PipelineContext<Unit, ApplicationCall>.localeCode
+private val RoutingContext.localeCode
     get() = call.request.queryParameters["la"] ?: "nb"
 
 private suspend fun withApiMDC(
