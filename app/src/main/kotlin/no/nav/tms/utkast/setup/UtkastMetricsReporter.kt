@@ -1,33 +1,30 @@
 package no.nav.tms.utkast.setup
 
-import io.prometheus.client.Counter
+import io.prometheus.metrics.core.metrics.Counter
 
 object UtkastMetricsReporter {
 
     private const val NAMESPACE = "tms_utkast_v1"
 
-    private const val UTKAST_OPPRETTET_NAME = "utkast_opprettet"
-    private const val UTKAST_ENDRET_NAME = "utkast_endret"
-    private const val UTKAST_SLETTET_NAME = "utkast_slettet"
+    private const val UTKAST_OPPRETTET_NAME = "${NAMESPACE}_utkast_opprettet"
+    private const val UTKAST_ENDRET_NAME = "${NAMESPACE}_utkast_endret"
+    private const val UTKAST_SLETTET_NAME = "${NAMESPACE}_utkast_slettet"
 
 
-    private val UTKAST_OPPRETTET: Counter = Counter.build()
+    private val UTKAST_OPPRETTET: Counter = Counter.builder()
         .name(UTKAST_OPPRETTET_NAME)
-        .namespace(NAMESPACE)
         .help("Antall utkast opprettet")
         .register()
 
 
-    private val UTKAST_ENDRET: Counter = Counter.build()
+    private val UTKAST_ENDRET: Counter = Counter.builder()
         .name(UTKAST_ENDRET_NAME)
-        .namespace(NAMESPACE)
         .help("Antall utkast endret")
         .register()
 
 
-    private val UTKAST_SLETTET: Counter = Counter.build()
+    private val UTKAST_SLETTET: Counter = Counter.builder()
         .name(UTKAST_SLETTET_NAME)
-        .namespace(NAMESPACE)
         .help("Antall utkast slettet")
         .register()
 
