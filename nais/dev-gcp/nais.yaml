@@ -33,6 +33,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: tms-min-side
         - application: tms-min-side-proxy
         - application: tms-utkast-frontend
     outbound:
