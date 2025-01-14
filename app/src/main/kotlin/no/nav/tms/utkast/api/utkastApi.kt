@@ -125,9 +125,7 @@ private val RoutingContext.accessToken get() = TokenXUserFactory.createTokenXUse
 
 private val RoutingContext.localeParam
     get() = call.request.queryParameters["la"]?.let {
-        Locale(
-            it
-        )
+        Locale.of(it)
     }
 
 private val RoutingContext.localeCode
