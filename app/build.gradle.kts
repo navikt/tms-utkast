@@ -54,8 +54,8 @@ dependencies {
     implementation(TmsKafkaTools.kafkaApplication)
     implementation(project(":lib"))
 
-    testImplementation(Junit.api)
-    testImplementation(Junit.engine)
+    testImplementation(JunitPlatform.launcher)
+    testImplementation(JunitJupiter.api)
     testImplementation(Mockk.mockk)
     testImplementation(TestContainers.postgresql)
     testImplementation(Kotest.runnerJunit5)
