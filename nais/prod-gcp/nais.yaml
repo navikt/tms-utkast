@@ -36,6 +36,8 @@ spec:
         - application: tms-min-side
         - application: tms-min-side-proxy
         - application: tms-utkast-frontend
+        - application: sosialhjelp-soknad-api
+          namespace: teamdigisos
     outbound:
       rules:
         - application: innsending
@@ -71,8 +73,8 @@ spec:
     - name: KAFKA_TOPIC
       value: min-side.aapen-utkast-v1
     - name: DIGISOS_BASE_URL
-      value: https://sosialhjelp-soknad-api.prod-fss-pub.nais.io/sosialhjelp/soknad-api
+      value: http://sosialhjelp-soknad-api.teamdigisos/sosialhjelp/soknad-api
     - name: DIGISOS_CLIENT_ID
-      value: prod-fss:teamdigisos:sosialhjelp-soknad-api
+      value: prod-gcp:teamdigisos:sosialhjelp-soknad-api
     - name: AAP_CLIENT_ID
       value: prod-gcp:aap:innsending

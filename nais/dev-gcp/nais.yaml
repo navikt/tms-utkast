@@ -41,6 +41,8 @@ spec:
         - application: innsending
           namespace: aap
           cluster: dev-gcp
+        - application: sosialhjelp-soknad-api
+          namespace: teamdigisos
       external:
         - host: sosialhjelp-soknad-api.dev-fss-pub.nais.io
   gcp:
@@ -72,9 +74,9 @@ spec:
     - name: KAFKA_TOPIC
       value: min-side.aapen-utkast-v1
     - name: DIGISOS_BASE_URL
-      value: https://sosialhjelp-soknad-api.dev-fss-pub.nais.io/sosialhjelp/soknad-api
+      value: http://sosialhjelp-soknad-api.teamdigisos/sosialhjelp/soknad-api
     - name: DIGISOS_CLIENT_ID
-      value: dev-fss:teamdigisos:sosialhjelp-soknad-api
+      value: dev-gcp:teamdigisos:sosialhjelp-soknad-api
     - name: AAP_CLIENT_ID
       value: dev-gcp:aap:innsending
 
