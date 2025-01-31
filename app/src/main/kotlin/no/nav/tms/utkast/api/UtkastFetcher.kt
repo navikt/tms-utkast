@@ -33,7 +33,7 @@ class UtkastFetcher(
             tokenxToken = tokendingsService.exchangeToken(accessToken, digisosClientId),
             service = "Digisos",
             transform = { this.map { it.toUtkast() } }
-        ).also{ log.info{it.toString()} }
+        ).also{ log.info{it.utkast.toString()} }
     } catch (e: Exception) {
         logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra digisos", cause = e)
         FetchResult(wasSuccess = false, emptyList())
