@@ -43,6 +43,8 @@ spec:
         - application: innsending
           namespace: aap
           cluster: prod-gcp
+        - application: sosialhjelp-soknad-api
+          namespace: teamdigisos
       external:
         - host: sosialhjelp-soknad-api.prod-fss-pub.nais.io
   gcp:
