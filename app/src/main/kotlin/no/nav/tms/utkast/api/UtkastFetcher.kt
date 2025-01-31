@@ -1,5 +1,6 @@
 package no.nav.tms.utkast.api
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -24,6 +25,7 @@ class UtkastFetcher(
     suspend fun allExternal(accessToken: String): List<FetchResult> =
         listOf(digisos(accessToken), aap(accessToken))
 
+    val log = KotlinLogging.logger{}
 
     private suspend fun digisos(accessToken: String) = try {
         httpClient.fetchUtkast<List<DigisosBeskjed>>(
@@ -31,7 +33,7 @@ class UtkastFetcher(
             tokenxToken = tokendingsService.exchangeToken(accessToken, digisosClientId),
             service = "Digisos",
             transform = { this.map { it.toUtkast() } }
-        )
+        ).also{ log.info{it.toString()} }
     } catch (e: Exception) {
         logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra digisos", cause = e)
         FetchResult(wasSuccess = false, emptyList())
