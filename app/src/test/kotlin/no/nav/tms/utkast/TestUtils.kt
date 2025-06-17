@@ -103,7 +103,7 @@ private fun Map<String, String>.toJson(): String = mapValues { (_, v) ->
 }.let { JsonObject(it) }
     .toString()
 
-internal data class UtkastData(
+data class UtkastData(
     val utkastId: String,
     val tittel: String,
     val tittelI18n: Map<String, String>,

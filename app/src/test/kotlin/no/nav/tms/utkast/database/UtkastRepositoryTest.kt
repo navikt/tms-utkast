@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.TextNode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
-import no.nav.tms.common.testutils.assert
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.createUtkastTestPacket
@@ -34,7 +33,7 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd3", testFnr))
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 3
             forEach { utkast ->
                 utkast.opprettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
@@ -62,9 +61,9 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.updateUtkast("123", updateJson(oppdatertTittel).toString())
 
 
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 2
-            find { it.utkastId == "123" }.assert {
+            find { it.utkastId == "123" }.run {
                 require(this != null)
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 slettet shouldBe null
@@ -73,7 +72,7 @@ internal class UtkastRepositoryTest {
                 metrics["skjemanavn"] shouldBe "Skjemnavn med Å"
             }
 
-            find { it.utkastId == "456" }.assert {
+            find { it.utkastId == "456" }.run {
                 require(this != null)
                 sistEndret shouldBe null
                 slettet shouldBe null
@@ -98,8 +97,8 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.updateUtkastI18n("123", """{"en": "$nyTittelEn"}""")
 
 
-        database.list { alleUtkast }.assert {
-            find { it.utkastId == "123" }.assert {
+        database.list { alleUtkast }.run {
+            find { it.utkastId == "123" }.run {
                 require(this != null)
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 slettet shouldBe null
@@ -115,9 +114,9 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
         utkastSinkRepository.deleteUtkast(testUtkastId)
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 2
-            find { it.utkastId == testUtkastId }.assert {
+            find { it.utkastId == testUtkastId }.run {
                 require(this != null)
                 slettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
             }
@@ -148,14 +147,14 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
         utkastSinkRepository.deleteUtkast(slettUtkastId)
 
-        utkastApiRepository.getUtkastForIdent(testFnr).assert {
+        utkastApiRepository.getUtkastForIdent(testFnr).run {
             size shouldBe 2
-            find { utkast -> utkast.utkastId == utkastId }.assert {
+            find { utkast -> utkast.utkastId == utkastId }.run {
                 require(this != null)
                 tittel shouldBe excpectedTittel
                 link shouldBe expectedLink
             }
-            find { utkast -> utkast.utkastId == oppdaterUtkastId }.assert {
+            find { utkast -> utkast.utkastId == oppdaterUtkastId }.run {
                 require(this != null)
                 this.tittel shouldBe "shinyyyy"
                 this.sistEndret shouldNotBe null

@@ -64,7 +64,6 @@ dependencies {
     testImplementation(TmsKtorTokenSupport.tokenXValidationMock)
     testImplementation(KotlinxSerialization.json)
     testImplementation(Ktor.Server.defaultHeaders)
-    testImplementation(TmsCommonLib.testutils)
 }
 
 application {

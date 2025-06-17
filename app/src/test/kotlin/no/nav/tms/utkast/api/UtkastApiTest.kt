@@ -5,14 +5,14 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.*
+import io.ktor.client.request.get
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.auth.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
-import no.nav.tms.common.testutils.assert
-import no.nav.tms.common.testutils.initExternalServices
 import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
@@ -49,8 +49,6 @@ class UtkastApiTest {
 
     private lateinit var broadcaster: MessageBroadcaster
 
-    private
-
     val utkastForTestFnr1 = mutableListOf(
         testUtkastData(),
         testUtkastData(),
@@ -61,6 +59,10 @@ class UtkastApiTest {
     private val utkastForTestFnr2 =
         testUtkastData(tittelI18n = mapOf("en" to "English title", "nn" to "Nynorsk tittel"))
 
+    private val digisosErrorRoute = HttpRouteConfig(
+        path = "/dittnav/pabegynte/aktive",
+        statusCode = HttpStatusCode.InternalServerError
+    )
 
     @BeforeAll
     fun populate() {
@@ -84,16 +86,16 @@ class UtkastApiTest {
     @Test
     fun `henter utkast for bruker med ident`() = utkastTestApplication(testFnr1) {
 
-        initExternalServices(externalServiceHost,DigisosTestRoute(),AapTestRoute())
+        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
 
-        client.get("v2/utkast/antall").assert {
+        client.get("v2/utkast/antall").run {
             status shouldBe HttpStatusCode.OK
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
 
-        client.get("v2/utkast").assert {
+        client.get("v2/utkast").run {
             status.shouldBe(HttpStatusCode.OK)
-            objectMapper.readTree(bodyAsText()).assert {
+            objectMapper.readTree(bodyAsText()).run {
                 size() shouldBe 4
                 forEach { jsonNode ->
                     val utkastId = jsonNode["utkastId"].asText()
@@ -129,18 +131,18 @@ class UtkastApiTest {
         utkastTestApplication(testFnr1) {
             initExternalServices(
                 externalServiceHost,
-                DigisosTestRoute(listOf(digisosUtkast)),
-                AapTestRoute(aapUtkast)
+                digisosRouteConfig(listOf(digisosUtkast)),
+                aapRouteConfig(aapUtkast)
             )
 
-            client.get("v2/utkast/antall").assert {
+            client.get("v2/utkast/antall").run {
                 status shouldBe HttpStatusCode.OK
                 objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 6
             }
 
-            client.get("v2/utkast").assert {
+            client.get("v2/utkast").run {
                 status.shouldBe(HttpStatusCode.OK)
-                objectMapper.readTree(bodyAsText()).assert {
+                objectMapper.readTree(bodyAsText()).run {
                     map {
                         it["sistEndret"]?.asLocalDateTime()?.toLocalDate() ?: it["opprettet"].asLocalDateTime()
                             ?.toLocalDate()
@@ -175,18 +177,18 @@ class UtkastApiTest {
         utkastTestApplication(testFnr1) {
             initExternalServices(
                 externalServiceHost,
-                DigisosTestRoute(),
-                AapTestRoute()
+                digisosRouteConfig(),
+                aapRouteConfig()
             )
 
-            client.get("v2/utkast/antall").assert {
+            client.get("v2/utkast/antall").run {
                 status shouldBe HttpStatusCode.OK
                 objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
             }
 
-            client.get("v2/utkast").assert {
+            client.get("v2/utkast").run {
                 status.shouldBe(HttpStatusCode.OK)
-                objectMapper.readTree(bodyAsText()).assert {
+                objectMapper.readTree(bodyAsText()).run {
                     size() shouldBe 4
                     forEach { jsonNode ->
                         val utkastId = jsonNode["utkastId"].asText()
@@ -212,19 +214,19 @@ class UtkastApiTest {
         utkastTestApplication(testFnr1) {
             initExternalServices(
                 externalServiceHost,
-                DigisosErrorRoute(),
-                AapTestRoute(   testUtkastData(
+                digisosErrorRoute,
+                aapRouteConfig(   testUtkastData(
                     opprettet = LocalDateTime.now().plusHours(1),
                     id = "AAP"
                 ))
             )
 
-            client.get("v2/utkast/antall").assert {
+            client.get("v2/utkast/antall").run {
                 status shouldBe HttpStatusCode.MultiStatus
                 objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 5
             }
 
-            client.get("v2/utkast").assert {
+            client.get("v2/utkast").run {
                 status.shouldBe(HttpStatusCode.MultiStatus)
                 objectMapper.readTree(bodyAsText()).size() shouldBe 5
             }
@@ -234,35 +236,35 @@ class UtkastApiTest {
     @Test
     fun `forsøker å hente tittel på ønsket språk`() = utkastTestApplication(testFnr2) {
 
-        initExternalServices(externalServiceHost,DigisosTestRoute(),AapTestRoute())
+        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
 
-        client.get("v2/utkast").assert {
+        client.get("v2/utkast").run {
             status.shouldBe(HttpStatusCode.OK)
-            objectMapper.readTree(bodyAsText()).assert {
+            objectMapper.readTree(bodyAsText()).run {
                 size() shouldBe 1
                 get(0)["tittel"].textValue() shouldBe utkastForTestFnr2.tittel
             }
         }
 
-        client.get("v2/utkast?la=en").assert {
+        client.get("v2/utkast?la=en").run {
             status.shouldBe(HttpStatusCode.OK)
-            objectMapper.readTree(bodyAsText()).assert {
+            objectMapper.readTree(bodyAsText()).run {
                 size() shouldBe 1
                 get(0)["tittel"].textValue() shouldBe utkastForTestFnr2.tittelI18n["en"]
             }
         }
 
-        client.get("v2/utkast?la=nn").assert {
+        client.get("v2/utkast?la=nn").run {
             status.shouldBe(HttpStatusCode.OK)
-            objectMapper.readTree(bodyAsText()).assert {
+            objectMapper.readTree(bodyAsText()).run {
                 size() shouldBe 1
                 get(0)["tittel"].textValue() shouldBe utkastForTestFnr2.tittelI18n["nn"]
             }
         }
 
-        client.get("v2/utkast?la=se").assert {
+        client.get("v2/utkast?la=se").run {
             status.shouldBe(HttpStatusCode.OK)
-            objectMapper.readTree(bodyAsText()).assert {
+            objectMapper.readTree(bodyAsText()).run {
                 size() shouldBe 1
 
                 val tittel = get(0).get("tittel").textValue()
@@ -329,4 +331,25 @@ class UtkastApiTest {
         }
 }
 
+fun digisosRouteConfig(expextedUtkastData: List<UtkastData> = emptyList()) = HttpRouteConfig(
+    path = "/dittnav/pabegynte/aktive",
+    responseContent = expextedUtkastData.joinToString(
+        prefix = "[",
+        postfix = "]",
+        separator = ","
+    ) { it.toDigisosResponse() }
+)
+
+fun aapRouteConfig(expextedUtkastData: UtkastData? = null) = if (expextedUtkastData != null) {
+    HttpRouteConfig(
+        path = "/mellomlagring/søknad/finnes",
+        responseContent = expextedUtkastData.toAapResponse()
+    )
+} else {
+    HttpRouteConfig(
+        path = "/mellomlagring/søknad/finnes",
+        statusCode = HttpStatusCode.NoContent,
+        responseContent = ""
+    )
+}
 

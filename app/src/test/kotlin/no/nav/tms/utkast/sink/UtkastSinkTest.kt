@@ -4,8 +4,6 @@ import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
-import no.nav.tms.common.testutils.assert
-import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.database.LocalPostgresDatabase
 import no.nav.tms.utkast.database.alleUtkast
@@ -14,7 +12,6 @@ import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import java.util.*
 
@@ -42,7 +39,7 @@ internal class UtkastSinkTest {
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 5
             filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
                 .size shouldBe 0
@@ -57,7 +54,7 @@ internal class UtkastSinkTest {
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 1
         }
     }
@@ -89,9 +86,9 @@ internal class UtkastSinkTest {
         )
         broadcaster.broadcastJson(updateUtkastTestPacket(testUtkastId2, metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")))
 
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 3
-            find { utkast -> utkast.utkastId == testUtkastId1 }.assert {
+            find { utkast -> utkast.utkastId == testUtkastId1 }.run {
                 require(this != null)
                 this.sistEndret shouldNotBe null
                 this.slettet shouldBe null
@@ -99,7 +96,7 @@ internal class UtkastSinkTest {
                 this.tittelI18n.isEmpty() shouldBe true
             }
 
-            find { utkast -> utkast.utkastId == testUtkastId2 }.assert {
+            find { utkast -> utkast.utkastId == testUtkastId2 }.run {
                 require(this != null)
                 this.sistEndret shouldNotBe null
                 this.slettet shouldBe null
@@ -132,7 +129,7 @@ internal class UtkastSinkTest {
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
         )
         )
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 3
 
             filter { it.sistEndret != null }.size shouldBe 1
@@ -155,11 +152,11 @@ internal class UtkastSinkTest {
         )
         broadcaster.broadcastJson(deleteUtkastTestPacket(slettetUtkastId))
 
-        database.list { alleUtkast }.assert {
+        database.list { alleUtkast }.run {
             size shouldBe 3
-            find { it.utkastId == slettetUtkastId }.assert {
+            find { it.utkastId == slettetUtkastId }.run {
                 require(this != null)
-                this.slettet shouldNotBe null
+                slettet shouldNotBe null
             }
         }
     }
