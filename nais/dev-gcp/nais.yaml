@@ -36,6 +36,8 @@ spec:
         - application: tms-min-side
         - application: tms-min-side-proxy
         - application: tms-utkast-frontend
+        - application: tms-microfrontend-do-test
+        - application: tms-microfrontend-do-test-1
     outbound:
       rules:
         - application: innsending
