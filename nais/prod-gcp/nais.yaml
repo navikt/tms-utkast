@@ -19,8 +19,6 @@ spec:
   prometheus:
     path: /metrics
     enabled: true
-  secureLogs:
-    enabled: true
   observability:
     autoInstrumentation:
       enabled: true
@@ -49,6 +47,8 @@ spec:
           cluster: prod-gcp
         - application: sosialhjelp-soknad-api
           namespace: teamdigisos
+        - application: logging
+          namespace: nais-system
       external:
         - host: sosialhjelp-soknad-api.prod-fss-pub.nais.io
   gcp:

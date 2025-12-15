@@ -42,8 +42,8 @@ internal fun Application.utkastApi(
             when (cause) {
                 is DatabaseException -> {
                     logExceptionAsWarning(
-                        unsafeLogInfo = "Henting fra database feilet for kall til ${call.request.uri}",
-                        secureLogInfo = cause.details,
+                        logInfo = "Henting fra database feilet for kall til ${call.request.uri}",
+                        teamLogInfo = cause.details,
                         cause = cause
                     )
                     call.respond(HttpStatusCode.InternalServerError)
@@ -51,8 +51,8 @@ internal fun Application.utkastApi(
 
                 is TokendingsExchangeException -> {
                     logExceptionAsWarning(
-                        unsafeLogInfo = cause.message ?: "Ukjent feil mot tokendings",
-                        secureLogInfo = cause.message ?: "Ukjent feil mot tokendings",
+                        logInfo = cause.message ?: "Ukjent feil mot tokendings",
+                        teamLogInfo = cause.message ?: "Ukjent feil mot tokendings",
                         cause = cause.originalThrowable
                     )
                     call.respond(HttpStatusCode.ServiceUnavailable)
@@ -60,7 +60,7 @@ internal fun Application.utkastApi(
 
                 else -> {
                     logExceptionAsWarning(
-                        unsafeLogInfo = "Ukjent feil",
+                        logInfo = "Ukjent feil",
                         cause = cause
                     )
                     call.respond(HttpStatusCode.InternalServerError)

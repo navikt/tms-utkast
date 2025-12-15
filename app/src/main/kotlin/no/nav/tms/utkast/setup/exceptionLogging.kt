@@ -1,9 +1,10 @@
 package no.nav.tms.utkast.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tms.common.logging.TeamLogs
 import no.nav.tms.kafka.application.JsonMessage
 
-private val secureLog = KotlinLogging.logger("secureLog")
+private val teamLog = TeamLogs.logger { }
 private val log = KotlinLogging.logger {}
 
 fun withErrorLogging(function: ErrorContext.() -> Any) {
@@ -12,7 +13,7 @@ fun withErrorLogging(function: ErrorContext.() -> Any) {
         errorContext.function()
     } catch (exception: Throwable) {
         log.error { errorContext.message }
-        secureLog.error {
+        teamLog.error {
             """
             ${errorContext.message}\n
             ident: ${errorContext.ident}\n
@@ -22,14 +23,14 @@ fun withErrorLogging(function: ErrorContext.() -> Any) {
     }
 }
 
-fun logExceptionAsWarning(unsafeLogInfo: String, cause: Throwable, secureLogInfo: String? = null) {
-    log.warn { unsafeLogInfo }
-    secureLog.error(cause) {  secureLogInfo ?: unsafeLogInfo }
+fun logExceptionAsWarning(logInfo: String, cause: Throwable, teamLogInfo: String? = null) {
+    log.warn { logInfo }
+    teamLog.error(cause) {  teamLogInfo ?: logInfo }
 }
 
-fun logExceptionAsError(unsafeLogInfo: String, cause: Throwable, secureLogInfo: String? = null) {
-    log.error { unsafeLogInfo }
-    secureLog.error(cause) {  secureLogInfo ?: unsafeLogInfo }
+fun logExceptionAsError(logInfo: String, cause: Throwable, teamLogInfo: String? = null) {
+    log.error { logInfo }
+    teamLog.error(cause) {  teamLogInfo ?: logInfo }
 }
 
 class ErrorContext {
