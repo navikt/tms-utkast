@@ -47,6 +47,7 @@ dependencies {
     implementation(TmsCommonLib.kubernetes)
     implementation(TmsCommonLib.metrics)
     implementation(TmsCommonLib.observability)
+    implementation(TmsCommonLib.teamLogger)
     implementation(TmsCommonLib.utils)
     implementation(Prometheus.metricsCore)
     implementation(JacksonDatatype.moduleKotlin)

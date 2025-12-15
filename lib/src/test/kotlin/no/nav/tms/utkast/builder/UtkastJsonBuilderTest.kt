@@ -58,8 +58,8 @@ internal class UtkastJsonBuilderTest {
             .withIdent("12345678910")
             .withLink("https://test.link")
             .withTittel(testTittel)
-            .withTittelI18n(testTittelTillegg1, Locale("nb"))
-            .withTittelI18n(testTittelTillegg2, Locale("nb"))
+            .withTittelI18n(testTittelTillegg1, Locale.of("nb"))
+            .withTittelI18n(testTittelTillegg2, Locale.of("nb"))
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name

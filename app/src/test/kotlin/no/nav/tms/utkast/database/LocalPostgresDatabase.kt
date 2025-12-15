@@ -7,7 +7,7 @@ import kotliquery.queryOf
 import no.nav.tms.utkast.UtkastData
 import no.nav.tms.utkast.setup.Database
 import org.flywaydb.core.Flyway
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 class LocalPostgresDatabase private constructor() : Database {
 

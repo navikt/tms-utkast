@@ -33,7 +33,7 @@ class UtkastFetcher(
             transform = { this.map { it.toUtkast() } }
         )
     } catch (e: Exception) {
-        logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra digisos", cause = e)
+        logExceptionAsError(logInfo = "Feil ved henting av utkast fra digisos", cause = e)
         FetchResult(wasSuccess = false, emptyList())
     }
 
@@ -45,7 +45,7 @@ class UtkastFetcher(
             transform = { listOf(toUtkast("AAP")) }
         )
     } catch (e: Exception) {
-        logExceptionAsError(unsafeLogInfo = "Feil ved henting av utkast fra aap", cause = e)
+        logExceptionAsError(logInfo = "Feil ved henting av utkast fra aap", cause = e)
         FetchResult(wasSuccess = false, emptyList())
     }
 

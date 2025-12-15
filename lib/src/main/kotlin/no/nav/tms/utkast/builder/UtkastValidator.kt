@@ -1,7 +1,8 @@
 package no.nav.tms.utkast.builder
 
 import java.net.MalformedURLException
-import java.net.URL
+import java.net.URI
+import java.net.URISyntaxException
 
 object UtkastValidator {
     private const val BASE_16 = "[0-9a-fA-F]"
@@ -24,10 +25,14 @@ object UtkastValidator {
 
     fun validateLink(link: String): String {
         try {
-            URL(link)
+            URI(link).toURL()
             return link
-        } catch (e: MalformedURLException) {
-            throw FieldValidationException("Feltet `link` må være en gyldig URL.")
+        } catch (e: Exception) {
+            when (e) {
+                is URISyntaxException, is MalformedURLException ->
+                    throw FieldValidationException("Feltet `link` må være en gyldig URL.")
+                else -> throw e
+            }
         }
     }
 
