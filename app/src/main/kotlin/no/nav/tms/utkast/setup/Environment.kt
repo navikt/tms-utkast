@@ -15,7 +15,7 @@ data class Environment(
     val dbName: String = getEnvVar("DB_DATABASE"),
     val dbUser: String = getEnvVar("DB_USERNAME"),
     val dbPassword: String = getEnvVar("DB_PASSWORD"),
-    val dbUrl: String = getDbUrl(dbHost, dbPort, dbName),
+    val jdbcUrl: String = getEnvVar("DB_JDBC_URL"),
     val kafkaBrokers: String = getEnvVar("KAFKA_BROKERS"),
     val kafkaSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
     val utkastTopic: String = getEnvVar("KAFKA_TOPIC"),
@@ -23,14 +23,6 @@ data class Environment(
     val digisosBaseUrl: String = getEnvVar("DIGISOS_BASE_URL"),
     val aapClientId : String = getEnvVar("AAP_CLIENT_ID")
 )
-
-fun getDbUrl(host: String, port: String, name: String): String {
-    return if (host.endsWith(":$port")) {
-        "jdbc:postgresql://${host}/$name"
-    } else {
-        "jdbc:postgresql://${host}:${port}/${name}"
-    }
-}
 
 fun HttpClientConfig<*>.configureClient() {
     install(ContentNegotiation) {

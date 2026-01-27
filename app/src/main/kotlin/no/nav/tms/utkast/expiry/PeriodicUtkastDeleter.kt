@@ -3,15 +3,14 @@ package no.nav.tms.utkast.expiry
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.queryOf
 import no.nav.tms.common.kubernetes.PodLeaderElection
+import no.nav.tms.common.postgres.PostgresDatabase
 import no.nav.tms.common.util.scheduling.PeriodicJob
-import no.nav.tms.utkast.setup.Database
 import no.nav.tms.utkast.sink.LocalDateTimeHelper.nowAtUtc
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
 
 class PeriodicUtkastDeleter(
-    private val database: Database,
+    private val database: PostgresDatabase,
     private val leaderElection: PodLeaderElection = PodLeaderElection(),
     interval: Duration = Duration.ofMinutes(5),
 ) : PeriodicJob(interval) {
@@ -53,7 +52,7 @@ class PeriodicUtkastDeleter(
                 mapOf("threshold" to threshold)
             ).map {
                 it.int("antall_slettet")
-            }.asSingle
+            }
         }
     }
 }

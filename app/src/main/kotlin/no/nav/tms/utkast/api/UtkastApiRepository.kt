@@ -3,11 +3,11 @@ package no.nav.tms.utkast.api
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.queryOf
-import no.nav.tms.utkast.setup.Database
+import no.nav.tms.common.postgres.PostgresDatabase
 import no.nav.tms.utkast.sink.Utkast
 import java.util.*
 
-class UtkastApiRepository(private val database: Database) {
+class UtkastApiRepository(private val database: PostgresDatabase) {
 
     private val objectMapper = jacksonObjectMapper()
 
@@ -37,6 +37,6 @@ class UtkastApiRepository(private val database: Database) {
                                 objectMapper.readValue<Map<String,String>>(it)
                             }
                     )
-                }.asList
+                }
         }
 }
