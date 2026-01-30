@@ -33,7 +33,7 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd1", testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd3", testFnr))
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 3
             forEach { utkast ->
                 utkast.opprettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
@@ -61,7 +61,7 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.updateUtkast("123", updateJson(oppdatertTittel).toString())
 
 
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 2
             find { it.utkastId == "123" }.run {
                 require(this != null)
@@ -97,7 +97,7 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.updateUtkastI18n("123", """{"en": "$nyTittelEn"}""")
 
 
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             find { it.utkastId == "123" }.run {
                 require(this != null)
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
@@ -114,7 +114,7 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
         utkastSinkRepository.deleteUtkast(testUtkastId)
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 2
             find { it.utkastId == testUtkastId }.run {
                 require(this != null)

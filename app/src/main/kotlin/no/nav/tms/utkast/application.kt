@@ -2,6 +2,7 @@ package no.nav.tms.utkast
 
 import io.ktor.client.*
 import kotlinx.coroutines.runBlocking
+import no.nav.tms.common.postgres.Postgres
 import no.nav.tms.kafka.application.KafkaApplication
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.utkast.api.UtkastApiRepository
@@ -9,13 +10,12 @@ import no.nav.tms.utkast.api.UtkastFetcher
 import no.nav.tms.utkast.api.utkastApi
 import no.nav.tms.utkast.expiry.PeriodicUtkastDeleter
 import no.nav.tms.utkast.setup.Environment
-import no.nav.tms.utkast.setup.Flyway
 import no.nav.tms.utkast.setup.configureClient
-import no.nav.tms.utkast.setup.PostgresDatabase
 import no.nav.tms.utkast.sink.UtkastRepository
 import no.nav.tms.utkast.sink.UtkastCreatedSubscriber
 import no.nav.tms.utkast.sink.UtkastDeletedSubscriber
 import no.nav.tms.utkast.sink.UtkastUpdatedSubscriber
+import org.flywaydb.core.Flyway
 
 fun main() {
     val environment = Environment()
@@ -24,56 +24,53 @@ fun main() {
         configureClient()
     }
 
-    val database = PostgresDatabase(environment)
+    val database = Postgres.connectToJdbcUrl(environment.jdbcUrl)
 
     val utkastDeleter = PeriodicUtkastDeleter(database)
 
-    startApplicaiton(
-        environment = environment,
-        readUtkastRepository = UtkastApiRepository(database),
-        writeUtkastRepository = UtkastRepository(database),
-        utkastFetcher = UtkastFetcher(
-            digiSosBaseUrl = environment.digisosBaseUrl,
-            aapBaseUrl = "http://innsending.aap",
-            httpClient = httpClient,
-            digisosClientId = environment.digisosClientId,
-            tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),
-            aapClientId = environment.aapClientId,
-        ),
-        utkastDeleter
-    )
-}
+    val readUtkastRepository = UtkastApiRepository(database)
+    val writeUtkastRepository = UtkastRepository(database)
 
-private fun startApplicaiton(
-    environment: Environment,
-    readUtkastRepository: UtkastApiRepository,
-    writeUtkastRepository: UtkastRepository,
-    utkastFetcher: UtkastFetcher,
-    utkastDeleter: PeriodicUtkastDeleter
-) = KafkaApplication.build {
-    kafkaConfig {
-        groupId = environment.groupId
-        readTopic(environment.utkastTopic)
-    }
-
-    ktorModule {
-        utkastApi(readUtkastRepository, utkastFetcher)
-    }
-
-    subscribers(
-        UtkastCreatedSubscriber(writeUtkastRepository),
-        UtkastUpdatedSubscriber(writeUtkastRepository),
-        UtkastDeletedSubscriber(writeUtkastRepository)
+    val utkastFetcher = UtkastFetcher(
+        digiSosBaseUrl = environment.digisosBaseUrl,
+        aapBaseUrl = "http://innsending.aap",
+        httpClient = httpClient,
+        digisosClientId = environment.digisosClientId,
+        tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),
+        aapClientId = environment.aapClientId,
     )
 
-    onStartup {
-        Flyway.runFlywayMigrations(environment)
-        utkastDeleter.start()
-    }
-
-    onShutdown {
-        runBlocking {
-            utkastDeleter.stop()
+    KafkaApplication.build {
+        kafkaConfig {
+            groupId = environment.groupId
+            readTopic(environment.utkastTopic)
         }
-    }
-}.start()
+
+        ktorModule {
+            utkastApi(readUtkastRepository, utkastFetcher)
+        }
+
+        subscribers(
+            UtkastCreatedSubscriber(writeUtkastRepository),
+            UtkastUpdatedSubscriber(writeUtkastRepository),
+            UtkastDeletedSubscriber(writeUtkastRepository)
+        )
+
+        onStartup {
+            Flyway.configure()
+                .dataSource(database.dataSource)
+                .load()
+                .migrate()
+        }
+
+        onReady {
+            utkastDeleter.start()
+        }
+
+        onShutdown {
+            runBlocking {
+                utkastDeleter.stop()
+            }
+        }
+    }.start()
+}

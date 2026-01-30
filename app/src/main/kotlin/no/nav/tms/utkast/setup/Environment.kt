@@ -10,12 +10,7 @@ import no.nav.tms.common.util.config.StringEnvVar.getEnvVar
 
 data class Environment(
     val groupId: String = getEnvVar("GROUP_ID"),
-    val dbHost: String = getEnvVar("DB_HOST"),
-    val dbPort: String = getEnvVar("DB_PORT"),
-    val dbName: String = getEnvVar("DB_DATABASE"),
-    val dbUser: String = getEnvVar("DB_USERNAME"),
-    val dbPassword: String = getEnvVar("DB_PASSWORD"),
-    val dbUrl: String = getDbUrl(dbHost, dbPort, dbName),
+    val jdbcUrl: String = jdbcUrl(),
     val kafkaBrokers: String = getEnvVar("KAFKA_BROKERS"),
     val kafkaSchemaRegistry: String = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
     val utkastTopic: String = getEnvVar("KAFKA_TOPIC"),
@@ -24,13 +19,15 @@ data class Environment(
     val aapClientId : String = getEnvVar("AAP_CLIENT_ID")
 )
 
-fun getDbUrl(host: String, port: String, name: String): String {
-    return if (host.endsWith(":$port")) {
-        "jdbc:postgresql://${host}/$name"
-    } else {
-        "jdbc:postgresql://${host}:${port}/${name}"
-    }
+private fun jdbcUrl(): String {
+    val host: String = getEnvVar("DB_HOST")
+    val name: String = getEnvVar("DB_DATABASE")
+    val user: String = getEnvVar("DB_USERNAME")
+    val password: String = getEnvVar("DB_PASSWORD")
+
+    return "jdbc:postgresql://${host}/$name?user=$user&password=$password"
 }
+
 
 fun HttpClientConfig<*>.configureClient() {
     install(ContentNegotiation) {

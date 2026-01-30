@@ -4,68 +4,48 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.json.Json
 import kotliquery.queryOf
+import no.nav.tms.common.postgres.Postgres
+import no.nav.tms.common.postgres.PostgresDatabase
 import no.nav.tms.utkast.UtkastData
-import no.nav.tms.utkast.setup.Database
 import org.flywaydb.core.Flyway
 import org.testcontainers.postgresql.PostgreSQLContainer
 
-class LocalPostgresDatabase private constructor() : Database {
+object LocalPostgresDatabase {
 
-    private val memDataSource: HikariDataSource
     private val container = PostgreSQLContainer("postgres:14.5")
+        .also { it.start() }
 
-    companion object {
-        private val instance by lazy {
-            LocalPostgresDatabase().also {
-                it.migrate()
-            }
-        }
-
-        fun cleanDb(): LocalPostgresDatabase {
-            instance.update { queryOf("delete from utkast") }
-            return instance
+    private val instance by lazy {
+        Postgres.connectToContainer(container).also {
+            migrate(it.dataSource)
         }
     }
 
-    init {
-        container.start()
-        memDataSource = createDataSource()
+    fun cleanDb(): PostgresDatabase {
+        instance.update { queryOf("delete from utkast") }
+        return instance
     }
 
-    override val dataSource: HikariDataSource
-        get() = memDataSource
-
-    private fun createDataSource(): HikariDataSource {
-        return HikariDataSource().apply {
-            jdbcUrl = container.jdbcUrl
-            username = container.username
-            password = container.password
-            isAutoCommit = true
-            validate()
-        }
-    }
-
-    private fun migrate() {
+    private fun migrate(dataSource: HikariDataSource) {
         Flyway.configure()
             .connectRetries(3)
             .dataSource(dataSource)
             .load()
             .migrate()
     }
-}
 
-internal val alleUtkast =
-    queryOf(
-        """
-        select 
-            packet->>'utkastId' as utkastId,
-            packet->>'tittel' as tittel,
-            packet->>'tittel_i18n' as tittel_i18n,
-            packet->>'link' as link,
-            packet ->> 'metrics' as metrics,
-            sistendret, opprettet, slettet 
-        from utkast"""
-    )
+    fun alleUtkast(): List<UtkastData> = instance.list {
+        queryOf(
+            """
+            select 
+                packet->>'utkastId' as utkastId,
+                packet->>'tittel' as tittel,
+                packet->>'tittel_i18n' as tittel_i18n,
+                packet->>'link' as link,
+                packet ->> 'metrics' as metrics,
+                sistendret, opprettet, slettet 
+            from utkast"""
+        )
         .map { row ->
             UtkastData(
                 utkastId = row.string("utkastId"),
@@ -84,6 +64,7 @@ internal val alleUtkast =
                         )
                     }
             )
-
-        }.asList
+        }
+    }
+}
 

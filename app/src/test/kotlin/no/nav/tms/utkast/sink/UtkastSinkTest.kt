@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.database.LocalPostgresDatabase
-import no.nav.tms.utkast.database.alleUtkast
 import no.nav.tms.utkast.deleteUtkastTestPacket
 import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.updateUtkastTestPacket
@@ -39,7 +38,7 @@ internal class UtkastSinkTest {
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 5
             filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
                 .size shouldBe 0
@@ -54,7 +53,7 @@ internal class UtkastSinkTest {
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr, link = "bad link"))
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = randomUUID(), ident = testFnr))
 
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 1
         }
     }
@@ -86,7 +85,7 @@ internal class UtkastSinkTest {
         )
         broadcaster.broadcastJson(updateUtkastTestPacket(testUtkastId2, metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")))
 
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 3
             find { utkast -> utkast.utkastId == testUtkastId1 }.run {
                 require(this != null)
@@ -129,7 +128,7 @@ internal class UtkastSinkTest {
             metrics = mapOf("skjemakode" to "skjemakode","skjemanavn" to "skjemanavn")
         )
         )
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 3
 
             filter { it.sistEndret != null }.size shouldBe 1
@@ -152,7 +151,7 @@ internal class UtkastSinkTest {
         )
         broadcaster.broadcastJson(deleteUtkastTestPacket(slettetUtkastId))
 
-        database.list { alleUtkast }.run {
+        LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 3
             find { it.utkastId == slettetUtkastId }.run {
                 require(this != null)

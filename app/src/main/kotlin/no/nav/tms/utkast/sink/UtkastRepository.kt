@@ -1,11 +1,11 @@
 package no.nav.tms.utkast.sink
 
 import kotliquery.queryOf
-import no.nav.tms.utkast.setup.Database
+import no.nav.tms.common.postgres.PostgresDatabase
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
 
-class UtkastRepository(private val database: Database) {
+class UtkastRepository(private val database: PostgresDatabase) {
     fun createUtkast(created: String) =
         database.update {
             queryOf(

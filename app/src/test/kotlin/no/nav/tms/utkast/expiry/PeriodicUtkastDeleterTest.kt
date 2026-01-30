@@ -16,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotliquery.queryOf
 import no.nav.tms.common.kubernetes.PodLeaderElection
+import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.utkast.database.LocalPostgresDatabase
 import no.nav.tms.utkast.sink.LocalDateTimeHelper.nowAtUtc
 import no.nav.tms.utkast.sink.Utkast
@@ -104,7 +105,6 @@ internal class PeriodicUtkastDeleterTest {
         return database.single {
             queryOf("select count(*) as antall from utkast")
                 .map { it.int("antall") }
-                .asSingle
         }
     }
 
@@ -121,11 +121,11 @@ internal class PeriodicUtkastDeleterTest {
     )
 
     private fun insertUtkast(vararg utkast: Utkast) {
-        utkast.forEach {
+        utkast.forEach { utkast ->
             database.update {
                 queryOf(
                     "INSERT INTO utkast (packet, opprettet) values (:packet, :opprettet) ON CONFLICT DO NOTHING",
-                    mapOf("packet" to it.toJsonB(), "opprettet" to it.opprettet)
+                    mapOf("packet" to utkast.toJsonb(), "opprettet" to utkast.opprettet)
                 )
             }
         }
@@ -137,7 +137,7 @@ internal class PeriodicUtkastDeleterTest {
             mapOf("utkastId" to utkastId)
         ).map {
             objectMapper.readValue<Utkast>(it.string("packet")).copy(opprettet = it.localDateTime("opprettet"))
-        }.asSingle
+        }
     }
 
     fun Utkast.toJsonB() = objectMapper.writeValueAsString(this).let { utkast ->
