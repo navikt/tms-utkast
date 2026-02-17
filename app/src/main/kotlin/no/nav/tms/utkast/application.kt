@@ -3,6 +3,7 @@ package no.nav.tms.utkast
 import io.ktor.client.*
 import kotlinx.coroutines.runBlocking
 import no.nav.tms.common.postgres.Postgres
+import no.nav.tms.kafka.application.Domain
 import no.nav.tms.kafka.application.KafkaApplication
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.utkast.api.UtkastApiRepository
@@ -48,6 +49,12 @@ fun main() {
 
         ktorModule {
             utkastApi(readUtkastRepository, utkastFetcher)
+        }
+        minSideMdc {
+            this.idFieldName = "utkastId"
+            this.domain = Domain.utkast
+            this.producedByFieldName = "producer"
+            this.allowMissingProducerField=true
         }
 
         subscribers(

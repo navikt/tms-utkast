@@ -1,7 +1,6 @@
 package no.nav.tms.utkast.sink
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tms.common.observability.traceUtkast
 import no.nav.tms.kafka.application.JsonMessage
 import no.nav.tms.kafka.application.MessageException
 import no.nav.tms.kafka.application.Subscriber
@@ -24,36 +23,35 @@ class UtkastUpdatedSubscriber(
 
     override suspend fun receive(jsonMessage: JsonMessage) {
         val utkastId = jsonMessage["utkastId"].asText()
-        traceUtkast(id = utkastId) {
-            validateLink(jsonMessage)
+        validateLink(jsonMessage)
 
-            jsonMessage.getOrNull("tittel_i18n")
-                ?.takeIf { !it.isEmpty }
-                ?.toString()
-                ?.let {
-                    withErrorLogging {
-                        utkastRepository.updateUtkastI18n(utkastId, it)
-                    }
+        jsonMessage.getOrNull("tittel_i18n")
+            ?.takeIf { !it.isEmpty }
+            ?.toString()
+            ?.let {
+                withErrorLogging {
+                    utkastRepository.updateUtkastI18n(utkastId, it)
                 }
+            }
 
-            jsonMessage.keepFields("tittel", "link")
-                .toString()
-                .let {
-                    withErrorLogging {
-                        utkastRepository.updateUtkast(utkastId, it)
-                    }
+        jsonMessage.keepFields("tittel", "link")
+            .toString()
+            .let {
+                withErrorLogging {
+                    utkastRepository.updateUtkast(utkastId, it)
                 }
+            }
 
-            log.info { "utkast updated" }
-            UtkastMetricsReporter.countUtkastEndret()
-        }
-    }
-
-    private fun validateLink(jsonMessage: JsonMessage) = try {
-        jsonMessage.getOrNull("link")
-            ?.textValue()
-            ?.let { UtkastValidator.validateLink(it) }
-    } catch (e: FieldValidationException) {
-        throw MessageException(e.message ?: "ukjent valideringsfeil")
+        log.info { "utkast updated" }
+        UtkastMetricsReporter.countUtkastEndret()
     }
 }
+
+private fun validateLink(jsonMessage: JsonMessage) = try {
+    jsonMessage.getOrNull("link")
+        ?.textValue()
+        ?.let { UtkastValidator.validateLink(it) }
+} catch (e: FieldValidationException) {
+    throw MessageException(e.message ?: "ukjent valideringsfeil")
+}
+

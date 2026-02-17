@@ -9,7 +9,6 @@ import no.nav.tms.utkast.builder.FieldValidationException
 import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
-import no.nav.tms.common.observability.traceUtkast
 
 class UtkastCreatedSubscriber(
     private val utkastRepository: UtkastRepository
@@ -22,21 +21,19 @@ class UtkastCreatedSubscriber(
         .withOptionalFields("tittel_i18n", "metrics")
 
     override suspend fun receive(jsonMessage: JsonMessage) {
-        traceUtkast(id = jsonMessage["utkastId"].asText()) {
-            validateUtkast(jsonMessage)
-
-            jsonMessage.json
-                .toString()
-                .let {
-                    withErrorLogging {
-                        originalMessage = jsonMessage
-                        utkastRepository.createUtkast(it)
-                    }
+        validateUtkast(jsonMessage)
+        jsonMessage.json
+            .toString()
+            .let {
+                withErrorLogging {
+                    originalMessage = jsonMessage
+                    utkastRepository.createUtkast(it)
                 }
+            }
 
-            log.info { "utkast created" }
-            UtkastMetricsReporter.countUtkastOpprettet()
-        }
+        log.info { "utkast created" }
+        UtkastMetricsReporter.countUtkastOpprettet()
+
     }
 
     private fun validateUtkast(jsonMessage: JsonMessage) = try {

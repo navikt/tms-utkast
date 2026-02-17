@@ -35,3 +35,7 @@ object TmsKtorTokenSupport: TmsKtorTokenSupportDefaults
 object TmsJarBundling {
     const val plugin = "no.nav.tms.jar-bundling"
 }
+
+object TmsKafkaToolsBeta: TmsKafkaToolsDefaults {
+    override val version get() = "2.2.3-beta"
+}

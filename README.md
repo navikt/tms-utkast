@@ -13,7 +13,7 @@ Dokumentasjon for produsenter finnes i [how-to](/howto.md) og i dokumnetasjonsid
    hele dokumentet (`##`,deretter `###` osv). Linebreaks må være på markdown format `<noe som skal følges av ett linebreak> /\`
 2. Commit som inneholder endringer i howto-fil trigger automatisk en rebuild av [team min sides dokumentasjonen](https://github.com/navikt/tms-dokumentasjon)
 
-## Rapid
+## Kafkameldinger
 
 **topic**: aapen-utkast-v1 \
 **hendelser**: `created`, `updated`, `deleted`

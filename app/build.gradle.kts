@@ -53,7 +53,7 @@ dependencies {
     implementation(Prometheus.metricsCore)
     implementation(JacksonDatatype.moduleKotlin)
     implementation(JacksonDatatype.datatypeJsr310)
-    implementation(TmsKafkaTools.kafkaApplication)
+    implementation(TmsKafkaToolsBeta.kafkaApplication)
     implementation(project(":lib"))
 
     testImplementation(JunitPlatform.launcher)
