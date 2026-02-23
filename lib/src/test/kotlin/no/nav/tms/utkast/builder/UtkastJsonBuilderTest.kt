@@ -9,6 +9,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Test
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 
@@ -23,6 +25,7 @@ internal class UtkastJsonBuilderTest {
         val testTittelEngelsk = "Boo"
         val testSkjemaavn = "Søknad om test"
         val testSkjemakode = "11-09/66"
+        val testSlettesEtter = ZonedDateTime.now().plusMinutes(5).truncatedTo(ChronoUnit.MINUTES)
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
@@ -30,6 +33,7 @@ internal class UtkastJsonBuilderTest {
             .withLink(testLink)
             .withTittel(testTittel)
             .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
+            .withSlettesEtter(testSlettesEtter)
             .withMetrics(testSkjemaavn, testSkjemakode)
             .create()
             .assertJson {
@@ -38,6 +42,7 @@ internal class UtkastJsonBuilderTest {
                 getText("link") shouldBe testLink
                 getText("ident") shouldBe testIdent
                 getText("tittel") shouldBe testTittel
+                getText("slettesEtter") shouldBe testSlettesEtter.toString()
                 getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
                 this["metrics"] shouldNotBe null
                 this["metrics"] ?: apply {
@@ -118,18 +123,21 @@ internal class UtkastJsonBuilderTest {
         val testLink = "https://test.link"
         val testTittel = "Bø på test"
         val testTittelEngelsk = "Boo"
+        val testSlettesEtter = ZonedDateTime.now().plusMinutes(5).truncatedTo(ChronoUnit.MINUTES)
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
             .withTittel(testTittel)
             .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
             .withLink(testLink)
+            .withSlettesEtter(testSlettesEtter)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name
                 getText("utkastId") shouldBe testId
                 getText("link") shouldBe testLink
                 getText("tittel") shouldBe testTittel
+                getText("slettesEtter") shouldBe testSlettesEtter.toString()
                 getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
 
@@ -161,6 +169,16 @@ internal class UtkastJsonBuilderTest {
                 getText("@event_name") shouldBe EventName.updated.name
                 getText("utkastId") shouldBe testId
                 getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
+            }
+
+        UtkastJsonBuilder()
+            .withUtkastId(testId)
+            .withSlettesEtter(testSlettesEtter)
+            .update()
+            .assertJson {
+                getText("@event_name") shouldBe EventName.updated.name
+                getText("utkastId") shouldBe testId
+                getText("slettesEtter") shouldBe testSlettesEtter.toString()
             }
     }
 
