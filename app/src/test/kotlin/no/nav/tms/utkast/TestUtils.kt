@@ -59,7 +59,7 @@ internal fun createUtkastTestPacket(
     "link": "$link",
     "tittel": "$tittel"
     ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
-    ${if (slettesEtter != null) ",\"slettesEtter\": $slettesEtter" else ""}
+    ${if (slettesEtter != null) ",\"slettesEtter\": \"$slettesEtter\"" else ""}
     ${if (metrics != null) ",\"metrics\": ${metrics.toJson()}" else ""}
 }
 """.trimIndent()
@@ -79,7 +79,7 @@ internal fun updateUtkastTestPacket(
     ${if (tittel != null) ",\"tittel\": \"$tittel\"" else ""}
     ${if (link != null) ",\"link\": \"$link\"" else ""}
     ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
-    ${if (slettesEtter != null) ",\"slettesEtter\": $slettesEtter" else ""}
+    ${if (slettesEtter != null) ",\"slettesEtter\": \"$slettesEtter\"" else ""}
     ${if (metrics != null) ",\"metrics\": ${metrics.toJson()}" else ""}
 }
 """.trimIndent()
@@ -114,6 +114,7 @@ data class UtkastData(
     val link: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
+    val slettesEtter: ZonedDateTime?,
     val slettet: LocalDateTime?,
     val metrics: Map<String, String>? = null
 ) {
@@ -150,5 +151,6 @@ internal fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startT
     link = "https://test.link",
     opprettet = startTestTime,
     sistEndret = null,
+    slettesEtter = null,
     slettet = null
 )

@@ -12,7 +12,6 @@ import no.nav.tms.utkast.sink.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
 import java.time.ZonedDateTime
-import java.time.ZonedDateTime.parse
 
 class UtkastUpdatedSubscriber(
     private val utkastRepository: UtkastRepository
@@ -22,7 +21,7 @@ class UtkastUpdatedSubscriber(
 
     override fun subscribe() = Subscription.forEvent("updated")
         .withFields("utkastId")
-        .withOptionalFields("link", "tittel", "tittel_i18n")
+        .withOptionalFields("link", "tittel", "tittel_i18n", "slettesEtter")
 
     override suspend fun receive(jsonMessage: JsonMessage) {
         val utkastId = jsonMessage["utkastId"].asText()
@@ -31,18 +30,16 @@ class UtkastUpdatedSubscriber(
 
             jsonMessage.getOrNull("tittel_i18n")
                 ?.takeIf { !it.isEmpty }
-                ?.toString()
                 ?.let {
                     withErrorLogging {
-                        utkastRepository.updateUtkastI18n(utkastId, it)
+                        utkastRepository.updateUtkastI18n(utkastId, it.toString())
                     }
                 }
 
             jsonMessage.keepFields("tittel", "link")
-                .toString()
                 .let {
                     withErrorLogging {
-                        utkastRepository.updateUtkast(utkastId, it, slettesEtter(jsonMessage))
+                        utkastRepository.updateUtkast(utkastId, it.toString(), slettesEtter(jsonMessage))
                     }
                 }
 

@@ -1,5 +1,6 @@
 package no.nav.tms.utkast.database
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
 internal class UtkastRepositoryTest {
-    private val database = LocalPostgresDatabase.cleanDb()
+    private val database = LocalPostgresDatabase.getCleanInstance()
     private val utkastSinkRepository = UtkastRepository(database)
     private val utkastApiRepository = UtkastApiRepository(database)
     private val testFnr = "12345678910"
@@ -113,7 +114,7 @@ internal class UtkastRepositoryTest {
         val testUtkastId = "77fhs"
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
-        utkastSinkRepository.deleteUtkast(testUtkastId)
+        utkastSinkRepository.markUtkastAsDeleted(testUtkastId)
         LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 2
             find { it.utkastId == testUtkastId }.run {
@@ -145,7 +146,7 @@ internal class UtkastRepositoryTest {
         )
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd8", ident = "99887766"))
         utkastSinkRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
-        utkastSinkRepository.deleteUtkast(slettUtkastId)
+        utkastSinkRepository.markUtkastAsDeleted(slettUtkastId)
 
         utkastApiRepository.getUtkastForIdent(testFnr).run {
             size shouldBe 2

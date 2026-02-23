@@ -1,6 +1,8 @@
 package no.nav.tms.utkast.sink
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotliquery.queryOf
+import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.common.postgres.PostgresDatabase
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
@@ -16,7 +18,7 @@ class UtkastRepository(private val database: PostgresDatabase) {
                     ON CONFLICT DO NOTHING
                 """,
                 mapOf(
-                    "packet" to created.jsonB(),
+                    "packet" to created.asJsonb(),
                     "opprettet" to LocalDateTimeHelper.nowAtUtc(),
                     "slettesEtter" to slettesEtter
                 )
@@ -28,12 +30,12 @@ class UtkastRepository(private val database: PostgresDatabase) {
             queryOf(
                 """
                     UPDATE utkast 
-                    SET sistEndret = :now, packet = packet || :update, slettesEtter = coalesce(slettesEtter, :slettesEtter)
-                    WHERE packet->'utkastId' ?? :utkastId
+                    SET sistEndret = :now, packet = packet || :update, slettesEtter = coalesce(:slettesEtter, slettesEtter)
+                    WHERE packet @> :utkastId
                 """,
                 mapOf(
-                    "update" to update.jsonB(),
-                    "utkastId" to utkastId,
+                    "update" to update.asJsonb(),
+                    "utkastId" to utkastIdParam(utkastId),
                     "slettesEtter" to slettesEtter,
                     "now" to LocalDateTimeHelper.nowAtUtc()
                 )
@@ -52,30 +54,35 @@ class UtkastRepository(private val database: PostgresDatabase) {
                         WHEN packet->'tittel_i18n' is null
                         THEN jsonb_insert(packet, '{tittel_i18n}', :update)
                     END )
-                WHERE packet-> 'utkastId' ?? :utkastId
+                WHERE packet @> :utkastId
                 """,
                 mapOf(
-                    "update" to tittelI18nUpdate.jsonB(),
-                    "utkastId" to utkastId,
+                    "update" to tittelI18nUpdate.asJsonb(),
+                    "utkastId" to utkastIdParam(utkastId),
                     "now" to LocalDateTimeHelper.nowAtUtc()
                 )
             )
         }
     }
 
-    fun deleteUtkast(utkastId: String) {
+    fun markUtkastAsDeleted(utkastId: String) {
         database.update {
             queryOf(
-                "UPDATE utkast SET slettet=:now WHERE packet-> 'utkastId' ?? :utkastId",
-                mapOf("now" to LocalDateTimeHelper.nowAtUtc(), "utkastId" to utkastId)
+                "UPDATE utkast SET slettet = :now WHERE packet @> :utkastId",
+                mapOf(
+                    "now" to LocalDateTimeHelper.nowAtUtc(), "utkastId" to utkastIdParam(utkastId))
             )
         }
     }
+
+    private fun String.asJsonb() = PGobject().apply {
+        type = "jsonb"
+        value = this@asJsonb
+    }
 }
 
-private fun String.jsonB() = PGobject().apply {
-    type = "jsonb"
-    value = this@jsonB
+fun utkastIdParam(utkastId: String): PGobject {
+    return mapOf("utkastId" to utkastId).toJsonb()!!
 }
 
 data class Utkast(
@@ -84,6 +91,7 @@ data class Utkast(
     val link: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
+    val slettesEtter: ZonedDateTime?,
     val metrics: Map<String,String>?
 )
 

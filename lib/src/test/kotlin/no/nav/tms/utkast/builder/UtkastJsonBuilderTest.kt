@@ -170,6 +170,16 @@ internal class UtkastJsonBuilderTest {
                 getText("utkastId") shouldBe testId
                 getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
             }
+
+        UtkastJsonBuilder()
+            .withUtkastId(testId)
+            .withSlettesEtter(testSlettesEtter)
+            .update()
+            .assertJson {
+                getText("@event_name") shouldBe EventName.updated.name
+                getText("utkastId") shouldBe testId
+                getText("slettesEtter") shouldBe testSlettesEtter.toString()
+            }
     }
 
     @Test

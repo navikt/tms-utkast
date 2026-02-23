@@ -10,6 +10,8 @@ import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
 import no.nav.tms.common.observability.traceUtkast
+import no.nav.tms.utkast.sink.JsonMessageHelper.keepFields
+import no.nav.tms.utkast.sink.JsonMessageHelper.withoutFields
 import java.time.ZonedDateTime
 
 class UtkastCreatedSubscriber(
@@ -26,12 +28,12 @@ class UtkastCreatedSubscriber(
         traceUtkast(id = jsonMessage["utkastId"].asText()) {
             validateUtkast(jsonMessage)
 
-            jsonMessage.json
-                .toString()
+            jsonMessage
+                .withoutFields("slettesEtter")
                 .let {
                     withErrorLogging {
                         originalMessage = jsonMessage
-                        utkastRepository.createUtkast(it, slettesEtter(jsonMessage))
+                        utkastRepository.createUtkast(it.toString(), slettesEtter(jsonMessage))
                     }
                 }
 

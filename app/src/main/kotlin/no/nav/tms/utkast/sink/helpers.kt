@@ -29,4 +29,16 @@ object JsonMessageHelper {
 
         return objectNode
     }
+
+    fun JsonMessage.withoutFields(vararg fields: String): JsonNode {
+        val objectNode = objectMapper.createObjectNode()
+
+        json.fieldNames().forEach { field ->
+            if (!fields.contains(field)) {
+                objectNode.replace(field, get(field))
+            }
+        }
+
+        return objectNode
+    }
 }
