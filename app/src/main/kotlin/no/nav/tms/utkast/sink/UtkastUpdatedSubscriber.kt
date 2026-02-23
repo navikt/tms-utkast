@@ -11,6 +11,8 @@ import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.sink.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
+import java.time.ZonedDateTime
+import java.time.ZonedDateTime.parse
 
 class UtkastUpdatedSubscriber(
     private val utkastRepository: UtkastRepository
@@ -40,13 +42,22 @@ class UtkastUpdatedSubscriber(
                 .toString()
                 .let {
                     withErrorLogging {
-                        utkastRepository.updateUtkast(utkastId, it)
+                        utkastRepository.updateUtkast(utkastId, it, slettesEtter(jsonMessage))
                     }
                 }
 
             log.info { "utkast updated" }
             UtkastMetricsReporter.countUtkastEndret()
         }
+    }
+
+    private fun slettesEtter(jsonMessage: JsonMessage) = try {
+        jsonMessage.getOrNull("slettesEtter")
+            ?.asText()
+            ?.let(ZonedDateTime::parse)
+    } catch (e: Exception) {
+        log.error { "Fikk feilaktig tidspunkt i 'slettesEtter'" }
+        null
     }
 
     private fun validateLink(jsonMessage: JsonMessage) = try {

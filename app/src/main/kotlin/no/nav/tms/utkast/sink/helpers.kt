@@ -5,9 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.tms.kafka.application.JsonMessage
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 object LocalDateTimeHelper {
     fun nowAtUtc(): LocalDateTime = LocalDateTime.now(ZoneId.of("UTC"))
+}
+
+object ZonedDateTimeHelper {
+    fun nowAtUtc(): ZonedDateTime = ZonedDateTime.now(ZoneId.of("Z")).truncatedTo(ChronoUnit.MILLIS)
 }
 
 object JsonMessageHelper {

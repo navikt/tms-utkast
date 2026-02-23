@@ -4,23 +4,37 @@ import kotliquery.queryOf
 import no.nav.tms.common.postgres.PostgresDatabase
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 class UtkastRepository(private val database: PostgresDatabase) {
-    fun createUtkast(created: String) =
+    fun createUtkast(created: String, slettesEtter: ZonedDateTime? = null) =
         database.update {
             queryOf(
-                "INSERT INTO utkast (packet, opprettet) values (:packet,:opprettet) ON CONFLICT DO NOTHING",
-                mapOf("packet" to created.jsonB(), "opprettet" to LocalDateTimeHelper.nowAtUtc())
+                """
+                    INSERT INTO utkast (packet, opprettet, slettesEtter) 
+                    values (:packet, :opprettet, :slettesEtter)
+                    ON CONFLICT DO NOTHING
+                """,
+                mapOf(
+                    "packet" to created.jsonB(),
+                    "opprettet" to LocalDateTimeHelper.nowAtUtc(),
+                    "slettesEtter" to slettesEtter
+                )
             )
         }
 
-    fun updateUtkast(utkastId: String, update: String) {
+    fun updateUtkast(utkastId: String, update: String, slettesEtter: ZonedDateTime? = null) {
         database.update {
             queryOf(
-                "UPDATE utkast SET sistEndret=:now, packet=packet || :update WHERE packet-> 'utkastId' ?? :utkastId",
+                """
+                    UPDATE utkast 
+                    SET sistEndret = :now, packet = packet || :update, slettesEtter = coalesce(slettesEtter, :slettesEtter)
+                    WHERE packet->'utkastId' ?? :utkastId
+                """,
                 mapOf(
                     "update" to update.jsonB(),
                     "utkastId" to utkastId,
+                    "slettesEtter" to slettesEtter,
                     "now" to LocalDateTimeHelper.nowAtUtc()
                 )
             )
@@ -57,8 +71,6 @@ class UtkastRepository(private val database: PostgresDatabase) {
             )
         }
     }
-
-
 }
 
 private fun String.jsonB() = PGobject().apply {

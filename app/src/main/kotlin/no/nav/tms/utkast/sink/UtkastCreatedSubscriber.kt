@@ -10,6 +10,7 @@ import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
 import no.nav.tms.common.observability.traceUtkast
+import java.time.ZonedDateTime
 
 class UtkastCreatedSubscriber(
     private val utkastRepository: UtkastRepository
@@ -19,7 +20,7 @@ class UtkastCreatedSubscriber(
 
     override fun subscribe() = Subscription.forEvent("created")
         .withFields("utkastId", "ident", "link", "tittel")
-        .withOptionalFields("tittel_i18n", "metrics")
+        .withOptionalFields("tittel_i18n", "metrics", "slettesEtter")
 
     override suspend fun receive(jsonMessage: JsonMessage) {
         traceUtkast(id = jsonMessage["utkastId"].asText()) {
@@ -30,13 +31,22 @@ class UtkastCreatedSubscriber(
                 .let {
                     withErrorLogging {
                         originalMessage = jsonMessage
-                        utkastRepository.createUtkast(it)
+                        utkastRepository.createUtkast(it, slettesEtter(jsonMessage))
                     }
                 }
 
             log.info { "utkast created" }
             UtkastMetricsReporter.countUtkastOpprettet()
         }
+    }
+
+    private fun slettesEtter(jsonMessage: JsonMessage) = try {
+        jsonMessage.getOrNull("slettesEtter")
+            ?.asText()
+            ?.let(ZonedDateTime::parse)
+    } catch (e: Exception) {
+        log.error { "Fikk feilaktig tidspunkt i 'slettesEtter'" }
+        null
     }
 
     private fun validateUtkast(jsonMessage: JsonMessage) = try {

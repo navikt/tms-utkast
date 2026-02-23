@@ -12,10 +12,12 @@ import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class UtkastSinkTest {
+internal class UtkastSubscriberTest {
     private val database = LocalPostgresDatabase.cleanDb()
     private val testFnr = "12345678910"
 
@@ -27,6 +29,14 @@ internal class UtkastSinkTest {
         database.update {
             queryOf("delete from utkast")
         }
+    }
+
+    @Test
+    fun `plukker opp og lagrer utkast fra kafka basert på opprettet-event`() {
+        val defaultTittel = "Norsk tittel"
+        val engelskTittel = "Engelsk tittel"
+        val link = "https://link.nav.no"
+        val slettesEtter = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.MILLIS)
     }
 
     @Test

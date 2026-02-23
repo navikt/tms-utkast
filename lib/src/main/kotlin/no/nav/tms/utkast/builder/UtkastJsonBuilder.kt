@@ -5,18 +5,19 @@ import kotlinx.serialization.json.JsonPrimitive
 import no.nav.tms.utkast.builder.UtkastValidator.validateUtkastId
 import no.nav.tms.utkast.builder.UtkastValidator.validateIdent
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
+import java.time.ZonedDateTime
 import java.util.Locale
 
 class UtkastJsonBuilder {
+    private var eventName: EventName? = null
     private var utkastId: String? = null
     private var ident: String? = null
-    private var link: String? = null
-    private var eventName: EventName? = null
-    private var origin: String = this::class.qualifiedName!!
     private var defaultTittel: String? = null
     private val tittelByLanguage = mutableMapOf<String, String>()
+    private var link: String? = null
+    private var slettesEtter: ZonedDateTime? = null
+    private var origin: String = this::class.qualifiedName!!
     private var metrics = mutableMapOf<String, String>()
-
 
     fun withUtkastId(utkastId: String) = apply {
         this.utkastId = validateUtkastId(utkastId)
@@ -37,6 +38,11 @@ class UtkastJsonBuilder {
     fun withLink(link: String) = apply {
         this.link = validateLink(link)
     }
+
+    fun withSlettesEtter(slettesEtter: ZonedDateTime) = apply {
+        this.slettesEtter = slettesEtter
+    }
+
     fun withMetrics(skjemnavn: String, skjemakode: String) = apply {
         this.metrics = mutableMapOf("skjemanavn" to skjemnavn, "skjemakode" to skjemakode )
     }
@@ -75,13 +81,14 @@ class UtkastJsonBuilder {
         val metricsObject = metrics.toJsonObject()
 
         val fields: MutableMap<String, Any?> = mutableMapOf(
+            "@event_name" to eventName?.name,
+            "@origin" to origin,
             "utkastId" to utkastId,
             "ident" to ident,
             "tittel" to defaultTittel,
             "tittel_i18n" to tittelObject,
             "link" to link,
-            "@event_name" to eventName?.name,
-            "@origin" to origin,
+            "slettesEtter" to slettesEtter,
             "metrics" to metricsObject
         )
 
