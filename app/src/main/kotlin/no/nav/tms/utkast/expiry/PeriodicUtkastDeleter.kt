@@ -63,7 +63,7 @@ class PeriodicUtkastDeleter(
     private fun updateUtkastPastExpiry(): Int {
         return database.update {
             queryOf(
-                "update utkast set slettet = :nowLDT where slettesEtter < :nowZDT",
+                "update utkast set slettet = :nowLDT where slettesEtter < :nowZDT and slettet is null",
                 mapOf(
                     "nowLDT" to nowAtUtc(),
                     "nowZDT" to ZonedDateTimeHelper.nowAtUtc()
