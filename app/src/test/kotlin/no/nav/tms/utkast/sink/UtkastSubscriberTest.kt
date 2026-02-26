@@ -61,7 +61,6 @@ internal class UtkastSubscriberTest {
             it.opprettet.shouldNotBeNull()
             it.sistEndret.shouldBeNull()
             it.slettesEtter shouldBe slettesEtter
-            it.slettet.shouldBeNull()
         }
     }
 
@@ -76,7 +75,7 @@ internal class UtkastSubscriberTest {
 
         LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 5
-            filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
+            filter { utkast -> utkast.sistEndret != null }
                 .size shouldBe 0
         }
     }
@@ -126,7 +125,6 @@ internal class UtkastSubscriberTest {
             find { utkast -> utkast.utkastId == testUtkastId1 }.run {
                 require(this != null)
                 this.sistEndret shouldNotBe null
-                this.slettet shouldBe null
                 this.tittel shouldBe nyTittel
                 this.tittelI18n.isEmpty() shouldBe true
             }
@@ -134,7 +132,6 @@ internal class UtkastSubscriberTest {
             find { utkast -> utkast.utkastId == testUtkastId2 }.run {
                 require(this != null)
                 this.sistEndret shouldNotBe null
-                this.slettet shouldBe null
                 this.tittelI18n shouldContain ("no" to tittelNo)
                 this.tittelI18n shouldContain ("en" to nyTittelEn)
             }
@@ -188,11 +185,8 @@ internal class UtkastSubscriberTest {
         broadcaster.broadcastJson(deleteUtkastTestPacket(slettetUtkastId))
 
         LocalPostgresDatabase.alleUtkast().run {
-            size shouldBe 3
-            find { it.utkastId == slettetUtkastId }.run {
-                require(this != null)
-                slettet shouldNotBe null
-            }
+            size shouldBe 2
+            find { it.utkastId == slettetUtkastId }.shouldBeNull()
         }
     }
 

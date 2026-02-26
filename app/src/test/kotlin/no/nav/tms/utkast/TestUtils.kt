@@ -115,7 +115,6 @@ data class UtkastData(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
     val slettesEtter: ZonedDateTime?,
-    val slettet: LocalDateTime?,
     val metrics: Map<String, String>? = null
 ) {
     @Language("JSON")
@@ -151,6 +150,5 @@ internal fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startT
     link = "https://test.link",
     opprettet = startTestTime,
     sistEndret = null,
-    slettesEtter = null,
-    slettet = null
+    slettesEtter = null
 )

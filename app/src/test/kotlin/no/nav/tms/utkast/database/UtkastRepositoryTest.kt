@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
@@ -39,7 +40,6 @@ internal class UtkastRepositoryTest {
             forEach { utkast ->
                 utkast.opprettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
                 utkast.sistEndret shouldBe null
-                utkast.slettet shouldBe null
             }
         }
     }
@@ -67,7 +67,6 @@ internal class UtkastRepositoryTest {
             find { it.utkastId == "123" }.run {
                 require(this != null)
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
-                slettet shouldBe null
                 tittel shouldBe oppdatertTittel
                 metrics!!["skjemakode"] shouldBe "11-08"
                 metrics["skjemanavn"] shouldBe "Skjemnavn med Å"
@@ -76,7 +75,6 @@ internal class UtkastRepositoryTest {
             find { it.utkastId == "456" }.run {
                 require(this != null)
                 sistEndret shouldBe null
-                slettet shouldBe null
                 tittel shouldBe originalTittel
                 metrics shouldBe null
             }
@@ -102,7 +100,6 @@ internal class UtkastRepositoryTest {
             find { it.utkastId == "123" }.run {
                 require(this != null)
                 sistEndret shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
-                slettet shouldBe null
                 tittelI18n["no"] shouldBe originalTittelNo
                 tittelI18n["en"] shouldBe nyTittelEn
             }
@@ -114,14 +111,10 @@ internal class UtkastRepositoryTest {
         val testUtkastId = "77fhs"
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = testUtkastId, testFnr))
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd2", testFnr))
-        utkastSinkRepository.markUtkastAsDeleted(testUtkastId)
+        utkastSinkRepository.deleteUtkast(testUtkastId)
         LocalPostgresDatabase.alleUtkast().run {
-            size shouldBe 2
-            find { it.utkastId == testUtkastId }.run {
-                require(this != null)
-                slettet shouldBeCaSameAs LocalDateTimeHelper.nowAtUtc()
-            }
-
+            size shouldBe 1
+            find { it.utkastId == testUtkastId }.shouldBeNull()
         }
     }
 
@@ -146,7 +139,7 @@ internal class UtkastRepositoryTest {
         )
         utkastSinkRepository.createUtkast(createUtkastTestPacket(utkastId = "qqeedd8", ident = "99887766"))
         utkastSinkRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
-        utkastSinkRepository.markUtkastAsDeleted(slettUtkastId)
+        utkastSinkRepository.deleteUtkast(slettUtkastId)
 
         utkastApiRepository.getUtkastForIdent(testFnr).run {
             size shouldBe 2

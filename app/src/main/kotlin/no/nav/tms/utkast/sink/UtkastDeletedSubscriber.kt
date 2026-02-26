@@ -21,7 +21,7 @@ class UtkastDeletedSubscriber(
         traceUtkast(id = jsonMessage["utkastId"].asText()) {
             withErrorLogging {
                 message = "Feil ved sletting av utkast med id ${jsonMessage["utkastId"].asText()}"
-                utkastRepository.markUtkastAsDeleted(jsonMessage["utkastId"].asText())
+                utkastRepository.deleteUtkast(jsonMessage["utkastId"].asText())
             }
 
             log.info { "Utkast deleted" }

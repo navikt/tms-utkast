@@ -28,17 +28,17 @@ class PeriodicUtkastDeleter(
     private fun markUtkastPastExpiryAsDeleted() {
         try {
 
-            log.debug { "Markerer utkast forbi slettesEtter som slettet" }
+            log.debug { "Sletter utkast forbi slettesEtter" }
 
             val expired = updateUtkastPastExpiry()
 
             if (expired > 0) {
-                log.info { "Markerete $expired utkast som slettet basert på angitt slettesEtter-tidspunkt" }
+                log.info { "Slettet $expired utkast basert på angitt slettesEtter-tidspunkt" }
             } else {
                 log.debug { "Fant ingen utkast forbi sitt slettesEtter-tidspunkt" }
             }
         } catch (e: Exception) {
-            log.error(e) { "Uventet feil ved fjerning av gamle utkast" }
+            log.error(e) { "Uventet feil ved automatisk sletting av utkast" }
         }
     }
 
@@ -61,14 +61,19 @@ class PeriodicUtkastDeleter(
     }
 
     private fun updateUtkastPastExpiry(): Int {
-        return database.update {
+        return database.single {
             queryOf(
-                "update utkast set slettet = :nowLDT where slettesEtter < :nowZDT and slettet is null",
+                """
+                    with deleted as (
+                        delete from utkast where slettesEtter < :nowZDT returning *
+                    ) select count(*) as antall_slettet from deleted
+                """,
                 mapOf(
-                    "nowLDT" to nowAtUtc(),
                     "nowZDT" to ZonedDateTimeHelper.nowAtUtc()
                 )
-            )
+            ).map {
+                it.int("antall_slettet")
+            }
         }
     }
 

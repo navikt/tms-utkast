@@ -54,7 +54,7 @@ object LocalPostgresDatabase {
                 packet->>'tittel_i18n' as tittel_i18n,
                 packet->>'link' as link,
                 packet->>'metrics' as metrics,
-                sistendret, opprettet, slettesEtter, slettet
+                sistendret, opprettet, slettesEtter
             from utkast"""
         )
         .map { row ->
@@ -70,7 +70,6 @@ object LocalPostgresDatabase {
                 opprettet = row.localDateTime("opprettet"),
                 sistEndret = row.localDateTimeOrNull("sistendret"),
                 slettesEtter = row.zonedDateTimeOrNull("slettesEtter"),
-                slettet = row.localDateTimeOrNull("slettet"),
                 metrics = row.stringOrNull("metrics")
                     ?.let {
                         val jsonValues = jacksonObjectMapper().readTree(it)
@@ -93,7 +92,7 @@ object LocalPostgresDatabase {
                     packet->>'tittel_i18n' as tittel_i18n,
                     packet->>'link' as link,
                     packet ->>'metrics' as metrics,
-                    sistendret, opprettet, slettesEtter, slettet
+                    sistendret, opprettet, slettesEtter
                 from utkast 
                 where packet @> :utkastId""",
                 mapOf("utkastId" to utkastIdParam(utkastId))
@@ -107,7 +106,6 @@ object LocalPostgresDatabase {
                     opprettet = row.localDateTime("opprettet"),
                     sistEndret = row.localDateTimeOrNull("sistendret"),
                     slettesEtter = row.zonedDateTimeOrNull("slettesEtter"),
-                    slettet = row.localDateTimeOrNull("slettet"),
                     metrics = row.stringOrNull("metrics")
                         ?.let {
                             val jsonValues = jacksonObjectMapper().readTree(it)

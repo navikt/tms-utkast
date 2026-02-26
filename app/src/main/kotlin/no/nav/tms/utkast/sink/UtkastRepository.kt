@@ -65,10 +65,10 @@ class UtkastRepository(private val database: PostgresDatabase) {
         }
     }
 
-    fun markUtkastAsDeleted(utkastId: String) {
+    fun deleteUtkast(utkastId: String) {
         database.update {
             queryOf(
-                "UPDATE utkast SET slettet = :now WHERE packet @> :utkastId",
+                "delete from utkast WHERE packet @> :utkastId",
                 mapOf(
                     "now" to LocalDateTimeHelper.nowAtUtc(), "utkastId" to utkastIdParam(utkastId))
             )

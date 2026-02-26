@@ -82,7 +82,7 @@ internal class PeriodicUtkastDeleterTest {
     }
 
     @Test
-    fun `markerer utkast som slettet basert på felt slettesEtter`() = runTest {
+    fun `sletter utkast basert på felt slettesEtter`() = runTest {
         insertUtkast(utkastSlettesEtterFortid, utkastSlettesEtterFremtid, utkastIngenAutomatiskSletting)
 
         coEvery { leaderElection.isLeader() } returns true
@@ -98,18 +98,15 @@ internal class PeriodicUtkastDeleterTest {
         deleter.stop()
 
         LocalPostgresDatabase.getUtkast(utkastSlettesEtterFortid.utkastId).let {
-            it.shouldNotBeNull()
-            it.slettet.shouldNotBeNull()
+            it.shouldBeNull()
         }
 
         LocalPostgresDatabase.getUtkast(utkastSlettesEtterFremtid.utkastId).let {
             it.shouldNotBeNull()
-            it.slettet.shouldBeNull()
         }
 
         LocalPostgresDatabase.getUtkast(utkastIngenAutomatiskSletting.utkastId).let {
             it.shouldNotBeNull()
-            it.slettet.shouldBeNull()
         }
     }
 

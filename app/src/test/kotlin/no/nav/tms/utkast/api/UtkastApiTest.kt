@@ -2,7 +2,7 @@ package no.nav.tms.utkast.api
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.get
@@ -12,6 +12,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotliquery.queryOf
 import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
@@ -25,6 +26,7 @@ import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.sink.UtkastRepository
 import no.nav.tms.utkast.sink.ZonedDateTimeHelper
+import no.nav.tms.utkast.sink.utkastIdParam
 import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -44,6 +46,7 @@ class UtkastApiTest {
     private val testFnr1 = "12345600001"
     private val testFnr2 = "12345600022"
     private val testFnr3 = "12345600333"
+    private val testFnr4 = "12345604444"
     private val startTestTime = LocalDateTimeHelper.nowAtUtc()
     private val externalServiceHost = "http://externalhost.test"
     private val tokendingsMockk = mockk<TokendingsService>().also {
@@ -66,6 +69,11 @@ class UtkastApiTest {
     private val utkastForTestFnr3 =
         testUtkastData(slettesEtter = slettesEtter)
 
+    private val utkastForTestFnr4 = listOf(
+        testUtkastData(),
+        testUtkastData()
+    )
+
     private val digisosErrorRoute = HttpRouteConfig(
         path = "/dittnav/pabegynte/aktive",
         statusCode = HttpStatusCode.InternalServerError
@@ -84,6 +92,9 @@ class UtkastApiTest {
                 metrics = mapOf("skjemakode" to "skjemakode", "skjemanavn" to "skjemanavn")
             )
         )
+        utkastForTestFnr4.forEach {
+            broadcaster.broadcastJson(it.toTestMessage(testFnr4))
+        }
         utkastForTestFnr1[0] = utkastForTestFnr1[0].copy(sistEndret = LocalDateTimeHelper.nowAtUtc())
         broadcaster.broadcastJson(utkastForTestFnr3.toTestMessage(testFnr3))
         broadcaster.broadcastJson(createUtkastTestPacket(utkastId = UUID.randomUUID().toString(), ident = "9988776655"))
@@ -301,6 +312,36 @@ class UtkastApiTest {
         }
     }
 
+    @Test
+    fun `viser ikke gamle utkast som er markert slettet, men fortsatt ligger i basen`() = utkastTestApplication(testFnr4) {
+        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
+
+        val response = client.get("v2/utkast").run {
+            status.shouldBe(HttpStatusCode.OK)
+            objectMapper.readTree(bodyAsText())
+        }
+
+        response.size() shouldBe 2
+
+        val markeresSlettet = utkastForTestFnr4.first().utkastId
+
+        database.update {
+            queryOf(
+                "update utkast set slettet = now() where packet @> :utkastId",
+                mapOf("utkastId" to utkastIdParam(markeresSlettet))
+            )
+        }
+
+        val responseAfterSlettet = client.get("v2/utkast").run {
+            status.shouldBe(HttpStatusCode.OK)
+            objectMapper.readTree(bodyAsText())
+        }
+
+        responseAfterSlettet.size() shouldBe 1
+
+        responseAfterSlettet.map { it["utkastId"].asText() } shouldNotContain markeresSlettet
+    }
+
     private fun UtkastData.toTestMessage(ident: String) = createUtkastTestPacket(
         utkastId = utkastId,
         ident = ident,
@@ -324,7 +365,6 @@ class UtkastApiTest {
             opprettet = opprettet,
             sistEndret = null,
             slettesEtter = slettesEtter,
-            slettet = null
         )
 
     private fun ApplicationTestBuilder.utkastFetcher() =
