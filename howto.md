@@ -37,6 +37,7 @@ _utkast støtter tre hendelser: created, updated, og deleted_
   "tittel_i18n": {
     "<språkkode>": "oversatt tittel"
   },
+  "slettesEtter": "<tidspunkt for automatisk sletting>",
   "metrics": {
     "skjemanavn": "<skjema navn>",
     "skjemakode": "<NAV skjemakode>"

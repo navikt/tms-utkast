@@ -11,6 +11,7 @@ import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.sink.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
+import java.time.ZonedDateTime
 
 class UtkastUpdatedSubscriber(
     private val utkastRepository: UtkastRepository
@@ -20,7 +21,7 @@ class UtkastUpdatedSubscriber(
 
     override fun subscribe() = Subscription.forEvent("updated")
         .withFields("utkastId")
-        .withOptionalFields("link", "tittel", "tittel_i18n")
+        .withOptionalFields("link", "tittel", "tittel_i18n", "slettesEtter")
 
     override suspend fun receive(jsonMessage: JsonMessage) {
         val utkastId = jsonMessage["utkastId"].asText()
@@ -29,24 +30,31 @@ class UtkastUpdatedSubscriber(
 
             jsonMessage.getOrNull("tittel_i18n")
                 ?.takeIf { !it.isEmpty }
-                ?.toString()
                 ?.let {
                     withErrorLogging {
-                        utkastRepository.updateUtkastI18n(utkastId, it)
+                        utkastRepository.updateUtkastI18n(utkastId, it.toString())
                     }
                 }
 
             jsonMessage.keepFields("tittel", "link")
-                .toString()
                 .let {
                     withErrorLogging {
-                        utkastRepository.updateUtkast(utkastId, it)
+                        utkastRepository.updateUtkast(utkastId, it.toString(), slettesEtter(jsonMessage))
                     }
                 }
 
             log.info { "utkast updated" }
             UtkastMetricsReporter.countUtkastEndret()
         }
+    }
+
+    private fun slettesEtter(jsonMessage: JsonMessage) = try {
+        jsonMessage.getOrNull("slettesEtter")
+            ?.asText()
+            ?.let(ZonedDateTime::parse)
+    } catch (e: Exception) {
+        log.error { "Fikk feilaktig tidspunkt i 'slettesEtter'" }
+        null
     }
 
     private fun validateLink(jsonMessage: JsonMessage) = try {

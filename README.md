@@ -32,6 +32,7 @@ Dokumentasjon for produsenter finnes i [how-to](/howto.md) og i dokumnetasjonsid
   "tittel_i18n": {
     "<språkkode>": "oversatt tittel"
   },
+  "slettesEtter": "<tidspunkt for automatisk sletting>",
   "metrics": {
     "skjemanavn": "<skjema navn>",
     "skjemakode": "<NAV skjemakode>"

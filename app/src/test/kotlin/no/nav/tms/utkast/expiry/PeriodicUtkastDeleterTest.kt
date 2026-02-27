@@ -7,6 +7,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.throwables.shouldNotThrow
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.coEvery
@@ -18,18 +20,21 @@ import kotliquery.queryOf
 import no.nav.tms.common.kubernetes.PodLeaderElection
 import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.utkast.database.LocalPostgresDatabase
+import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.sink.LocalDateTimeHelper.nowAtUtc
 import no.nav.tms.utkast.sink.Utkast
+import no.nav.tms.utkast.sink.ZonedDateTimeHelper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PGobject
 import java.time.Duration.ofMinutes
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 internal class PeriodicUtkastDeleterTest {
 
-    private val database = LocalPostgresDatabase.cleanDb()
+    private val database = LocalPostgresDatabase.getCleanInstance()
     private val leaderElection: PodLeaderElection = mockk()
 
     private val gammeltUtkast1 = utkast("u1", opprettet = nowAtUtc().minusMonths(4))
@@ -38,6 +43,10 @@ internal class PeriodicUtkastDeleterTest {
     private val opprettet = nowAtUtc().minusMonths(2)
     private val nyereUtkast = utkast("u3", opprettet = opprettet)
 
+    private val utkastSlettesEtterFortid = utkast("u4", slettesEtter = ZonedDateTimeHelper.nowAtUtc().minusDays(1))
+    private val utkastSlettesEtterFremtid = utkast("u5", slettesEtter = ZonedDateTimeHelper.nowAtUtc().plusDays(1))
+    private val utkastIngenAutomatiskSletting = utkast("u6", slettesEtter = null)
+
     private val objectMapper = jacksonMapperBuilder()
         .addModule(JavaTimeModule())
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -45,19 +54,15 @@ internal class PeriodicUtkastDeleterTest {
         .build()
         .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
 
-    @BeforeEach
-    fun setup() {
-        insertUtkast(gammeltUtkast1, gammeltUtkast2, nyereUtkast)
-    }
-
     @AfterEach
     fun cleanUp() {
         clearMocks(leaderElection)
-        database.update { queryOf("delete from utkast") }
+        LocalPostgresDatabase.resetInstance()
     }
 
     @Test
-    fun `sletter gamle utkast`() = runTest {
+    fun `fjerner gamle utkast`() = runTest {
+        insertUtkast(gammeltUtkast1, gammeltUtkast2, nyereUtkast)
 
         coEvery { leaderElection.isLeader() } returns true
 
@@ -73,11 +78,42 @@ internal class PeriodicUtkastDeleterTest {
 
         utkastInDbCount() shouldBe 1
 
-        shouldNotThrow<Exception> { getUtkast("u3") }
+        LocalPostgresDatabase.getUtkast("u3").shouldNotBeNull()
+    }
+
+    @Test
+    fun `sletter utkast basert på felt slettesEtter`() = runTest {
+        insertUtkast(utkastSlettesEtterFortid, utkastSlettesEtterFremtid, utkastIngenAutomatiskSletting)
+
+        coEvery { leaderElection.isLeader() } returns true
+
+        val deleter = PeriodicUtkastDeleter(
+            database = database,
+            interval = ofMinutes(10),
+            leaderElection = leaderElection
+        )
+
+        deleter.start()
+        delay(1000)
+        deleter.stop()
+
+        LocalPostgresDatabase.getUtkast(utkastSlettesEtterFortid.utkastId).let {
+            it.shouldBeNull()
+        }
+
+        LocalPostgresDatabase.getUtkast(utkastSlettesEtterFremtid.utkastId).let {
+            it.shouldNotBeNull()
+        }
+
+        LocalPostgresDatabase.getUtkast(utkastIngenAutomatiskSletting.utkastId).let {
+            it.shouldNotBeNull()
+        }
     }
 
     @Test
     fun `does nothing when not leader`() = runTest {
+        insertUtkast(gammeltUtkast1, gammeltUtkast2, nyereUtkast)
+
         coEvery { leaderElection.isLeader() } returns false
 
         val deleter = PeriodicUtkastDeleter(
@@ -110,13 +146,15 @@ internal class PeriodicUtkastDeleterTest {
 
     private fun utkast(
         utkastId: String,
-        opprettet: LocalDateTime
+        opprettet: LocalDateTime = nowAtUtc(),
+        slettesEtter: ZonedDateTime? = null
     ) = Utkast(
         utkastId = utkastId,
         tittel = "Tittel for utkast",
         link = "https://lenke-for-utkast",
         opprettet = opprettet,
         sistEndret = null,
+        slettesEtter = slettesEtter,
         metrics = null,
     )
 
@@ -124,26 +162,10 @@ internal class PeriodicUtkastDeleterTest {
         utkast.forEach { utkast ->
             database.update {
                 queryOf(
-                    "INSERT INTO utkast (packet, opprettet) values (:packet, :opprettet) ON CONFLICT DO NOTHING",
-                    mapOf("packet" to utkast.toJsonb(), "opprettet" to utkast.opprettet)
+                    "INSERT INTO utkast (packet, opprettet, slettesEtter) values (:packet, :opprettet, :slettesEtter) ON CONFLICT DO NOTHING",
+                    mapOf("packet" to utkast.toJsonb(), "opprettet" to utkast.opprettet, "slettesEtter" to utkast.slettesEtter)
                 )
             }
-        }
-    }
-
-    fun getUtkast(utkastId: String) = database.single {
-        queryOf(
-            "select packet, opprettet from utkast where packet->>'utkastId' = :utkastId",
-            mapOf("utkastId" to utkastId)
-        ).map {
-            objectMapper.readValue<Utkast>(it.string("packet")).copy(opprettet = it.localDateTime("opprettet"))
-        }
-    }
-
-    fun Utkast.toJsonB() = objectMapper.writeValueAsString(this).let { utkast ->
-        PGobject().apply {
-            type = "jsonb"
-            value = utkast
         }
     }
 

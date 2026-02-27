@@ -22,6 +22,7 @@ import no.nav.tms.utkast.sink.UtkastUpdatedSubscriber
 import org.intellij.lang.annotations.Language
 import org.slf4j.MDC
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.random.Random
 
@@ -48,6 +49,7 @@ internal fun createUtkastTestPacket(
     tittel: String = "http://testlink",
     tittelI18n: Map<String, String>? = null,
     link: String = "http://testlink",
+    slettesEtter: ZonedDateTime? = null,
     metrics: Map<String, String>? = null
 ) = """
     {
@@ -57,9 +59,9 @@ internal fun createUtkastTestPacket(
     "link": "$link",
     "tittel": "$tittel"
     ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
+    ${if (slettesEtter != null) ",\"slettesEtter\": \"$slettesEtter\"" else ""}
     ${if (metrics != null) ",\"metrics\": ${metrics.toJson()}" else ""}
-    }
-
+}
 """.trimIndent()
 
 @Language("JSON")
@@ -68,24 +70,26 @@ internal fun updateUtkastTestPacket(
     tittel: String? = null,
     link: String? = null,
     tittelI18n: Map<String, String>? = null,
+    slettesEtter: ZonedDateTime? = null,
     metrics: Map<String, String>? = null
 ) = """
-    {
+{
     "@event_name":"updated",
     "utkastId": "$utkastId"
     ${if (tittel != null) ",\"tittel\": \"$tittel\"" else ""}
     ${if (link != null) ",\"link\": \"$link\"" else ""}
     ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
+    ${if (slettesEtter != null) ",\"slettesEtter\": \"$slettesEtter\"" else ""}
     ${if (metrics != null) ",\"metrics\": ${metrics.toJson()}" else ""}
-    }
+}
 """.trimIndent()
 
 @Language("JSON")
 internal fun deleteUtkastTestPacket(utkastId: String) = """
-    {
+{
     "@event_name":"deleted",
     "utkastId": "$utkastId"
-    }
+}
 """.trimIndent()
 
 internal infix fun LocalDateTime?.shouldBeCaSameAs(expected: LocalDateTime?) {
@@ -110,7 +114,7 @@ data class UtkastData(
     val link: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
-    val slettet: LocalDateTime?,
+    val slettesEtter: ZonedDateTime?,
     val metrics: Map<String, String>? = null
 ) {
     @Language("JSON")
@@ -146,5 +150,5 @@ internal fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startT
     link = "https://test.link",
     opprettet = startTestTime,
     sistEndret = null,
-    slettet = null
+    slettesEtter = null
 )

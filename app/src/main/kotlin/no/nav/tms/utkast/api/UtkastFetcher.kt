@@ -88,6 +88,7 @@ class DigisosBeskjed(
             link = link,
             opprettet = eventTidspunkt,
             sistEndret = sistOppdatert,
+            slettesEtter = null,
             metrics = mapOf()
         )
 }
@@ -103,6 +104,7 @@ class ExternalUtkast(
         link = link,
         opprettet = sistEndret,
         sistEndret = sistEndret,
+        slettesEtter = null,
         metrics = mapOf()
     )
 }

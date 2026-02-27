@@ -1,22 +1,28 @@
 package no.nav.tms.utkast.sink
 
 import io.kotest.matchers.maps.shouldContain
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
+import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.utkast.createUtkastTestPacket
 import no.nav.tms.utkast.database.LocalPostgresDatabase
+import no.nav.tms.utkast.database.LocalPostgresDatabase.getUtkast
 import no.nav.tms.utkast.deleteUtkastTestPacket
 import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class UtkastSinkTest {
-    private val database = LocalPostgresDatabase.cleanDb()
+internal class UtkastSubscriberTest {
+    private val database = LocalPostgresDatabase.getCleanInstance()
     private val testFnr = "12345678910"
 
     private val repository = UtkastRepository(database)
@@ -24,8 +30,37 @@ internal class UtkastSinkTest {
 
     @AfterEach
     fun cleanup() {
-        database.update {
-            queryOf("delete from utkast")
+        LocalPostgresDatabase.resetInstance()
+    }
+
+    @Test
+    fun `plukker opp og lagrer utkast fra kafka basert på opprettet-event`() {
+        val utkastId = randomUUID()
+        val defaultTittel = "Norsk tittel"
+        val engelskTittel = "Engelsk tittel"
+        val link = "https://link.nav.no"
+        val slettesEtter = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.MILLIS)
+
+        createUtkastTestPacket(
+            utkastId = utkastId,
+            ident = testFnr,
+            tittel = defaultTittel,
+            tittelI18n = mapOf("en" to engelskTittel),
+            link = link,
+            slettesEtter = slettesEtter
+        ).let {
+            broadcaster.broadcastJson(it)
+        }
+
+        getUtkast(utkastId).let {
+            it.shouldNotBeNull()
+            it.utkastId shouldBe utkastId
+            it.tittel shouldBe defaultTittel
+            it.tittelI18n shouldBe mapOf("en" to engelskTittel)
+            it.link shouldBe link
+            it.opprettet.shouldNotBeNull()
+            it.sistEndret.shouldBeNull()
+            it.slettesEtter shouldBe slettesEtter
         }
     }
 
@@ -40,7 +75,7 @@ internal class UtkastSinkTest {
 
         LocalPostgresDatabase.alleUtkast().run {
             size shouldBe 5
-            filter { utkast -> utkast.sistEndret != null && utkast.slettet != null }
+            filter { utkast -> utkast.sistEndret != null }
                 .size shouldBe 0
         }
     }
@@ -90,7 +125,6 @@ internal class UtkastSinkTest {
             find { utkast -> utkast.utkastId == testUtkastId1 }.run {
                 require(this != null)
                 this.sistEndret shouldNotBe null
-                this.slettet shouldBe null
                 this.tittel shouldBe nyTittel
                 this.tittelI18n.isEmpty() shouldBe true
             }
@@ -98,7 +132,6 @@ internal class UtkastSinkTest {
             find { utkast -> utkast.utkastId == testUtkastId2 }.run {
                 require(this != null)
                 this.sistEndret shouldNotBe null
-                this.slettet shouldBe null
                 this.tittelI18n shouldContain ("no" to tittelNo)
                 this.tittelI18n shouldContain ("en" to nyTittelEn)
             }
@@ -152,11 +185,42 @@ internal class UtkastSinkTest {
         broadcaster.broadcastJson(deleteUtkastTestPacket(slettetUtkastId))
 
         LocalPostgresDatabase.alleUtkast().run {
-            size shouldBe 3
-            find { it.utkastId == slettetUtkastId }.run {
-                require(this != null)
-                slettet shouldNotBe null
-            }
+            size shouldBe 2
+            find { it.utkastId == slettetUtkastId }.shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `tillater å endre men ikke fjerne slettesEtter-tidspunkt`() {
+        val utkastId = randomUUID()
+        val slettesEtter = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.MILLIS)
+        val slettesEtterSenere = ZonedDateTime.now().plusDays(2).truncatedTo(ChronoUnit.MILLIS)
+
+        createUtkastTestPacket(
+            utkastId = utkastId,
+            ident = testFnr,
+            slettesEtter = slettesEtter
+        ).let(broadcaster::broadcastJson)
+
+        getUtkast(utkastId).let {
+            it.shouldNotBeNull()
+            it.slettesEtter shouldBe slettesEtter
+        }
+
+        updateUtkastTestPacket(utkastId, slettesEtter = slettesEtterSenere)
+            .let(broadcaster::broadcastJson)
+
+        getUtkast(utkastId).let {
+            it.shouldNotBeNull()
+            it.slettesEtter shouldBe slettesEtterSenere
+        }
+
+        updateUtkastTestPacket(utkastId, slettesEtter = null)
+            .let(broadcaster::broadcastJson)
+
+        getUtkast(utkastId).let {
+            it.shouldNotBeNull()
+            it.slettesEtter shouldBe slettesEtterSenere
         }
     }
 
