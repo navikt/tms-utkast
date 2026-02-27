@@ -24,7 +24,7 @@ class UtkastApiRepository(private val database: PostgresDatabase) {
                         packet->>'metrics' AS metrics,
                         sistendret, opprettet, slettesEtter
                     FROM utkast
-                    WHERE packet @> :ident AND slettet IS NULL""",
+                    WHERE packet @> :ident""",
                 mapOf("ident" to identParam(ident), "locale" to locale?.language)
             )
                 .map { row ->
