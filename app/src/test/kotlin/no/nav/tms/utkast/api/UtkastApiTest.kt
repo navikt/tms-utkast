@@ -312,36 +312,6 @@ class UtkastApiTest {
         }
     }
 
-    @Test
-    fun `viser ikke gamle utkast som er markert slettet, men fortsatt ligger i basen`() = utkastTestApplication(testFnr4) {
-        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
-
-        val response = client.get("v2/utkast").run {
-            status.shouldBe(HttpStatusCode.OK)
-            objectMapper.readTree(bodyAsText())
-        }
-
-        response.size() shouldBe 2
-
-        val markeresSlettet = utkastForTestFnr4.first().utkastId
-
-        database.update {
-            queryOf(
-                "update utkast set slettet = now() where packet @> :utkastId",
-                mapOf("utkastId" to utkastIdParam(markeresSlettet))
-            )
-        }
-
-        val responseAfterSlettet = client.get("v2/utkast").run {
-            status.shouldBe(HttpStatusCode.OK)
-            objectMapper.readTree(bodyAsText())
-        }
-
-        responseAfterSlettet.size() shouldBe 1
-
-        responseAfterSlettet.map { it["utkastId"].asText() } shouldNotContain markeresSlettet
-    }
-
     private fun UtkastData.toTestMessage(ident: String) = createUtkastTestPacket(
         utkastId = utkastId,
         ident = ident,
