@@ -61,6 +61,7 @@ fun main() {
         minSideMdc {
             domain = Domain.utkast
             idFieldName = "utkastId"
+            producedBySupplier { null }
         }
 
         onStartup {
