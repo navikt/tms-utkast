@@ -94,8 +94,3 @@ data class Utkast(
     val slettesEtter: ZonedDateTime?,
     val metrics: Map<String,String>?
 )
-
-class DatabaseException: Throwable(){
-    val details= ""
-}
-
