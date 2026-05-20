@@ -7,7 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.token.support.user.token.exchange.UserTokenExchanger
 import no.nav.tms.utkast.setup.logExceptionAsError
 import no.nav.tms.utkast.sink.Utkast
 import java.time.LocalDateTime
@@ -19,7 +19,7 @@ class UtkastFetcher(
     val httpClient: HttpClient,
     val digisosClientId: String,
     val aapClientId: String,
-    val tokendingsService: TokendingsService,
+    val tokenExchanger: UserTokenExchanger,
 ) {
     suspend fun allExternal(accessToken: String): List<FetchResult> =
         listOf(digisos(accessToken), aap(accessToken))
@@ -28,7 +28,7 @@ class UtkastFetcher(
     private suspend fun digisos(accessToken: String) = try {
         httpClient.fetchUtkast<List<DigisosBeskjed>>(
             url = "$digiSosBaseUrl/dittnav/pabegynte/aktive",
-            tokenxToken = tokendingsService.exchangeToken(accessToken, digisosClientId),
+            tokenxToken = tokenExchanger.exchangeToken(accessToken, digisosClientId),
             service = "Digisos",
             transform = { this.map { it.toUtkast() } }
         )
@@ -40,7 +40,7 @@ class UtkastFetcher(
     private suspend fun aap(accessToken: String) = try {
         httpClient.fetchUtkast<ExternalUtkast>(
             url = "$aapBaseUrl/mellomlagring/søknad/finnes",
-            tokenxToken = tokendingsService.exchangeToken(accessToken, aapClientId),
+            tokenxToken = tokenExchanger.exchangeToken(accessToken, aapClientId),
             service = "AAP",
             transform = { listOf(toUtkast("AAP")) }
         )

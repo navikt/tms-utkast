@@ -9,8 +9,6 @@ import no.nav.tms.utkast.builder.FieldValidationException
 import no.nav.tms.utkast.builder.UtkastValidator
 import no.nav.tms.utkast.setup.UtkastMetricsReporter
 import no.nav.tms.utkast.setup.withErrorLogging
-import no.nav.tms.common.observability.traceUtkast
-import no.nav.tms.utkast.sink.JsonMessageHelper.keepFields
 import no.nav.tms.utkast.sink.JsonMessageHelper.withoutFields
 import java.time.ZonedDateTime
 
@@ -25,21 +23,20 @@ class UtkastCreatedSubscriber(
         .withOptionalFields("tittel_i18n", "metrics", "slettesEtter")
 
     override suspend fun receive(jsonMessage: JsonMessage) {
-        traceUtkast(id = jsonMessage["utkastId"].asText()) {
-            validateUtkast(jsonMessage)
+        validateUtkast(jsonMessage)
 
-            jsonMessage
-                .withoutFields("slettesEtter")
-                .let {
-                    withErrorLogging {
-                        originalMessage = jsonMessage
-                        utkastRepository.createUtkast(it.toString(), slettesEtter(jsonMessage))
-                    }
+        jsonMessage
+            .withoutFields("slettesEtter")
+            .let {
+                withErrorLogging {
+                    originalMessage = jsonMessage
+                    utkastRepository.createUtkast(it.toString(), slettesEtter(jsonMessage))
                 }
+            }
 
-            log.info { "utkast created" }
-            UtkastMetricsReporter.countUtkastOpprettet()
-        }
+        log.info { "utkast created" }
+        UtkastMetricsReporter.countUtkastOpprettet()
+
     }
 
     private fun slettesEtter(jsonMessage: JsonMessage) = try {

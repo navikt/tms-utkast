@@ -3,8 +3,10 @@ package no.nav.tms.utkast
 import io.ktor.client.*
 import kotlinx.coroutines.runBlocking
 import no.nav.tms.common.postgres.Postgres
+import no.nav.tms.kafka.application.Domain
 import no.nav.tms.kafka.application.KafkaApplication
-import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
+import no.nav.tms.kafka.application.withMDC
+import no.nav.tms.token.support.user.token.exchange.UserTokenExchangerBuilder
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.api.UtkastFetcher
 import no.nav.tms.utkast.api.utkastApi
@@ -36,7 +38,7 @@ fun main() {
         aapBaseUrl = "http://innsending.aap",
         httpClient = httpClient,
         digisosClientId = environment.digisosClientId,
-        tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),
+        tokenExchanger = UserTokenExchangerBuilder.build(),
         aapClientId = environment.aapClientId,
     )
 
@@ -55,6 +57,11 @@ fun main() {
             UtkastUpdatedSubscriber(writeUtkastRepository),
             UtkastDeletedSubscriber(writeUtkastRepository)
         )
+
+        minSideMdc {
+            domain = Domain.utkast
+            idFieldName = "utkastId"
+        }
 
         onStartup {
             Flyway.configure()

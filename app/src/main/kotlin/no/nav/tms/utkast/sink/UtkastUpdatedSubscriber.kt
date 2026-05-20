@@ -1,7 +1,6 @@
 package no.nav.tms.utkast.sink
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tms.common.observability.traceUtkast
 import no.nav.tms.kafka.application.JsonMessage
 import no.nav.tms.kafka.application.MessageException
 import no.nav.tms.kafka.application.Subscriber
@@ -25,27 +24,25 @@ class UtkastUpdatedSubscriber(
 
     override suspend fun receive(jsonMessage: JsonMessage) {
         val utkastId = jsonMessage["utkastId"].asText()
-        traceUtkast(id = utkastId) {
-            validateLink(jsonMessage)
+        validateLink(jsonMessage)
 
-            jsonMessage.getOrNull("tittel_i18n")
-                ?.takeIf { !it.isEmpty }
-                ?.let {
-                    withErrorLogging {
-                        utkastRepository.updateUtkastI18n(utkastId, it.toString())
-                    }
+        jsonMessage.getOrNull("tittel_i18n")
+            ?.takeIf { !it.isEmpty }
+            ?.let {
+                withErrorLogging {
+                    utkastRepository.updateUtkastI18n(utkastId, it.toString())
                 }
+            }
 
-            jsonMessage.keepFields("tittel", "link")
-                .let {
-                    withErrorLogging {
-                        utkastRepository.updateUtkast(utkastId, it.toString(), slettesEtter(jsonMessage))
-                    }
+        jsonMessage.keepFields("tittel", "link")
+            .let {
+                withErrorLogging {
+                    utkastRepository.updateUtkast(utkastId, it.toString(), slettesEtter(jsonMessage))
                 }
+            }
 
-            log.info { "utkast updated" }
-            UtkastMetricsReporter.countUtkastEndret()
-        }
+        log.info { "utkast updated" }
+        UtkastMetricsReporter.countUtkastEndret()
     }
 
     private fun slettesEtter(jsonMessage: JsonMessage) = try {

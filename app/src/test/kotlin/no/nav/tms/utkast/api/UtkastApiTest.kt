@@ -2,7 +2,6 @@ package no.nav.tms.utkast.api
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.get
@@ -12,11 +11,11 @@ import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotliquery.queryOf
 import no.nav.tms.kafka.application.MessageBroadcaster
-import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance
-import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
+import no.nav.tms.token.support.user.token.exchange.UserTokenExchanger
+import no.nav.tms.token.support.user.token.verification.Issuer
+import no.nav.tms.token.support.user.token.verification.LevelOfAssurance
+import no.nav.tms.token.support.user.token.verificaton.mock.userTokenMock
 import no.nav.tms.utkast.*
 import no.nav.tms.utkast.UtkastData
 import no.nav.tms.utkast.createUtkastTestPacket
@@ -26,7 +25,6 @@ import no.nav.tms.utkast.setupBroadcaster
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.sink.UtkastRepository
 import no.nav.tms.utkast.sink.ZonedDateTimeHelper
-import no.nav.tms.utkast.sink.utkastIdParam
 import no.nav.tms.utkast.updateUtkastTestPacket
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -49,7 +47,7 @@ class UtkastApiTest {
     private val testFnr4 = "12345604444"
     private val startTestTime = LocalDateTimeHelper.nowAtUtc()
     private val externalServiceHost = "http://externalhost.test"
-    private val tokendingsMockk = mockk<TokendingsService>().also {
+    private val tokenExchangeMock = mockk<UserTokenExchanger>().also {
         coEvery { it.exchangeToken(any(), any()) } returns "<dummytoken>"
     }
 
@@ -345,7 +343,7 @@ class UtkastApiTest {
                 configureClient()
             },
             digisosClientId = "dummyid",
-            tokendingsService = tokendingsMockk,
+            tokenExchanger = tokenExchangeMock,
             aapClientId = "dummyAAp"
         )
 
@@ -356,11 +354,13 @@ class UtkastApiTest {
                     utkastRepository = repository,
                     installAuthenticatorsFunction = {
                         authentication {
-                            tokenXMock {
-                                alwaysAuthenticated = true
-                                setAsDefault = true
-                                staticUserPid = testfnr
-                                staticLevelOfAssurance = LevelOfAssurance.LEVEL_4
+                            userTokenMock {
+                                levelOfAssurance = LevelOfAssurance.Substantial
+                                enableDefaultAuthentication {
+                                    tokenIssuer = Issuer.Tokenx
+                                    tokenIdent = testfnr
+                                    tokenLoa = LevelOfAssurance.High
+                                }
                             }
                         }
                     },

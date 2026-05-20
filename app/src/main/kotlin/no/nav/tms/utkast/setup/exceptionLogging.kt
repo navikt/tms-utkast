@@ -23,12 +23,12 @@ fun withErrorLogging(function: ErrorContext.() -> Any) {
     }
 }
 
-fun logExceptionAsWarning(logInfo: String, cause: Throwable, teamLogInfo: String? = null) {
+fun logExceptionAsWarning(logInfo: String, cause: Exception? = null, teamLogInfo: String? = null) {
     log.warn { logInfo }
     teamLog.error(cause) {  teamLogInfo ?: logInfo }
 }
 
-fun logExceptionAsError(logInfo: String, cause: Throwable, teamLogInfo: String? = null) {
+fun logExceptionAsError(logInfo: String, cause: Exception? = null, teamLogInfo: String? = null) {
     log.error { logInfo }
     teamLog.error(cause) {  teamLogInfo ?: logInfo }
 }
