@@ -16,6 +16,7 @@ import no.nav.tms.common.metrics.installTmsApiMetrics
 import no.nav.tms.utkast.api.FetchResult.Companion.responseStatus
 import no.nav.tms.utkast.api.FetchResult.Companion.utkast
 import no.nav.tms.utkast.setup.logExceptionAsWarning
+import no.nav.tms.utkast.sink.Utkast
 import no.nav.tms.common.observability.ApiMdc
 import no.nav.tms.common.observability.Domain
 import no.nav.tms.token.support.user.token.exchange.UserTokenExchangeException
@@ -47,7 +48,7 @@ internal fun Application.utkastApi(
                         teamLogInfo = cause.message ?: "Ukjent feil mot tokendings",
                         cause = cause
                     )
-                    call.respond(HttpStatusCode.ServiceUnavailable)
+                    call.respond(HttpStatusCode.ServiceUnavailable, emptyList<Utkast>())
                 }
 
                 else -> {
@@ -55,7 +56,7 @@ internal fun Application.utkastApi(
                         logInfo = "Ukjent feil",
                         cause = cause
                     )
-                    call.respond(HttpStatusCode.InternalServerError)
+                    call.respond(HttpStatusCode.InternalServerError, emptyList<Utkast>())
                 }
             }
 
