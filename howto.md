@@ -21,9 +21,9 @@ Koble på [min-side-utkast-iac-topicet](https://github.com/navikt/min-side-utkas
 
 ## Kafka
 
-**topic**: aapen-utkast-v1
-**tilgang**: [min-side-utkast-iac-topic](https://github.com/navikt/min-side-utkast-topic-iac)
-**hendelser**: `created`, `updated`, `deleted`
+- **topic**: aapen-utkast-v1
+- **tilgang**: [min-side-utkast-iac-topic](https://github.com/navikt/min-side-utkast-topic-iac)
+- **hendelser**: `created`, `updated`, `deleted`
 
 ### meldingsformat
 
@@ -66,8 +66,9 @@ Koble på [min-side-utkast-iac-topicet](https://github.com/navikt/min-side-utkas
 
 ## Observability
 Hendelser blir logget til kibana med customfelter for filtrering
-Alle utkast: `x_contenttype:"utkast"`
-Spesifikt utkast: `x_minside_id :"<utkastid>"` 
+
+- Alle utkast: `x_contenttype:"utkast"`
+- Spesifikt utkast: `x_minside_id :"<utkastid>"`
 
 ## Amplitude målinger
 
