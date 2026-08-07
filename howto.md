@@ -11,7 +11,9 @@ Utkast er en underside av min side (tilgjengelig på `<navurl>/minside/utkast`) 
 
 ## Hvordan fungerer det?
 Koble på [min-side-utkast-iac-topicet](https://github.com/navikt/min-side-utkast-topic-iac) og kjør på!
-_utkast støtter tre hendelser: created, updated, og deleted_
+
+> [!NOTE]
+> Utkast støtter tre hendelser: `created`, `updated` og `deleted`.
 
 1. Send en created-melding når en bruker har lagret et utkast
 2. Send en updated-melding hvis url-en eller tittelen til utkastet har endret seg.
@@ -19,9 +21,9 @@ _utkast støtter tre hendelser: created, updated, og deleted_
 
 ## Kafka
 
-**topic**: aapen-utkast-v1
-**tilgang**: [min-side-utkast-iac-topic](https://github.com/navikt/min-side-utkast-topic-iac)
-**hendelser**: `created`, `updated`, `deleted`
+- **topic**: aapen-utkast-v1
+- **tilgang**: [min-side-utkast-iac-topic](https://github.com/navikt/min-side-utkast-topic-iac)
+- **hendelser**: `created`, `updated`, `deleted`
 
 ### meldingsformat
 
@@ -55,13 +57,18 @@ _utkast støtter tre hendelser: created, updated, og deleted_
   "utkastId": "<uuid>"
 }
 ```
-Det finnes også et [message-builder bibliotek](https://github.com/navikt/tms-utkast/pkgs/container/tms-utkast%2Ftms-utkast) som lager meldingene for deg.
-NB! Det er kun ting som **ikke er innsendt** som skal ligge på utkast-siden.
+
+> [!TIP]
+> Det finnes også et [message-builder bibliotek](https://github.com/navikt/tms-utkast/pkgs/container/tms-utkast%2Ftms-utkast) som lager meldingene for deg.
+
+> [!WARNING]
+> Det er kun ting som **ikke er innsendt** som skal ligge på utkast-siden.
 
 ## Observability
 Hendelser blir logget til kibana med customfelter for filtrering
-Alle utkast: `x_contenttype:"utkast"`
-Spesifikt utkast: `x_minside_id :"<utkastid>"` 
+
+- Alle utkast: `x_contenttype:"utkast"`
+- Spesifikt utkast: `x_minside_id :"<utkastid>"`
 
 ## Amplitude målinger
 
