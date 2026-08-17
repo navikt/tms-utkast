@@ -2,7 +2,7 @@
 # Utkast på min side
 En enklere inngang til påbegynte søknader og dokument-innsendinger.
 
-Utkast er en underside av min side (tilgjengelig på `<navurl>/minside/utkast`) der bruker skal kunne finne søknader og dokument-innsendinger hen har begynt å fylle ut, men ikke sendt inn enda.<br>
+Utkast er en underside av min side (tilgjengelig på `<navurl>/minside/utkast`) der bruker skal kunne finne søknader og dokument-innsendinger hen har begynt å fylle ut, men ikke sendt inn enda.
 
 * Utkast er bruker-initiert
 * Det kan være innsendinger eller søknader som en person har startet på, men ikke sendt inn.
@@ -74,3 +74,6 @@ Hendelser blir logget til kibana med customfelter for filtrering
 
 [Utkast-frontenden](https://github.com/navikt/tms-utkast-mikrofrontend) logger et [skjema åpent](https://github.com/navikt/analytics-taxonomy/tree/main/events/skjema%20%C3%A5pnet)-event med `url` som payload til amplitude når bruker klikker på ett utkast. Om teamet ditt ønsker å få med feltene `skjemakode` og `skjemanavn` må metricsfeltet være tilstede og komplett i create-meldingen
 
+## Kontakt
+
+Ta kontakt med oss [på Slack](https://nav-it.slack.com/archives/C0912F59V29) hvis du lurer på noe.
