@@ -18,7 +18,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 
 object LocalPostgresDatabase {
 
-    private val container = PostgreSQLContainer("postgres:14.5")
+    private val container = PostgreSQLContainer("postgres:18")
         .also { it.start() }
 
     private val instance by lazy {
