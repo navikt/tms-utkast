@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.queryOf
 import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.common.postgres.PostgresDatabase
+import no.nav.tms.token.support.user.token.verification.LevelOfAssurance
 import no.nav.tms.utkast.sink.Utkast
 import org.postgresql.util.PGobject
 import java.util.*
@@ -13,7 +14,11 @@ class UtkastApiRepository(private val database: PostgresDatabase) {
 
     private val objectMapper = jacksonObjectMapper()
 
-    internal fun getUtkastForIdent(ident: String, locale: Locale? = null): List<Utkast> =
+    internal fun getUtkastForIdent(
+        ident: String,
+        levelOfAssurance: LevelOfAssurance,
+        locale: Locale? = null
+    ): List<Utkast> =
         database.list {
             queryOf(
                 """
@@ -24,8 +29,21 @@ class UtkastApiRepository(private val database: PostgresDatabase) {
                         packet->>'metrics' AS metrics,
                         sistendret, opprettet, slettesEtter
                     FROM utkast
-                    WHERE packet @> :ident""",
-                mapOf("ident" to identParam(ident), "locale" to locale?.language)
+                    WHERE packet @> :ident
+                        AND (
+                            packet->>'levelOfAssurance' is NULL
+                            OR packet->>'levelOfAssurance' = 'Substantial'
+                            OR (
+                                packet->>'levelOfAssurance' = 'High'
+                                AND :levelOfAssurance = 'High'
+                            )
+                        )
+                    """,
+                mapOf(
+                    "ident" to identParam(ident),
+                    "locale" to locale?.language,
+                    "levelOfAssurance" to levelOfAssurance.name
+                )
             )
                 .map { row ->
                     Utkast(
@@ -39,6 +57,7 @@ class UtkastApiRepository(private val database: PostgresDatabase) {
                             ?.let {
                                 objectMapper.readValue<Map<String,String>>(it)
                             }
+
                     )
                 }
         }

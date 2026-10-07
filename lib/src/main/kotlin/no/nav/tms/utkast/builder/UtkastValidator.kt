@@ -21,6 +21,14 @@ object UtkastValidator {
         }
     }
 
+    fun validateLevelOfAssurance(levelOfAssurance: String): String {
+        if (levelOfAssurance == "Substantial" || levelOfAssurance == "High") {
+            return levelOfAssurance
+        } else {
+            throw FieldValidationException("Feltet `levelOfAssurance` må være enten `Substantial` eller `High`.")
+        }
+    }
+
     fun validateIdent(ident: String) = validateMaxLength(ident, "ident", identMaxLength)
 
     fun validateLink(link: String): String {

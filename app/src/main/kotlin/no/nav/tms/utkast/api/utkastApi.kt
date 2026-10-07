@@ -78,7 +78,8 @@ internal fun Application.utkastApi(
                         val internal =
                             utkastRepository.getUtkastForIdent(
                                 userIdent,
-                                localeParam
+                                levelOfAssurance,
+                                localeParam,
                             )
 
                         call.respond(
@@ -89,7 +90,7 @@ internal fun Application.utkastApi(
                 }
                 get("antall") {
                     val externalresult = utkastFetcher.allExternal(userToken)
-                    val internal = utkastRepository.getUtkastForIdent(userIdent)
+                    val internal = utkastRepository.getUtkastForIdent(userIdent, levelOfAssurance)
 
                     call.respond(
                         status = externalresult.responseStatus(),
@@ -116,6 +117,8 @@ private val RoutingContext.userIdent get() = call.principal<UserPrincipal>()?.id
 private val RoutingContext.userToken get() = call.principal<UserPrincipal>()?.accessToken
     ?: throw IllegalStateException("Fant ikke UserPrincipal i context")
 
+private val RoutingContext.levelOfAssurance get() = call.principal<UserPrincipal>()?.levelOfAssurance
+    ?: throw IllegalStateException("Fant ikke LevelOfAssurance i context")
 
 private val RoutingContext.localeParam
     get() = call.request.queryParameters["la"]?.let {

@@ -69,7 +69,9 @@ class UtkastApiTest {
 
     private val utkastForTestFnr4 = listOf(
         testUtkastData(),
-        testUtkastData()
+        testUtkastData(),
+        testUtkastData(levelOfAssurance = LevelOfAssurance.High.name),
+        testUtkastData(levelOfAssurance = LevelOfAssurance.High.name)
     )
 
     private val digisosErrorRoute = HttpRouteConfig(
@@ -310,20 +312,58 @@ class UtkastApiTest {
         }
     }
 
+    @Test
+    fun `henter utkast for bruker med riktig garanti nivå`() = utkastTestApplication(
+        testFnr4,
+        assurance = LevelOfAssurance.Substantial
+    ) {
+        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
+
+        client.get("v2/utkast/antall").run {
+            status shouldBe HttpStatusCode.OK
+            objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 2
+        }
+
+        client.get("v2/utkast").run {
+            status.shouldBe(HttpStatusCode.OK)
+            objectMapper.readTree(bodyAsText()).run {
+                size() shouldBe 2
+                forEach { jsonNodes ->
+                    jsonNodes["levelOfAssurance"] shouldBe null
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `henter alle utkast for bruker med høy garanti nivå`() = utkastTestApplication(
+        testFnr4,
+        assurance = LevelOfAssurance.High
+    ) {
+        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
+
+        client.get("v2/utkast/antall").run {
+            status shouldBe HttpStatusCode.OK
+            objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
+        }
+    }
+
     private fun UtkastData.toTestMessage(ident: String) = createUtkastTestPacket(
         utkastId = utkastId,
         ident = ident,
         link = link,
         tittel = tittel,
         tittelI18n = tittelI18n,
-        slettesEtter = slettesEtter
+        slettesEtter = slettesEtter,
+        levelOfAssurance = levelOfAssurance
     )
 
     private fun testUtkastData(
         tittelI18n: Map<String, String> = emptyMap(),
         opprettet: LocalDateTime = startTestTime,
         id: String = UUID.randomUUID().toString(),
-        slettesEtter: ZonedDateTime? = null
+        slettesEtter: ZonedDateTime? = null,
+        levelOfAssurance: String? = null,
     ) =
         UtkastData(
             utkastId = id,
@@ -333,6 +373,7 @@ class UtkastApiTest {
             opprettet = opprettet,
             sistEndret = null,
             slettesEtter = slettesEtter,
+            levelOfAssurance = levelOfAssurance
         )
 
     private fun ApplicationTestBuilder.utkastFetcher() =
@@ -347,7 +388,11 @@ class UtkastApiTest {
             aapClientId = "dummyAAp"
         )
 
-    private fun utkastTestApplication(testfnr: String, config: suspend ApplicationTestBuilder.() -> Unit) =
+    private fun utkastTestApplication(
+        testfnr: String,
+        assurance: LevelOfAssurance = LevelOfAssurance.High,
+        config: suspend ApplicationTestBuilder.() -> Unit
+    ) =
         testApplication {
             application {
                 utkastApi(
@@ -359,7 +404,7 @@ class UtkastApiTest {
                                 enableDefaultAuthentication {
                                     tokenIssuer = Issuer.Tokenx
                                     tokenIdent = testfnr
-                                    tokenLoa = LevelOfAssurance.High
+                                    tokenLoa = assurance
                                 }
                             }
                         }
