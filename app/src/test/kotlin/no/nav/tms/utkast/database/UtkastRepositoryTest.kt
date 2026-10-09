@@ -8,6 +8,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
+import no.nav.tms.token.support.user.token.verification.LevelOfAssurance
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.createUtkastTestPacket
@@ -20,6 +21,7 @@ internal class UtkastRepositoryTest {
     private val database = LocalPostgresDatabase.getCleanInstance()
     private val utkastSinkRepository = UtkastRepository(database)
     private val utkastApiRepository = UtkastApiRepository(database)
+    private val levelOfAssurance = LevelOfAssurance.Substantial
     private val testFnr = "12345678910"
 
     @AfterEach
@@ -141,7 +143,7 @@ internal class UtkastRepositoryTest {
         utkastSinkRepository.updateUtkast(oppdaterUtkastId, updateJson("shinyyyy").toString())
         utkastSinkRepository.deleteUtkast(slettUtkastId)
 
-        utkastApiRepository.getUtkastForIdent(testFnr).run {
+        utkastApiRepository.getUtkastForIdent(testFnr, levelOfAssurance).run {
             size shouldBe 2
             find { utkast -> utkast.utkastId == utkastId }.run {
                 require(this != null)

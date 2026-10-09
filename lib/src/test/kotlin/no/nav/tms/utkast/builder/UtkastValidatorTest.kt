@@ -51,4 +51,20 @@ internal class UtkastValidatorTest {
             UtkastValidator.validateIdent(other)
         }
     }
+
+    @Test
+    fun `godtar kun high og substantial verdier i levelOfAssurance`() {
+        val high = "High"
+        val substantial = "Substantial"
+        val other = "Low"
+
+        shouldNotThrowAny {
+            UtkastValidator.validateLevelOfAssurance(high)
+            UtkastValidator.validateLevelOfAssurance(substantial)
+        }
+
+        shouldThrow<FieldValidationException> {
+            UtkastValidator.validateLevelOfAssurance(other)
+        }
+    }
 }

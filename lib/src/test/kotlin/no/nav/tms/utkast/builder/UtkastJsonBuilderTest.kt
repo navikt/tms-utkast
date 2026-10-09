@@ -26,6 +26,7 @@ internal class UtkastJsonBuilderTest {
         val testSkjemaavn = "Søknad om test"
         val testSkjemakode = "11-09/66"
         val testSlettesEtter = ZonedDateTime.now().plusMinutes(5).truncatedTo(ChronoUnit.MINUTES)
+        val testLevelOfAssurance = "Substantial"
 
         UtkastJsonBuilder()
             .withUtkastId(testId)
@@ -35,6 +36,7 @@ internal class UtkastJsonBuilderTest {
             .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
             .withSlettesEtter(testSlettesEtter)
             .withMetrics(testSkjemaavn, testSkjemakode)
+            .withLevelOfAssurance(testLevelOfAssurance)
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name
@@ -43,6 +45,7 @@ internal class UtkastJsonBuilderTest {
                 getText("ident") shouldBe testIdent
                 getText("tittel") shouldBe testTittel
                 getText("slettesEtter") shouldBe testSlettesEtter.toString()
+                getText("levelOfAssurance") shouldBe testLevelOfAssurance
                 getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
                 this["metrics"] shouldNotBe null
                 this["metrics"] ?: apply {

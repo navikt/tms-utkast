@@ -1,6 +1,7 @@
 package no.nav.tms.utkast
 
 import io.kotest.matchers.shouldBe
+import no.nav.tms.token.support.user.token.verification.LevelOfAssurance
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.builder.UtkastJsonBuilder
 import no.nav.tms.utkast.database.LocalPostgresDatabase
@@ -15,6 +16,7 @@ class ProducerLibraryVerification {
     private val utkastApiRepository = UtkastApiRepository(database)
     private val utkastSinkRepository = UtkastRepository(database)
     private val testPersonIdent = "1122334455"
+    private val levelOfAssurance = LevelOfAssurance.Substantial
 
     private val broadcaster = setupBroadcaster(utkastSinkRepository)
 
@@ -32,7 +34,7 @@ class ProducerLibraryVerification {
             .create()
             .also { broadcaster.broadcastJson(it) }
 
-        val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent).first {
+        val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent, levelOfAssurance).first {
             it.utkastId == utkastId
         }
 
@@ -58,7 +60,7 @@ class ProducerLibraryVerification {
                 broadcaster.broadcastJson(it)
             }
 
-        val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent).first {
+        val testUtkast = utkastApiRepository.getUtkastForIdent(testPersonIdent, levelOfAssurance).first {
             it.utkastId == testId
         }
         testUtkast.tittel shouldBe "Ny tittel"
@@ -76,7 +78,7 @@ class ProducerLibraryVerification {
             .delete()
             .also { broadcaster.broadcastJson(it) }
 
-        utkastApiRepository.getUtkastForIdent(testPersonIdent).firstOrNull {
+        utkastApiRepository.getUtkastForIdent(testPersonIdent, levelOfAssurance).firstOrNull {
             it.utkastId == testId
         } shouldBe null
 
