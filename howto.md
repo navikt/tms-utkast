@@ -43,8 +43,7 @@ Koble på [min-side-utkast-iac-topicet](https://github.com/navikt/min-side-utkas
   "metrics": {
     "skjemanavn": "<skjema navn>",
     "skjemakode": "<NAV skjemakode>"
-  },
-  "levelOfAssurance": "<innloggings nivå>"
+  }
 }
 ```
 

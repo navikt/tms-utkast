@@ -2,7 +2,7 @@ package no.nav.tms.utkast.sink
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tms.kafka.application.JsonMessage
-import no.nav.tms.kafka.application.MessageException
+import no.nav.tms.kafka.application.SkippableMessageException
 import no.nav.tms.kafka.application.Subscriber
 import no.nav.tms.kafka.application.Subscription
 import no.nav.tms.utkast.builder.FieldValidationException
@@ -49,7 +49,7 @@ class UtkastUpdatedSubscriber(
         jsonMessage.getOrNull("slettesEtter")
             ?.asText()
             ?.let(ZonedDateTime::parse)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         log.error { "Fikk feilaktig tidspunkt i 'slettesEtter'" }
         null
     }
@@ -59,6 +59,6 @@ class UtkastUpdatedSubscriber(
             ?.textValue()
             ?.let { UtkastValidator.validateLink(it) }
     } catch (e: FieldValidationException) {
-        throw MessageException(e.message ?: "ukjent valideringsfeil")
+        throw SkippableMessageException(e.message ?: "ukjent valideringsfeil")
     }
 }

@@ -1,12 +1,5 @@
 package no.nav.tms.utkast.expiry
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -20,17 +13,15 @@ import kotliquery.queryOf
 import no.nav.tms.common.kubernetes.PodLeaderElection
 import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.utkast.database.LocalPostgresDatabase
-import no.nav.tms.utkast.sink.LocalDateTimeHelper
 import no.nav.tms.utkast.sink.LocalDateTimeHelper.nowAtUtc
 import no.nav.tms.utkast.sink.Utkast
 import no.nav.tms.utkast.sink.ZonedDateTimeHelper
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.postgresql.util.PGobject
 import java.time.Duration.ofMinutes
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class PeriodicUtkastDeleterTest {
 
@@ -46,13 +37,6 @@ internal class PeriodicUtkastDeleterTest {
     private val utkastSlettesEtterFortid = utkast("u4", slettesEtter = ZonedDateTimeHelper.nowAtUtc().minusDays(1))
     private val utkastSlettesEtterFremtid = utkast("u5", slettesEtter = ZonedDateTimeHelper.nowAtUtc().plusDays(1))
     private val utkastIngenAutomatiskSletting = utkast("u6", slettesEtter = null)
-
-    private val objectMapper = jacksonMapperBuilder()
-        .addModule(JavaTimeModule())
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .build()
-        .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
 
     @AfterEach
     fun cleanUp() {
@@ -94,7 +78,7 @@ internal class PeriodicUtkastDeleterTest {
         )
 
         deleter.start()
-        delay(1000)
+        delay(1000.milliseconds)
         deleter.stop()
 
         LocalPostgresDatabase.getUtkast(utkastSlettesEtterFortid.utkastId).let {
@@ -123,16 +107,16 @@ internal class PeriodicUtkastDeleterTest {
         )
 
         deleter.start()
-        delay(2000)
+        delay(2000.milliseconds)
         deleter.stop()
 
         utkastInDbCount() shouldBe 3
     }
 
     private suspend fun delayUntilNRemains(remainingVarsler: Int = 0) {
-        withTimeout(5000) {
+        withTimeout(5000.milliseconds) {
             while (utkastInDbCount() > remainingVarsler) {
-                delay(100)
+                delay(100.milliseconds)
             }
         }
     }

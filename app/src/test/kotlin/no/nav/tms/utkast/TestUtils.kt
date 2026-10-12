@@ -4,13 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
-import io.ktor.serialization.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.tms.kafka.application.MessageBroadcaster
@@ -21,11 +14,8 @@ import no.nav.tms.utkast.sink.UtkastCreatedSubscriber
 import no.nav.tms.utkast.sink.UtkastDeletedSubscriber
 import no.nav.tms.utkast.sink.UtkastUpdatedSubscriber
 import org.intellij.lang.annotations.Language
-import org.slf4j.MDC
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
-import java.util.*
-import kotlin.random.Random
 
 internal fun setupBroadcaster(
     utkastRepository: UtkastRepository,
@@ -147,13 +137,3 @@ data class UtkastData(
         }
     """.trimIndent()
 }
-
-internal fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startTestTime: LocalDateTime) = UtkastData(
-    utkastId = UUID.randomUUID().toString(),
-    tittel = "testTittel ${Random.nextInt(0, 10)}",
-    tittelI18n = tittelI18n,
-    link = "https://test.link",
-    opprettet = startTestTime,
-    sistEndret = null,
-    slettesEtter = null
-)
