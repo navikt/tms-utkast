@@ -156,6 +156,7 @@ internal class PeriodicUtkastDeleterTest {
         sistEndret = null,
         slettesEtter = slettesEtter,
         metrics = null,
+        masked = false
     )
 
     private fun insertUtkast(vararg utkast: Utkast) {

@@ -92,5 +92,6 @@ data class Utkast(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
     val slettesEtter: ZonedDateTime?,
-    val metrics: Map<String,String>?
+    val metrics: Map<String,String>?,
+    val masked: Boolean
 )

@@ -21,7 +21,7 @@ internal class UtkastRepositoryTest {
     private val database = LocalPostgresDatabase.getCleanInstance()
     private val utkastSinkRepository = UtkastRepository(database)
     private val utkastApiRepository = UtkastApiRepository(database)
-    private val levelOfAssurance = LevelOfAssurance.Substantial
+    private val levelOfAssurance = LevelOfAssurance.High
     private val testFnr = "12345678910"
 
     @AfterEach

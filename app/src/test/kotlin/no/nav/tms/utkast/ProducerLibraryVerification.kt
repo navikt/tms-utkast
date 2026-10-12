@@ -16,7 +16,7 @@ class ProducerLibraryVerification {
     private val utkastApiRepository = UtkastApiRepository(database)
     private val utkastSinkRepository = UtkastRepository(database)
     private val testPersonIdent = "1122334455"
-    private val levelOfAssurance = LevelOfAssurance.Substantial
+    private val levelOfAssurance = LevelOfAssurance.High
 
     private val broadcaster = setupBroadcaster(utkastSinkRepository)
 

@@ -27,37 +27,31 @@ class UtkastApiRepository(private val database: PostgresDatabase) {
                         coalesce(packet->'tittel_i18n'->>:locale, packet->>'tittel') AS tittel,
                         packet->>'link' AS link,
                         packet->>'metrics' AS metrics,
+                        packet->>'levelOfAssurance' AS levelOfAssurance,
                         sistendret, opprettet, slettesEtter
                     FROM utkast
                     WHERE packet @> :ident
-                        AND (
-                            packet->>'levelOfAssurance' is NULL
-                            OR packet->>'levelOfAssurance' = 'Substantial'
-                            OR (
-                                packet->>'levelOfAssurance' = 'High'
-                                AND :levelOfAssurance = 'High'
-                            )
-                        )
                     """,
                 mapOf(
                     "ident" to identParam(ident),
                     "locale" to locale?.language,
-                    "levelOfAssurance" to levelOfAssurance.name
                 )
             )
                 .map { row ->
+                    val masked = levelOfAssurance == LevelOfAssurance.Substantial &&
+                            row.stringOrNull("levelOfAssurance") != LevelOfAssurance.Substantial.name
                     Utkast(
                         utkastId = row.string("utkastId"),
-                        tittel = row.string("tittel"),
-                        link = row.string("link"),
+                        tittel = if (masked) "" else row.string("tittel"),
+                        link = if (masked) "" else row.string("link"),
                         opprettet = row.localDateTime("opprettet"),
                         sistEndret = row.localDateTimeOrNull("sistendret"),
                         slettesEtter = row.zonedDateTimeOrNull("slettesEtter"),
-                        metrics = row.stringOrNull("metrics")
+                        metrics = if (masked) emptyMap() else row.stringOrNull("metrics")
                             ?.let {
                                 objectMapper.readValue<Map<String,String>>(it)
-                            }
-
+                            },
+                        masked = masked
                     )
                 }
         }

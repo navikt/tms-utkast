@@ -4,7 +4,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.tms.utkast.builder.UtkastValidator.validateUtkastId
 import no.nav.tms.utkast.builder.UtkastValidator.validateIdent
-import no.nav.tms.utkast.builder.UtkastValidator.validateLevelOfAssurance
 import no.nav.tms.utkast.builder.UtkastValidator.validateLink
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -19,7 +18,7 @@ class UtkastJsonBuilder {
     private var slettesEtter: ZonedDateTime? = null
     private var origin: String = this::class.qualifiedName!!
     private var metrics = mutableMapOf<String, String>()
-    private var levelOfAssurance: String? = null
+    private var levelOfAssurance: LevelOfAssurance? = null
 
     fun withUtkastId(utkastId: String) = apply {
         this.utkastId = validateUtkastId(utkastId)
@@ -49,8 +48,8 @@ class UtkastJsonBuilder {
         this.metrics = mutableMapOf("skjemanavn" to skjemnavn, "skjemakode" to skjemakode )
     }
 
-    fun withLevelOfAssurance(levelOfAssurance: String) = apply {
-        this.levelOfAssurance = validateLevelOfAssurance(levelOfAssurance)
+    fun withLevelOfAssurance(levelOfAssurance: LevelOfAssurance) = apply {
+        this.levelOfAssurance = levelOfAssurance
     }
 
 

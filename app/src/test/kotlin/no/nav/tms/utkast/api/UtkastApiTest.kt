@@ -313,7 +313,7 @@ class UtkastApiTest {
     }
 
     @Test
-    fun `henter utkast for bruker med riktig garanti nivå`() = utkastTestApplication(
+    fun `henting av utkast burde kreve high garanti for å hente utkast med null levelOfAssurance verdi`() = utkastTestApplication(
         testFnr4,
         assurance = LevelOfAssurance.Substantial
     ) {
@@ -321,30 +321,53 @@ class UtkastApiTest {
 
         client.get("v2/utkast/antall").run {
             status shouldBe HttpStatusCode.OK
-            objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 2
+            objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
 
         client.get("v2/utkast").run {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).run {
-                size() shouldBe 2
-                forEach { jsonNodes ->
-                    jsonNodes["levelOfAssurance"] shouldBe null
+                size() shouldBe 4
+                forEach { jsonNode ->
+                    val utkastId = get(0)["utkastId"].asText()
+                    val verdi =
+                        utkastForTestFnr4.find { it.utkastId == utkastId }
+                            ?: throw AssertionError("Fant utkast som ikke tilhører ident, utkastId : $utkastId")
+                    jsonNode["tittel"].asText() shouldNotBe verdi.tittel
+                    jsonNode["link"].asText() shouldNotBe verdi.link
+                    jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
+                    jsonNode["sistEndret"]?.asLocalDateTime() shouldBeCaSameAs verdi.sistEndret
+                    jsonNode["metrics"].toList() shouldBe emptyMap<String, Any>().toList()
+                    jsonNode["masked"].asBoolean() shouldBe true
                 }
             }
         }
     }
 
     @Test
-    fun `henter alle utkast for bruker med høy garanti nivå`() = utkastTestApplication(
-        testFnr4,
-        assurance = LevelOfAssurance.High
-    ) {
+    fun `henter alle utkast uten maskering for bruker med høy garanti nivå`() = utkastTestApplication(testFnr4) {
         initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
 
         client.get("v2/utkast/antall").run {
             status shouldBe HttpStatusCode.OK
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
+        }
+
+        client.get("v2/utkast").run {
+            status shouldBe HttpStatusCode.OK
+            objectMapper.readTree(bodyAsText())
+            objectMapper.readTree(bodyAsText()).run {
+                size() shouldBe 4
+                forEach { jsonNode ->
+                    val utkastId = get(0)["utkastId"].asText()
+                    val verdi =
+                        utkastForTestFnr4.find { it.utkastId == utkastId }
+                            ?: throw AssertionError("Fant utkast som ikke tilhører ident, utkastId : $utkastId")
+                    jsonNode["tittel"].asText() shouldBe verdi.tittel
+                    jsonNode["link"].asText() shouldBe verdi.link
+                    jsonNode["masked"].asBoolean() shouldBe false
+                }
+            }
         }
     }
 
@@ -437,4 +460,3 @@ fun aapRouteConfig(expextedUtkastData: UtkastData? = null) = if (expextedUtkastD
         responseContent = ""
     )
 }
-
