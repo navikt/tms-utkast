@@ -18,6 +18,7 @@ class UtkastJsonBuilder {
     private var slettesEtter: ZonedDateTime? = null
     private var origin: String = this::class.qualifiedName!!
     private var metrics = mutableMapOf<String, String>()
+    private var levelOfAssurance: LevelOfAssurance? = null
 
     fun withUtkastId(utkastId: String) = apply {
         this.utkastId = validateUtkastId(utkastId)
@@ -45,6 +46,10 @@ class UtkastJsonBuilder {
 
     fun withMetrics(skjemnavn: String, skjemakode: String) = apply {
         this.metrics = mutableMapOf("skjemanavn" to skjemnavn, "skjemakode" to skjemakode )
+    }
+
+    fun withLevelOfAssurance(levelOfAssurance: LevelOfAssurance) = apply {
+        this.levelOfAssurance = levelOfAssurance
     }
 
 
@@ -89,7 +94,8 @@ class UtkastJsonBuilder {
             "tittel_i18n" to tittelObject,
             "link" to link,
             "slettesEtter" to slettesEtter,
-            "metrics" to metricsObject
+            "metrics" to metricsObject,
+            "levelOfAssurance" to levelOfAssurance,
         )
 
         return fields.toJsonObject().toString()

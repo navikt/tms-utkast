@@ -1,17 +1,12 @@
 package no.nav.tms.utkast.database
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.json.Json
 import kotliquery.queryOf
-import no.nav.tms.common.postgres.JsonbHelper.json
-import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.common.postgres.Postgres
 import no.nav.tms.common.postgres.PostgresDatabase
 import no.nav.tms.utkast.UtkastData
-import no.nav.tms.utkast.sink.Utkast
 import no.nav.tms.utkast.sink.utkastIdParam
 import org.flywaydb.core.Flyway
 import org.testcontainers.postgresql.PostgreSQLContainer

@@ -69,7 +69,9 @@ class UtkastApiTest {
 
     private val utkastForTestFnr4 = listOf(
         testUtkastData(),
-        testUtkastData()
+        testUtkastData(),
+        testUtkastData(levelOfAssurance = LevelOfAssurance.High.name),
+        testUtkastData(levelOfAssurance = LevelOfAssurance.High.name)
     )
 
     private val digisosErrorRoute = HttpRouteConfig(
@@ -310,20 +312,81 @@ class UtkastApiTest {
         }
     }
 
+    @Test
+    fun `henting av utkast burde kreve high garanti for å hente utkast med null levelOfAssurance verdi`() = utkastTestApplication(
+        testFnr4,
+        assurance = LevelOfAssurance.Substantial
+    ) {
+        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
+
+        client.get("v2/utkast/antall").run {
+            status shouldBe HttpStatusCode.OK
+            objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
+        }
+
+        client.get("v3/utkast").run {
+            status.shouldBe(HttpStatusCode.OK)
+            objectMapper.readTree(bodyAsText()).run {
+                size() shouldBe 4
+                forEach { jsonNode ->
+                    val utkastId = get(0)["utkastId"].asText()
+                    val verdi =
+                        utkastForTestFnr4.find { it.utkastId == utkastId }
+                            ?: throw AssertionError("Fant utkast som ikke tilhører ident, utkastId : $utkastId")
+                    jsonNode["tittel"].asText() shouldNotBe verdi.tittel
+                    jsonNode["link"].asText() shouldNotBe verdi.link
+                    jsonNode["opprettet"].asLocalDateTime() shouldNotBe null
+                    jsonNode["sistEndret"]?.asLocalDateTime() shouldBeCaSameAs verdi.sistEndret
+                    jsonNode["metrics"].toList() shouldBe emptyMap<String, Any>().toList()
+                    jsonNode["masked"].asBoolean() shouldBe true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `henter alle utkast uten maskering for bruker med høy garanti nivå`() = utkastTestApplication(testFnr4) {
+        initExternalServices(externalServiceHost, digisosRouteConfig(), aapRouteConfig())
+
+        client.get("v2/utkast/antall").run {
+            status shouldBe HttpStatusCode.OK
+            objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
+        }
+
+        client.get("v3/utkast").run {
+            status shouldBe HttpStatusCode.OK
+            objectMapper.readTree(bodyAsText())
+            objectMapper.readTree(bodyAsText()).run {
+                size() shouldBe 4
+                forEach { jsonNode ->
+                    val utkastId = get(0)["utkastId"].asText()
+                    val verdi =
+                        utkastForTestFnr4.find { it.utkastId == utkastId }
+                            ?: throw AssertionError("Fant utkast som ikke tilhører ident, utkastId : $utkastId")
+                    jsonNode["tittel"].asText() shouldBe verdi.tittel
+                    jsonNode["link"].asText() shouldBe verdi.link
+                    jsonNode["masked"].asBoolean() shouldBe false
+                }
+            }
+        }
+    }
+
     private fun UtkastData.toTestMessage(ident: String) = createUtkastTestPacket(
         utkastId = utkastId,
         ident = ident,
         link = link,
         tittel = tittel,
         tittelI18n = tittelI18n,
-        slettesEtter = slettesEtter
+        slettesEtter = slettesEtter,
+        levelOfAssurance = levelOfAssurance
     )
 
     private fun testUtkastData(
         tittelI18n: Map<String, String> = emptyMap(),
         opprettet: LocalDateTime = startTestTime,
         id: String = UUID.randomUUID().toString(),
-        slettesEtter: ZonedDateTime? = null
+        slettesEtter: ZonedDateTime? = null,
+        levelOfAssurance: String? = null,
     ) =
         UtkastData(
             utkastId = id,
@@ -333,6 +396,7 @@ class UtkastApiTest {
             opprettet = opprettet,
             sistEndret = null,
             slettesEtter = slettesEtter,
+            levelOfAssurance = levelOfAssurance
         )
 
     private fun ApplicationTestBuilder.utkastFetcher() =
@@ -347,7 +411,11 @@ class UtkastApiTest {
             aapClientId = "dummyAAp"
         )
 
-    private fun utkastTestApplication(testfnr: String, config: suspend ApplicationTestBuilder.() -> Unit) =
+    private fun utkastTestApplication(
+        testfnr: String,
+        assurance: LevelOfAssurance = LevelOfAssurance.High,
+        config: suspend ApplicationTestBuilder.() -> Unit
+    ) =
         testApplication {
             application {
                 utkastApi(
@@ -359,7 +427,7 @@ class UtkastApiTest {
                                 enableDefaultAuthentication {
                                     tokenIssuer = Issuer.Tokenx
                                     tokenIdent = testfnr
-                                    tokenLoa = LevelOfAssurance.High
+                                    tokenLoa = assurance
                                 }
                             }
                         }
@@ -392,4 +460,3 @@ fun aapRouteConfig(expextedUtkastData: UtkastData? = null) = if (expextedUtkastD
         responseContent = ""
     )
 }
-

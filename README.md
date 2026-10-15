@@ -36,7 +36,8 @@ Dokumentasjon for produsenter finnes i [how-to](/howto.md) og i dokumnetasjonsid
   "metrics": {
     "skjemanavn": "<skjema navn>",
     "skjemakode": "<NAV skjemakode>"
-  }
+  }, 
+   "levelOfAssurance": "<innloggings nivå>"
 }
 ```
 

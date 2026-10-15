@@ -5,7 +5,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.tms.common.postgres.Postgres
 import no.nav.tms.kafka.application.Domain
 import no.nav.tms.kafka.application.KafkaApplication
-import no.nav.tms.kafka.application.withMDC
 import no.nav.tms.token.support.user.token.exchange.UserTokenExchangerBuilder
 import no.nav.tms.utkast.api.UtkastApiRepository
 import no.nav.tms.utkast.api.UtkastFetcher

@@ -35,6 +35,7 @@ internal class UtkastJsonBuilderTest {
             .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
             .withSlettesEtter(testSlettesEtter)
             .withMetrics(testSkjemaavn, testSkjemakode)
+            .withLevelOfAssurance(LevelOfAssurance.High)
             .create()
             .assertJson {
                 getText("@event_name") shouldBe EventName.created.name
@@ -43,6 +44,7 @@ internal class UtkastJsonBuilderTest {
                 getText("ident") shouldBe testIdent
                 getText("tittel") shouldBe testTittel
                 getText("slettesEtter") shouldBe testSlettesEtter.toString()
+                getText("levelOfAssurance") shouldBe LevelOfAssurance.High.name
                 getMap("tittel_i18n")?.get(Locale.ENGLISH.language) shouldBe testTittelEngelsk
                 this["metrics"] shouldNotBe null
                 this["metrics"] ?: apply {
@@ -131,6 +133,7 @@ internal class UtkastJsonBuilderTest {
             .withTittelI18n(testTittelEngelsk, Locale.ENGLISH)
             .withLink(testLink)
             .withSlettesEtter(testSlettesEtter)
+            .withLevelOfAssurance(LevelOfAssurance.Substantial)
             .update()
             .assertJson {
                 getText("@event_name") shouldBe EventName.updated.name

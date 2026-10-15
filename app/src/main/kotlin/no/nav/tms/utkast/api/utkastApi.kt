@@ -78,7 +78,8 @@ internal fun Application.utkastApi(
                         val internal =
                             utkastRepository.getUtkastForIdent(
                                 userIdent,
-                                localeParam
+                                LevelOfAssurance.High,
+                                localeParam,
                             )
 
                         call.respond(
@@ -89,13 +90,31 @@ internal fun Application.utkastApi(
                 }
                 get("antall") {
                     val externalresult = utkastFetcher.allExternal(userToken)
-                    val internal = utkastRepository.getUtkastForIdent(userIdent)
+                    val internal = utkastRepository.getUtkastForIdent(userIdent, levelOfAssurance)
 
                     call.respond(
                         status = externalresult.responseStatus(),
                         jacksonObjectMapper().createObjectNode()
                             .put("antall", (externalresult.utkast() + internal).size)
                     )
+                }
+            }
+            route("v3/utkast") {
+                get {
+                    withLoggingContext("lang" to localeCode) {
+                        val externalresult = utkastFetcher.allExternal(userToken)
+                        val internal =
+                            utkastRepository.getUtkastForIdent(
+                                userIdent,
+                                levelOfAssurance,
+                                localeParam,
+                            )
+
+                        call.respond(
+                            status = externalresult.responseStatus(),
+                            internal + externalresult.utkast()
+                        )
+                    }
                 }
             }
         }
@@ -116,6 +135,8 @@ private val RoutingContext.userIdent get() = call.principal<UserPrincipal>()?.id
 private val RoutingContext.userToken get() = call.principal<UserPrincipal>()?.accessToken
     ?: throw IllegalStateException("Fant ikke UserPrincipal i context")
 
+private val RoutingContext.levelOfAssurance get() = call.principal<UserPrincipal>()?.levelOfAssurance
+    ?: throw IllegalStateException("Fant ikke LevelOfAssurance i context")
 
 private val RoutingContext.localeParam
     get() = call.request.queryParameters["la"]?.let {

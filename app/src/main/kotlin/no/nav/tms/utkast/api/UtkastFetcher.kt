@@ -29,7 +29,6 @@ class UtkastFetcher(
         httpClient.fetchUtkast<List<DigisosBeskjed>>(
             url = "$digiSosBaseUrl/dittnav/pabegynte/aktive",
             tokenxToken = tokenExchanger.exchangeToken(accessToken, digisosClientId),
-            service = "Digisos",
             transform = { this.map { it.toUtkast() } }
         )
     } catch (e: Exception) {
@@ -41,7 +40,6 @@ class UtkastFetcher(
         httpClient.fetchUtkast<ExternalUtkast>(
             url = "$aapBaseUrl/mellomlagring/søknad/finnes",
             tokenxToken = tokenExchanger.exchangeToken(accessToken, aapClientId),
-            service = "AAP",
             transform = { listOf(toUtkast("AAP")) }
         )
     } catch (e: Exception) {
@@ -52,7 +50,6 @@ class UtkastFetcher(
     private suspend inline fun <reified T> HttpClient.fetchUtkast(
         url: String,
         tokenxToken: String,
-        service: String,
         transform: T.() -> List<Utkast>
     ): FetchResult =
         withContext(Dispatchers.IO) {
@@ -89,7 +86,8 @@ class DigisosBeskjed(
             opprettet = eventTidspunkt,
             sistEndret = sistOppdatert,
             slettesEtter = null,
-            metrics = mapOf()
+            metrics = mapOf(),
+            masked = false
         )
 }
 
@@ -105,7 +103,8 @@ class ExternalUtkast(
         opprettet = sistEndret,
         sistEndret = sistEndret,
         slettesEtter = null,
-        metrics = mapOf()
+        metrics = mapOf(),
+        masked = false
     )
 }
 

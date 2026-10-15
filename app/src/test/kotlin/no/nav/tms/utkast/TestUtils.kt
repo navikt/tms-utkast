@@ -4,27 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
-import io.ktor.serialization.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.tms.kafka.application.MessageBroadcaster
 import no.nav.tms.kafka.application.isMissingOrNull
+import no.nav.tms.token.support.user.token.verification.LevelOfAssurance
 import no.nav.tms.utkast.sink.UtkastRepository
 import no.nav.tms.utkast.sink.UtkastCreatedSubscriber
 import no.nav.tms.utkast.sink.UtkastDeletedSubscriber
 import no.nav.tms.utkast.sink.UtkastUpdatedSubscriber
 import org.intellij.lang.annotations.Language
-import org.slf4j.MDC
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
-import java.util.*
-import kotlin.random.Random
 
 internal fun setupBroadcaster(
     utkastRepository: UtkastRepository,
@@ -50,7 +41,8 @@ internal fun createUtkastTestPacket(
     tittelI18n: Map<String, String>? = null,
     link: String = "http://testlink",
     slettesEtter: ZonedDateTime? = null,
-    metrics: Map<String, String>? = null
+    metrics: Map<String, String>? = null,
+    levelOfAssurance: String? = null,
 ) = """
     {
      "@event_name": "created",
@@ -61,6 +53,7 @@ internal fun createUtkastTestPacket(
     ${if (tittelI18n != null) ",\"tittel_i18n\": ${tittelI18n.toJson()}" else ""}
     ${if (slettesEtter != null) ",\"slettesEtter\": \"$slettesEtter\"" else ""}
     ${if (metrics != null) ",\"metrics\": ${metrics.toJson()}" else ""}
+    ${if (levelOfAssurance != null) ",\"levelOfAssurance\": \"$levelOfAssurance\"" else ""}
 }
 """.trimIndent()
 
@@ -115,7 +108,8 @@ data class UtkastData(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
     val slettesEtter: ZonedDateTime?,
-    val metrics: Map<String, String>? = null
+    val metrics: Map<String, String>? = null,
+    val levelOfAssurance: String? = null,
 ) {
     @Language("JSON")
     fun toDigisosResponse() =
@@ -128,7 +122,8 @@ data class UtkastData(
         "link": "$link",
         "tekst": "$tittel",
         "sistOppdatert": null,
-        "isAktiv": true
+        "isAktiv": true,
+        "levelOfAssurance": "${levelOfAssurance?: LevelOfAssurance.Substantial.toString()}"
         }
     """.trimIndent()
 
@@ -142,13 +137,3 @@ data class UtkastData(
         }
     """.trimIndent()
 }
-
-internal fun testUtkastData(tittelI18n: Map<String, String> = emptyMap(), startTestTime: LocalDateTime) = UtkastData(
-    utkastId = UUID.randomUUID().toString(),
-    tittel = "testTittel ${Random.nextInt(0, 10)}",
-    tittelI18n = tittelI18n,
-    link = "https://test.link",
-    opprettet = startTestTime,
-    sistEndret = null,
-    slettesEtter = null
-)

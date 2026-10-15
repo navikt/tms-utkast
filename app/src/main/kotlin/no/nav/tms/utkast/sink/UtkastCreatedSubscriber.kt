@@ -20,7 +20,7 @@ class UtkastCreatedSubscriber(
 
     override fun subscribe() = Subscription.forEvent("created")
         .withFields("utkastId", "ident", "link", "tittel")
-        .withOptionalFields("tittel_i18n", "metrics", "slettesEtter")
+        .withOptionalFields("tittel_i18n", "metrics", "slettesEtter", "levelOfAssurance")
 
     override suspend fun receive(jsonMessage: JsonMessage) {
         validateUtkast(jsonMessage)

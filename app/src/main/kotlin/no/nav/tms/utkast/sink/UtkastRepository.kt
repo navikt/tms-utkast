@@ -1,6 +1,5 @@
 package no.nav.tms.utkast.sink
 
-import com.fasterxml.jackson.databind.JsonNode
 import kotliquery.queryOf
 import no.nav.tms.common.postgres.JsonbHelper.toJsonb
 import no.nav.tms.common.postgres.PostgresDatabase
@@ -92,5 +91,6 @@ data class Utkast(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime?,
     val slettesEtter: ZonedDateTime?,
-    val metrics: Map<String,String>?
+    val metrics: Map<String,String>?,
+    val masked: Boolean
 )
