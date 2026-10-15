@@ -78,7 +78,7 @@ internal fun Application.utkastApi(
                         val internal =
                             utkastRepository.getUtkastForIdent(
                                 userIdent,
-                                levelOfAssurance,
+                                LevelOfAssurance.High,
                                 localeParam,
                             )
 
@@ -97,6 +97,24 @@ internal fun Application.utkastApi(
                         jacksonObjectMapper().createObjectNode()
                             .put("antall", (externalresult.utkast() + internal).size)
                     )
+                }
+            }
+            route("v3/utkast") {
+                get {
+                    withLoggingContext("lang" to localeCode) {
+                        val externalresult = utkastFetcher.allExternal(userToken)
+                        val internal =
+                            utkastRepository.getUtkastForIdent(
+                                userIdent,
+                                levelOfAssurance,
+                                localeParam,
+                            )
+
+                        call.respond(
+                            status = externalresult.responseStatus(),
+                            internal + externalresult.utkast()
+                        )
+                    }
                 }
             }
         }

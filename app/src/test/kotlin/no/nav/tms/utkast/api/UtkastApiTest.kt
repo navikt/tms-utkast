@@ -324,7 +324,7 @@ class UtkastApiTest {
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
 
-        client.get("v2/utkast").run {
+        client.get("v3/utkast").run {
             status.shouldBe(HttpStatusCode.OK)
             objectMapper.readTree(bodyAsText()).run {
                 size() shouldBe 4
@@ -353,7 +353,7 @@ class UtkastApiTest {
             objectMapper.readTree(bodyAsText())["antall"].asInt() shouldBe 4
         }
 
-        client.get("v2/utkast").run {
+        client.get("v3/utkast").run {
             status shouldBe HttpStatusCode.OK
             objectMapper.readTree(bodyAsText())
             objectMapper.readTree(bodyAsText()).run {
