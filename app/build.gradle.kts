@@ -52,6 +52,7 @@ dependencies {
     testImplementation(libs.ktor.server.header)
     testImplementation(libs.ktor.test.client)
     testImplementation(libs.ktor.test.server)
+    testImplementation(libs.tms.ktor.support.verification.mock)
 }
 
 application {

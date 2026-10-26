@@ -1,4 +1,4 @@
-# tms-utkast
+# tms-utkast docs
 
 Backend for utkast-funksjonalitet på min side.
 
