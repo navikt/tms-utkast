@@ -1,16 +1,10 @@
 plugins {
-    kotlin("jvm").version(Kotlin.version)
+    alias(libs.plugins.kotlin)
 }
 
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
-tasks {
-    jar {
-        enabled = false
     }
 }
 
