@@ -34,7 +34,7 @@ jobs:
         uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # ratchet:gradle/actions/setup-gradle@v4
 
       - name: Bygg prosjekt
-        run: ./gradlew assemble
+        run: ./gradlew assemble :app:installDist
 
       - name: Build og push docker-image
         uses: nais/docker-build-push@dd7421d5068057a020ca46ead966c26190c516b1 # ratchet:nais/docker-build-push@v0
