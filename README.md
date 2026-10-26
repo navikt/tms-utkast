@@ -18,7 +18,7 @@ Dokumentasjon for produsenter finnes i [how-to](/howto.md) og i dokumnetasjonsid
 **topic**: aapen-utkast-v1 \
 **hendelser**: `created`, `updated`, `deleted`
 
-### meldingsformat
+### meldingsformat[build.gradle.kts](app/build.gradle.kts)
 
 #### create og update
 
