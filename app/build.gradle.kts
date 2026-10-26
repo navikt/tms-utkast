@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.prometheus.metric.core)
     implementation(libs.bundles.jackson)
     implementation(libs.tms.kafka.tools.application)
+    implementation(libs.tms.ktor.support.verification)
     implementation(project(":lib"))
 
     testImplementation(libs.junit.launcher)
