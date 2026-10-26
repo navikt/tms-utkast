@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
-    alias(libs.plugins.kotlin)
+    alias(tms.plugins.kotlin)
 
     application
 }
@@ -22,37 +22,37 @@ repositories {
 
 
 dependencies {
-    implementation(libs.bundles.flyway)
-    implementation(libs.hikari.cp)
-    implementation(libs.kotlin.logging)
-    implementation(libs.bundles.ktor.server)
-    implementation(libs.ktor.serialization.jackson)
-    implementation(libs.bundles.ktor.client)
-    implementation(libs.logback.encoder)
-    implementation(libs.tms.ktor.support.entraId)
-    implementation(libs.tms.ktor.support.exchange)
-    implementation(libs.postgresql.default)
-    implementation(libs.kotli.query)
-    implementation(libs.bundles.tms.common)
-    implementation(libs.prometheus.metric.core)
-    implementation(libs.bundles.jackson)
-    implementation(libs.tms.kafka.tools.application)
-    implementation(libs.tms.ktor.support.verification)
+    implementation(tms.bundles.flyway)
+    implementation(tms.hikari.cp)
+    implementation(tms.kotlin.logging)
+    implementation(tms.bundles.ktor.server)
+    implementation(tms.ktor.serialization.jackson)
+    implementation(tms.bundles.ktor.client)
+    implementation(tms.logback.encoder)
+    implementation(tms.tms.ktor.support.entraId)
+    implementation(tms.tms.ktor.support.exchange)
+    implementation(tms.postgresql.default)
+    implementation(tms.kotli.query)
+    implementation(tms.bundles.tms.common)
+    implementation(tms.prometheus.metric.core)
+    implementation(tms.bundles.jackson)
+    implementation(tms.tms.kafka.tools.application)
+    implementation(tms.tms.ktor.support.verification)
     implementation(project(":lib"))
 
-    testImplementation(libs.junit.launcher)
-    testImplementation(libs.junit.api)
-    testImplementation(libs.junit.engine)
-    testImplementation(libs.mockk.default)
-    testImplementation(libs.test.container.postgresql)
-    testImplementation(libs.kotest.runner)
-    testImplementation(libs.kotest.assertion)
-    testImplementation(libs.tms.ktor.support.entraId.mock)
-    testImplementation(libs.ktor.serialization.kotlinx)
-    testImplementation(libs.ktor.server.header)
-    testImplementation(libs.ktor.test.client)
-    testImplementation(libs.ktor.test.server)
-    testImplementation(libs.tms.ktor.support.verification.mock)
+    testImplementation(tms.junit.launcher)
+    testImplementation(tms.junit.api)
+    testImplementation(tms.junit.engine)
+    testImplementation(tms.mockk.default)
+    testImplementation(tms.test.container.postgresql)
+    testImplementation(tms.kotest.runner)
+    testImplementation(tms.kotest.assertion)
+    testImplementation(tms.tms.ktor.support.entraId.mock)
+    testImplementation(tms.ktor.serialization.kotlinx)
+    testImplementation(tms.ktor.server.header)
+    testImplementation(tms.ktor.test.client)
+    testImplementation(tms.ktor.test.server)
+    testImplementation(tms.tms.ktor.support.verification.mock)
 }
 
 application {

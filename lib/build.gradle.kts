@@ -1,8 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
-    alias(libs.plugins.kotlin)
-    alias(libs.plugins.kotlin.serialization)
+    alias(tms.plugins.kotlin)
+    alias(tms.plugins.kotlin.serialization)
     `java-library`
     `maven-publish`
 }
@@ -22,13 +22,13 @@ repositories {
 }
 
 dependencies {
-    implementation(utkast.kotlixJson)
-    testImplementation(libs.junit.launcher)
-    testImplementation(libs.junit.api)
-    testImplementation(libs.junit.engine)
-    testImplementation(libs.kotest.runner)
-    testImplementation(libs.kotest.assertion)
-    testImplementation(utkast.sulkId)
+    implementation(libs.kotlixJson)
+    testImplementation(tms.junit.launcher)
+    testImplementation(tms.junit.api)
+    testImplementation(tms.junit.engine)
+    testImplementation(tms.kotest.runner)
+    testImplementation(tms.kotest.assertion)
+    testImplementation(libs.sulkId)
 }
 
 tasks {
