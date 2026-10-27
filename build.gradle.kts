@@ -1,5 +1,5 @@
 plugins {
-    alias(tms.plugins.kotlin)
+    alias(defaults.plugins.kotlin)
 }
 
 kotlin {

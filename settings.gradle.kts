@@ -16,8 +16,8 @@ dependencyResolutionManagement {
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
     versionCatalogs {
-        create("tms") {
-            from("no.nav.tms:tms-dependency-admin:20261026.5.1")
+        create("defaults") {
+            from("no.nav.tms:tms-dependency-admin:20261027.7.1")
         }
     }
 }
