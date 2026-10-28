@@ -40,6 +40,9 @@ jobs:
       - name: Bygg prosjekt og kjør tester
         run: ./gradlew build
 
+      - name: assemble proesjekt
+        run: ./gradlew assemble :app:installDist
+
       - name: Build og push docker-image
         uses: nais/docker-build-push@v0
         id: docker-build-push
