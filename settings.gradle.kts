@@ -9,3 +9,15 @@
 
 rootProject.name = "tms-utkast"
 include("app", "lib")
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+    }
+    versionCatalogs {
+        create("defaults") {
+            from("no.nav.tms:tms-dependency-admin:20261027.7.1")
+        }
+    }
+}

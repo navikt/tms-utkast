@@ -1,0 +1,3 @@
+[libraries]
+kotlixJson = {group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.0" }
+sulkId = {group = "de.huxhorn.sulky", name = "de.huxhorn.sulky.ulid", version = "8.2.0" }

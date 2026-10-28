@@ -1,9 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm").version(Kotlin.version)
-    kotlin("plugin.serialization") version Kotlin.version
+    alias(defaults.plugins.kotlin)
+    alias(defaults.plugins.kotlin.serialization)
     `java-library`
     `maven-publish`
 }
@@ -23,13 +22,13 @@ repositories {
 }
 
 dependencies {
-    implementation(KotlinxSerialization.json)
-    testImplementation(JunitPlatform.launcher)
-    testImplementation(JunitJupiter.api)
-    testImplementation(JunitJupiter.engine)
-    testImplementation(Kotest.runnerJunit5)
-    testImplementation(Kotest.assertionsCore)
-    testImplementation(SulkyUlid.sulkyUlid)
+    implementation(libs.kotlixJson)
+    testImplementation(defaults.junit.launcher)
+    testImplementation(defaults.junit.api)
+    testImplementation(defaults.junit.engine)
+    testImplementation(defaults.kotest.runner)
+    testImplementation(defaults.kotest.assertion)
+    testImplementation(libs.sulkId)
 }
 
 tasks {
@@ -67,7 +66,6 @@ publishing {
                 archiveClassifier.set("sources")
                 from(sourceSets.main.get().allSource)
             }
-
             artifact(sourcesJar)
         }
     }
