@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     alias(defaults.plugins.kotlin)
-
+    alias(defaults.plugins.tms.jarBundling)
     application
 }
 
@@ -10,6 +10,11 @@ kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+jarBundling {
+    applicationName = "app"
+    outputDirectory = "libs"
 }
 
 repositories {
@@ -73,3 +78,4 @@ tasks {
         }
     }
 }
+
