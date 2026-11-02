@@ -5,12 +5,18 @@ plugins {
     alias(defaults.plugins.kotlin.serialization)
     `java-library`
     `maven-publish`
+    alias(defaults.plugins.tms.jarBundling)
 }
 
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+jarBundling {
+    applicationName = "lib"
+    outputDirectory = "libs"
 }
 
 repositories {

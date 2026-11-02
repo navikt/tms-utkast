@@ -41,7 +41,7 @@ jobs:
         run: ./gradlew build
 
       - name: assemble proesjekt
-        run: ./gradlew assemble :app:installDist
+        run: ./gradlew assemble
 
       - name: Build og push docker-image
         uses: nais/docker-build-push@v0

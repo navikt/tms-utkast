@@ -34,7 +34,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Bygg prosjekt
-        run: ./gradlew assemble :app:installDist
+        run: ./gradlew assemble
 
       - name: Build og push docker-image
         uses: nais/docker-build-push@v0
