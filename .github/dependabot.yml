@@ -33,18 +33,19 @@ updates:
     directory: "/gradle"
     schedule:
       interval: "weekly"
-    internal:
-      patterns:
-        - "org.jetbrains.kotlin:*"
-        - "de.huxhorn.sulky:*"
-      update-types:
-        - "minor"
-        - "patch"
-      gradle-major:
+    groups:
+      internal:
         patterns:
-          - "*"
+          - "org.jetbrains.kotlin:*"
+          - "de.huxhorn.sulky:*"
         update-types:
-          - "major"
+          - "minor"
+          - "patch"
+        gradle-major:
+          patterns:
+            - "*"
+          update-types:
+            - "major"
     labels:
       - gradle
       - dependencies
