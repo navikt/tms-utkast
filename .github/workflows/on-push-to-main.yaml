@@ -71,7 +71,7 @@ jobs:
 
       - name: 'Deploy til ${{ matrix.cluster }}'
         if: env.DEPLOY_CONFIG_DEFINED == 'true'
-        uses: nais/deploy/actions/deploy@v2
+        uses: nais/deploy/actions/deploy@v3
         env:
           CLUSTER: ${{ matrix.cluster }}
           RESOURCE: ./nais/${{ matrix.cluster }}/nais.yaml
