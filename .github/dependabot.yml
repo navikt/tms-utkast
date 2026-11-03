@@ -7,21 +7,22 @@ registries:
 
 updates:
   - package-ecosystem: "github-actions"
-    directories: "/"
-    schedule: weekly
+    directory: "/"
+    schedule:
+      interval: "weekly"
     groups:
       github:
         patterns:
           - "*"
+    cooldown:
+      default-days: 3
 
   - package-ecosystem: "gradle"
     directory: "/"
     registries:
       - nav-maven
     schedule:
-      interval: "daily"
-      time: "08:00"
-      timezone: "Europe/Berlin"
+      interval: "weekly"
     groups:
       gradle-major:
         patterns:
