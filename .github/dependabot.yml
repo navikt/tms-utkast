@@ -40,11 +40,11 @@ updates:
       update-types:
         - "minor"
         - "patch"
-    gradle-major:
-      patterns:
-        - "*"
-      update-types:
-        - "major"
+      gradle-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
     labels:
       - gradle
       - dependencies
