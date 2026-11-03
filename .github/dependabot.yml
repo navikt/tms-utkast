@@ -24,22 +24,27 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      gradle-major:
-        patterns:
-          - "*"
-        update-types:
-          - "major"
-      internal:
-        patterns:
-          - "org.jetbrains.kotlin:*"
-          - "de.huxhorn.sulky:*"
-        update-types:
-          - "minor"
-          - "patch"
       central-admin:
         patterns:
           - "no.nav.tms:*"
 
+
+  - package-ecosystem: "gradle"
+    directory: "/gradle"
+    schedule:
+      interval: "weekly"
+    internal:
+      patterns:
+        - "org.jetbrains.kotlin:*"
+        - "de.huxhorn.sulky:*"
+      update-types:
+        - "minor"
+        - "patch"
+    gradle-major:
+      patterns:
+        - "*"
+      update-types:
+        - "major"
     labels:
       - gradle
       - dependencies

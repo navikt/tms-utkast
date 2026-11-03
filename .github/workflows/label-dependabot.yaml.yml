@@ -1,0 +1,83 @@
+name: Label Dependabot PRs
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Label Dependabot PR
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+
+            if (
+              pr.user.login !== 'dependabot[bot]' ||
+              pr.head.repo?.full_name !== repo
+            ) {
+              return;
+            }
+
+            const branch = pr.head.ref;
+            const prefix = 'dependabot/gradle/';
+
+            const groupBranch = branch.startsWith(prefix)
+              ? branch.substring(prefix.length)
+              : '';
+
+            const groups = {
+              'central-admin': 'admin-catalog',
+              'internal': 'local-libs',
+            };
+
+            const managedLabels = Object.values(groups);
+
+            const match = Object.entries(groups).find(
+              ([group]) => groupBranch.startsWith(`${group}-`)
+            );
+
+            const expectedLabel = match?.[1];
+
+            const currentLabels = pr.labels.map(
+              label => label.name
+            );
+
+            for (const label of managedLabels) {
+              if (
+                label !== expectedLabel &&
+                currentLabels.includes(label)
+              ) {
+                await github.rest.issues.removeLabel({
+                  ...context.repo,
+                  issue_number: pr.number,
+                  name: label,
+                });
+              }
+            }
+
+            if (
+              expectedLabel &&
+              !currentLabels.includes(expectedLabel)
+            ) {
+              await github.rest.issues.addLabels({
+                ...context.repo,
+                issue_number: pr.number,
+                labels: [expectedLabel],
+              });
+            }
