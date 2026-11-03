@@ -30,7 +30,7 @@ updates:
 
 
   - package-ecosystem: "gradle"
-    directory: "/gradle"
+    directory: "/gradle/libs.versions.toml"
     schedule:
       interval: "weekly"
     groups:
