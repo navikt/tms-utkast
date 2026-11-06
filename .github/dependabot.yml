@@ -27,13 +27,6 @@ updates:
       central-admin:
         patterns:
           - "no.nav.tms:*"
-
-
-  - package-ecosystem: "gradle"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
       internal:
         patterns:
           - "org.jetbrains.kotlin:*"
