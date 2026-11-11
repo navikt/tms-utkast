@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("defaults") {
-            from("no.nav.tms:tms-dependency-admin:20261029.13.1")
+            from("no.nav.tms:tms-dependency-admin:20261105.14.1")
         }
     }
 
