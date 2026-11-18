@@ -40,6 +40,7 @@ spec:
         - application: tms-utkast-frontend
         - application: "*"
           namespace: min-side
+        - application: tms-utkast-frontend-pr-278
     outbound:
       rules:
         - application: innsending
