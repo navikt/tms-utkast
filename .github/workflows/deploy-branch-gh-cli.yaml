@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   deploy:
-    uses: navikt/tms-backend-deploy/.github/workflows/build-and-deploy.yml@main
+    uses: navikt/tms-backend-deploy/.github/workflows/reusable-build-and-deploy.yml@main
     with:
       clusters: ${{ format('[{0}]', toJSON(inputs.cluster)) }}
     secrets:
