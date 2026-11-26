@@ -14,10 +14,10 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         maven(url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release"))
-    }
-    versionCatalogs {
-        create("defaults") {
-            from("no.nav.tms:tms-dependency-admin:20261029.13.1")
+        versionCatalogs {
+            create("defaults") {
+                from("no.nav.tms:tms-dependency-admin:20261029.13.1")
+            }
         }
     }
 

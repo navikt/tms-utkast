@@ -39,6 +39,3 @@ updates:
           - "*"
         update-types:
           - "major"
-    labels:
-      - gradle
-      - dependencies
