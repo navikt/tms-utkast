@@ -10,12 +10,17 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      time: "08:00"
+      timezone: "Europe/Oslo"
     groups:
       github:
         patterns:
           - "*"
     cooldown:
       default-days: 3
+    labels:
+      - github-actions
+      - tms-backend
 
   - package-ecosystem: "gradle"
     directory: "/"
@@ -23,11 +28,13 @@ updates:
       - nav-maven
     schedule:
       interval: "weekly"
+      time: "08:00"
+      timezone: "Europe/Oslo"
     groups:
-      central-admin:
+      min-side-catalog:
         patterns:
-          - "no.nav.tms:*"
-      internal:
+          - "no.nav.tms:tms-dependency-admin:*"
+      local-dependencies:
         patterns:
           - "org.jetbrains.kotlin:*"
           - "de.huxhorn.sulky:*"
@@ -40,5 +47,5 @@ updates:
         update-types:
           - "major"
     labels:
-      - gradle
-      - dependencies
+      - gradle-dependency
+      - tms-backend
